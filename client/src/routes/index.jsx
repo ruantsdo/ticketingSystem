@@ -18,7 +18,6 @@ const AppRoutes = () => {
                 <Route path="/login" index element={<LoginPage />} />
                 <Route path="/home" index element={<Home />} />
                 <Route path="/newUser" index element={<NewUserPage />} />
-                NewUserPage
 
                 <Route path="*" element={<Home />} />
             </Routes>
