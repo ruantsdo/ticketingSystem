@@ -18,6 +18,9 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 //Schemas
 
+//Axios
+import Axios from "axios"
+
 function NewUserRegister(){
     const [data, setData] = useState()
     const [isVisible, setIsVisible] = useState(false);
@@ -38,6 +41,12 @@ function NewUserRegister(){
                 setPasswordDismatch(false)
                 setData(JSON.stringify(values))
                 console.log(JSON.stringify(values, null, 2));
+                Axios.post("/newUser", {
+                    name: values.email,
+                    password: values.password
+                }).then((response)=> {
+                    console.log(response)
+                })
             } 
         },
         validate: (values) => {
@@ -60,7 +69,7 @@ function NewUserRegister(){
                     <Form onSubmit={formik.handleSubmit} className="flex flex-col gap-3 justify-center items-center w-full">
                         <Input
                             isRequired
-                            type="email"
+                            type="text"
                             label="Email"
                             className="w-full"
                             name="email"

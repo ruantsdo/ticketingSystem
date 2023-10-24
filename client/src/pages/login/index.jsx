@@ -19,6 +19,9 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 //Schemas
 import loginSchema from "../../schemas/login";
 
+//Axios
+//import Axios from "axios"
+
 function LoginPage(){
     const [data, setData] = useState()
     const [isVisible, setIsVisible] = useState(false);

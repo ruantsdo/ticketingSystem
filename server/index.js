@@ -1,22 +1,37 @@
 const express = require("express")
 const app = express()
 const mysql = require("mysql")
+const cors = require("cors");
 
-const db = mysql.createPool({
-    host: "localhost",
+const config = {
+    host: "127.0.0.1",
+    port: 3306,
+    database: "database",
     user: "root",
     password: "password",
-    database: "database",
-})
+  };
+  
+  const db = mysql.createConnection(config);
 
-app.get('/', (req, res) =>{
-    db.query("INSERT INTO users (name, password) VALUES ('ruan','12345')", (err, result) => {
+  app.use(express.json())
+  app.use(cors())
+  
+  db.connect((err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log("Conexão com o banco de dados foi estabelecida com sucesso...")
+    }
+  });
+
+  app.post("/newUser", (req, res) => {
+    const name = req.body.name
+    const password = req.body.password
+
+    db.query("SELECT name FROM users WHERE name = ?", [name], (err, res) => {
         if(err){
-            console.log(err)
+            res.send(err)
         }
+        res.send(res)
     })
-})
-
-app.listen(3001, () => {
-    console.log("Rodando na porta 3001")
-})
+  })
