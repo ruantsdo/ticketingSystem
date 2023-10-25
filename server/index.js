@@ -26,6 +26,33 @@ db.connect((err) => {
   }
 });
 
+app.post("/login", (req, res) => {
+  const cpf = req.body.cpf;
+  const password = req.body.password;
+
+  db.query("SELECT * FROM users WHERE cpf = ?", [cpf], (error, response) => {
+    if (error) {
+      res.send(error);
+    }
+
+    if (response.length > 0) {
+      console.log("Usuário encontrado!");
+      bcrypt.compare(password, response[0].password, (error, result) => {
+        if (result) {
+          console.log("Logado com sucesso!");
+          res.send({ msg: "Logado com sucesso!" });
+          return;
+        }
+
+        console.log("Senha incorreta!");
+      });
+    } else {
+      console.log("Usuário não encontrado!");
+      res.send({ msg: "Usuário não encontrado!" });
+    }
+  });
+});
+
 app.post("/newUser", async (req, res) => {
   db.query(
     "SELECT cpf FROM users WHERE cpf = ?",

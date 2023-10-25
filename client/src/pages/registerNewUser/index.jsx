@@ -105,8 +105,8 @@ function NewUserRegister() {
     setPermissionLevel(uniquePermissionLevels);
   };
 
-  const handleSectors = () => {
-    api
+  const handleSectors = async () => {
+    await api
       .get("/sectors")
       .then((response) => {
         setSectors(response.data);

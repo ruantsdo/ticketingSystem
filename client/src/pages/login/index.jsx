@@ -16,7 +16,7 @@ import {
 } from "@nextui-org/react";
 
 //Validation
-import { Formik, Form, ErrorMessage, useFormik } from "formik";
+import { Formik, Form, useFormik } from "formik";
 
 //Icons
 import LoginIcon from "@mui/icons-material/Login";
@@ -26,8 +26,8 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 //Schemas
 import loginSchema from "../../schemas/login";
 
-//Axios
-//import Axios from "axios"
+//Services
+import api from "../../services/api";
 
 function LoginPage() {
   const [isVisible, setIsVisible] = useState(false);
@@ -36,10 +36,26 @@ function LoginPage() {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      cpf: "",
       password: "",
     },
-    onSubmit: (values) => {},
+    onSubmit: async (values) => {
+      try {
+        await api
+          .post("/login", {
+            cpf: values.cpf,
+            password: values.password,
+          })
+          .then((response) => {
+            console.log("Resposta", response);
+            return;
+          });
+
+        console.log("Login realizado com sucesso!");
+      } catch (err) {
+        console.log(err);
+      }
+    },
   });
 
   return (
@@ -65,14 +81,13 @@ function LoginPage() {
             >
               <Input
                 isRequired
-                type="email"
-                label="Email"
+                type="text"
+                label="CPF"
                 className="w-full"
-                name="email"
+                name="cpf"
                 onChange={formik.handleChange}
-                value={formik.values.email}
+                value={formik.values.cpf}
               />
-              <ErrorMessage component="span" name="email" className="" />
               <Input
                 isRequired
                 type={isVisible ? "text" : "password"}
@@ -94,9 +109,7 @@ function LoginPage() {
                     )}
                   </button>
                 }
-                //minLength={3}
               />
-              <ErrorMessage component="span" name="password" className="" />
               <Divider className="dark:bg-dark-background bg-light-background" />
               <Button
                 className="bg-success w-[40%]"
