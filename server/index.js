@@ -26,36 +26,36 @@ db.connect((err) => {
   }
 });
 
-app.post("/newUser", (req, res) => {
-  const name = req.body.name;
-  const password = req.body.password;
-  const cpf = req.body.cpf;
-  const sector = req.body.sector;
-  const email = req.body.email;
+app.post("/newUser", async (req, res) => {
+  db.query(
+    "SELECT cpf FROM users WHERE cpf = ?",
+    [req.body.cpf],
+    async (err, result) => {
+      if (err) {
+        return;
+      }
 
-  db.query("SELECT cpf FROM users WHERE cpf = ?", [cpf], (err, result) => {
-    if (err) {
-      return;
-    }
+      const hash = await bcrypt.hash(req.body.password, saltRounds);
 
-    if (result.length == 0) {
-      bcrypt.hash(password, saltRounds, (err, hash) => {
-        db.query(
-          "INSERT INTO users (name, password, cpf, sector, email) VALUES (?, ?, ?, ?, ?)",
-          [name, hash, cpf, sector, email],
-          (err) => {
-            if (err) {
-              res.send({ msg: "Falha no cadastrado!" });
-            } else {
-              res.send({ msg: "Cadastrado com sucesso!" });
-            }
-          }
+      try {
+        await db.query(
+          "INSERT INTO users (name, password, cpf, sector, email, permission_level) VALUES (?, ?, ?, ?, ?, ?)",
+          [
+            req.body.name,
+            hash,
+            req.body.cpf,
+            req.body.sector,
+            req.body.email,
+            req.body.permissionLevel,
+          ]
         );
-      });
-    } else {
-      res.send({ msg: "Usuário já cadastrado!" });
+
+        res.send({ msg: "Cadastrado com sucesso!" });
+      } catch (err) {
+        res.send({ msg: "Falha no cadastrado!" });
+      }
     }
-  });
+  );
 });
 
 app.get("/sectors", (req, res) => {
@@ -78,7 +78,7 @@ app.get("/usersLevel/:cpf", (req, res) => {
 
       if (result.length > 0) {
         const permissionLevel = result[0].permission_level;
-        console.log(permissionLevel);
+        //console.log(permissionLevel);
         res.send({ permissionLevel });
       } else {
         res.status(404).send("CPF não encontrado");

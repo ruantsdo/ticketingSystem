@@ -32,71 +32,77 @@ function NewUserRegister() {
   const [isVisible, setIsVisible] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [sectors, setSectors] = useState([]);
-  const [userLevel, setUserLevel] = useState();
+  // eslint-disable-next-line
+  const [userLevel, setUserLevel] = useState(5);
   const [permissionLevel, setPermissionLevel] = useState([]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   useEffect(() => {
     handleSectors();
-    handleUserLevel();
     setLevelOfPermission();
-    // eslint-disable-next-line
+    //eslint-disable-next-line
   }, []);
 
   const formik = useFormik({
     initialValues: {
       name: "",
       email: "",
-      cpf: "05831605574",
+      cpf: "",
       sector: "",
       permissionLevel: "",
       password: "",
       confirmPassword: "",
     },
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (values.password !== values.confirmPassword) {
         setPasswordMismatch(true);
       } else {
         setPasswordMismatch(false);
-        api
-          .post("/newUser", {
+        try {
+          await api.post("/newUser", {
             name: values.name,
             email: values.email,
             cpf: values.cpf,
             sector: values.sector,
+            permissionLevel: values.permissionLevel,
             password: values.password,
-          })
-          .then((response) => {
-            console.log(response);
-          })
-          .catch((err) => {
-            console.log(err);
           });
+
+          console.log("Cadastrado com sucesso!");
+        } catch (err) {
+          console.log(err);
+        }
       }
     },
     validate: (values) => {},
   });
 
-  const handleUserLevel = () => {
-    api
-      .get(`/usersLevel/${formik.values.cpf}`)
-      .then((response) => {
-        setUserLevel(response.data.permission_level);
-        console.log(userLevel);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
+  // const handleUserLevel = () => {
+  //   api
+  //     .get(`/usersLevel/${formik.values.cpf}`)
+  //     .then((response) => {
+  //       const level = response.data.permissionLevel;
+  //       console.log(level);
+  //       setUserLevel(level);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // };
 
   const setLevelOfPermission = () => {
+    const uniquePermissionLevels = [];
+
     for (let i = 1; i < userLevel; i++) {
-      permissionLevel.push({
-        id: i,
-        value: i.toString(),
-      });
+      const permissionLevel = { id: i.toString(), value: i.toString() };
+
+      if (!uniquePermissionLevels.includes(permissionLevel)) {
+        uniquePermissionLevels.push(permissionLevel);
+      }
     }
+
+    setPermissionLevel(uniquePermissionLevels);
   };
 
   const handleSectors = () => {
@@ -167,7 +173,7 @@ function NewUserRegister() {
                   value={formik.values.sector}
                 >
                   {(sectors) => (
-                    <SelectItem key={sectors.id} value={sectors.name}>
+                    <SelectItem key={sectors.name} value={sectors.name}>
                       {sectors.name}
                     </SelectItem>
                   )}
