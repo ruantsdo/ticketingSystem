@@ -1,5 +1,5 @@
 //React
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 //Components
 import Container from "../../components/container";
@@ -13,6 +13,8 @@ import {
   Input,
   Divider,
   Link,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 
 //Validation
@@ -29,12 +31,26 @@ import api from "../../services/api";
 function NewUserRegister() {
   const [isVisible, setIsVisible] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [sectors, setSectors] = useState([]);
+  const [userLevel, setUserLevel] = useState();
+  const [permissionLevel, setPermissionLevel] = useState([]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
+  useEffect(() => {
+    handleSectors();
+    handleUserLevel();
+    setLevelOfPermission();
+    // eslint-disable-next-line
+  }, []);
+
   const formik = useFormik({
     initialValues: {
+      name: "",
       email: "",
+      cpf: "05831605574",
+      sector: "",
+      permissionLevel: "",
       password: "",
       confirmPassword: "",
     },
@@ -45,7 +61,10 @@ function NewUserRegister() {
         setPasswordMismatch(false);
         api
           .post("/newUser", {
-            name: values.email,
+            name: values.name,
+            email: values.email,
+            cpf: values.cpf,
+            sector: values.sector,
             password: values.password,
           })
           .then((response) => {
@@ -58,6 +77,38 @@ function NewUserRegister() {
     },
     validate: (values) => {},
   });
+
+  const handleUserLevel = () => {
+    api
+      .get(`/usersLevel/${formik.values.cpf}`)
+      .then((response) => {
+        setUserLevel(response.data.permission_level);
+        console.log(userLevel);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const setLevelOfPermission = () => {
+    for (let i = 1; i < userLevel; i++) {
+      permissionLevel.push({
+        id: i,
+        value: i.toString(),
+      });
+    }
+  };
+
+  const handleSectors = () => {
+    api
+      .get("/sectors")
+      .then((response) => {
+        setSectors(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
   return (
     <>
@@ -80,6 +131,14 @@ function NewUserRegister() {
               >
                 <Input
                   isRequired
+                  type="text"
+                  label="Insira o nome"
+                  className="w-full"
+                  name="name"
+                  onChange={formik.handleChange}
+                  value={formik.values.name}
+                />
+                <Input
                   type="email"
                   label="Email"
                   className="w-full"
@@ -87,6 +146,51 @@ function NewUserRegister() {
                   onChange={formik.handleChange}
                   value={formik.values.email}
                 />
+                <Input
+                  isRequired
+                  type="text"
+                  label="CPF"
+                  className="w-full"
+                  name="cpf"
+                  maxLength={11}
+                  onChange={formik.handleChange}
+                  value={formik.values.cpf}
+                />
+                <Select
+                  isRequired
+                  items={sectors}
+                  label="Selecione um setor"
+                  placeholder="Indique o setor desta pessoa"
+                  className="w-full"
+                  name="sector"
+                  onChange={formik.handleChange}
+                  value={formik.values.sector}
+                >
+                  {(sectors) => (
+                    <SelectItem key={sectors.id} value={sectors.name}>
+                      {sectors.name}
+                    </SelectItem>
+                  )}
+                </Select>
+                <Select
+                  isRequired
+                  items={permissionLevel}
+                  label="Nivel de permissão"
+                  placeholder="Indique nivel das permissões para esta pessoa"
+                  className="w-full"
+                  name="permissionLevel"
+                  onChange={formik.handleChange}
+                  value={formik.values.permissionLevel}
+                >
+                  {(permissionLevel) => (
+                    <SelectItem
+                      key={permissionLevel.id}
+                      value={permissionLevel.value}
+                    >
+                      {permissionLevel.value}
+                    </SelectItem>
+                  )}
+                </Select>
                 <Input
                   isRequired
                   isInvalid={passwordMismatch}

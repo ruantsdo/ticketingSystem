@@ -1,1 +1,34 @@
 SCRIPTS
+==== Privileges ====
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+flush privileges;
+
+==== Sectors Table ====
+
+CREATE TABLE `database`.`sectors` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `description` VARCHAR(1000) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE);
+
+INSERT INTO sectors (name, description) VALUES ('TI', 'Setor de Tecnologia da informção')
+INSERT INTO sectors (name, description) VALUES ('TRANSPORTE', 'Setor para gerenciar os transportes relacionados a empresa')
+
+
+==== Users Table ====
+
+CREATE TABLE `database`.`users` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(50) NOT NULL,
+	`email` VARCHAR(100) NULL,
+	`cpf` VARCHAR(11) NOT NULL,
+	`sector` VARCHAR(50) NOT NULL,
+	`permission_level` INT NOT NULL,
+	`password` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`, `cpf`),
+  UNIQUE INDEX `cpf_UNIQUE` (`cpf` ASC) VISIBLE,
+  FOREIGN KEY (`sector`) REFERENCES `database`.`sectors`(`name`)
+);
+
+INSERT INTO users (name, email, cpf, sector, permission_level, password) VALUES ('Ruan Oliveira', 'ruantsdo@gmail.com', '05831605574', 'TI', '5', '123456')
