@@ -1,5 +1,5 @@
 //React
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 //Components
 import Container from "../../components/container";
@@ -29,7 +29,12 @@ import loginSchema from "../../schemas/login";
 //Services
 import api from "../../services/api";
 
+//Contexts
+import AuthContext from "../../contexts/auth";
+
 function LoginPage() {
+  const { setCurrentUser } = useContext(AuthContext);
+
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -47,11 +52,11 @@ function LoginPage() {
             password: values.password,
           })
           .then((response) => {
-            console.log("Resposta", response);
+            if (response.data.length > 0) {
+              setCurrentUser(response.data);
+            }
             return;
           });
-
-        console.log("Login realizado com sucesso!");
       } catch (err) {
         console.log(err);
       }

@@ -1,27 +1,21 @@
 //React
-import React from "react";
+import React, { useContext } from "react";
 
-//Router-DOM
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+//Routes
+import AuthRoutes from "./authRoutes";
+import AppRoutes from "./appRoutes";
 
-//Pages
-import LoginPage from "../pages/login";
-import Home from "../pages/home"
-import NewUserPage from "../pages/registerNewUser"
+//Contexts
+import AuthContext from "../contexts/auth";
 
-const AppRoutes = () => {
-    return(
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" index element={<LoginPage />} />
-                <Route path="/login" index element={<LoginPage />} />
-                <Route path="/home" index element={<Home />} />
-                <Route path="/newUser" index element={<NewUserPage />} />
+const Router = () => {
+  const { currentUser } = useContext(AuthContext);
 
-                <Route path="*" element={<Home />} />
-            </Routes>
-        </BrowserRouter>
-    )
-}
+  if (currentUser) {
+    return <AppRoutes />;
+  } else {
+    return <AuthRoutes />;
+  }
+};
 
-export default AppRoutes
+export default Router;

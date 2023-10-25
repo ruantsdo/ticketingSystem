@@ -40,11 +40,12 @@ app.post("/login", (req, res) => {
       bcrypt.compare(password, response[0].password, (error, result) => {
         if (result) {
           console.log("Logado com sucesso!");
-          res.send({ msg: "Logado com sucesso!" });
+          res.send(response);
           return;
         }
 
         console.log("Senha incorreta!");
+        res.send({ msg: "Senha incorreta!" });
       });
     } else {
       console.log("Usuário não encontrado!");

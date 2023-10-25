@@ -78,19 +78,6 @@ function NewUserRegister() {
     validate: (values) => {},
   });
 
-  // const handleUserLevel = () => {
-  //   api
-  //     .get(`/usersLevel/${formik.values.cpf}`)
-  //     .then((response) => {
-  //       const level = response.data.permissionLevel;
-  //       console.log(level);
-  //       setUserLevel(level);
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //     });
-  // };
-
   const setLevelOfPermission = () => {
     const uniquePermissionLevels = [];
 
