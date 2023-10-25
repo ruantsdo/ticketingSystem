@@ -10,7 +10,6 @@ import Home from "../pages/home"
 import NewUserPage from "../pages/registerNewUser"
 
 const AppRoutes = () => {
-
     return(
         <BrowserRouter>
             <Routes>
