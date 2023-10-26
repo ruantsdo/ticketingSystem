@@ -5,13 +5,19 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
+const databaseHost = "127.0.0.1";
+const databasePort = "3306";
+
 const config = {
-  host: "127.0.0.1",
-  port: 3306,
+  host: databaseHost,
+  port: databasePort,
   database: "database",
   user: "root",
   password: "password",
 };
+
+const myIp = "192.168.0.38";
+const port = "3001";
 
 const db = mysql.createConnection(config);
 
@@ -113,6 +119,6 @@ app.get("/usersLevel/:cpf", (req, res) => {
   );
 });
 
-app.listen(3001, () => {
+app.listen(port, myIp, () => {
   console.log("Servidor está ouvindo na porta 3001...");
 });
