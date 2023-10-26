@@ -31,4 +31,4 @@ CREATE TABLE `database`.`users` (
   FOREIGN KEY (`sector`) REFERENCES `database`.`sectors`(`name`)
 );
 
-INSERT INTO users (name, email, cpf, sector, permission_level, password) VALUES ('Ruan Oliveira', 'ruantsdo@gmail.com', '05831605574', 'TI', '5', '123456')
+INSERT INTO users (name, email, cpf, sector, permission_level, password) VALUES ('Ruan Oliveira', 'ruantsdo@gmail.com', '05831605574', 'TI', '5', '$2b$10$Id3UhDjeo355Qk8GjxaGju0sYzCJ3ysrVCrIKkBG0wrEoCnten8Xi')

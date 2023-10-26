@@ -53,7 +53,10 @@ function LoginPage() {
           })
           .then((response) => {
             if (response.data.length > 0) {
+              const currentUser = response.data;
               setCurrentUser(response.data);
+
+              localStorage.setItem("currentUser", JSON.stringify(currentUser));
             }
             return;
           });
