@@ -2,7 +2,6 @@
 import React, { useContext } from "react";
 
 //Routes
-// eslint-disable-next-line
 import AuthRoutes from "./authRoutes";
 import AppRoutes from "./appRoutes";
 
@@ -34,8 +33,7 @@ const Router = () => {
   if (currentUser) {
     return <AppRoutes />;
   } else {
-    return <AppRoutes />;
-    //return <AuthRoutes />;
+    return <AuthRoutes />;
   }
 };
 
