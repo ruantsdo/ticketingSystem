@@ -1,3 +1,13 @@
+require("dotenv").config({ path: "./.env" });
+
+const databaseHost = process.env.DATABASE_HOST;
+const databasePort = process.env.DATABASE_PORT;
+const serverIp = process.env.SERVER_IP;
+const serverPort = process.env.SERVER_PORT;
+const databaseName = process.env.DATABASE_NAME;
+const databaseUser = process.env.DATABASE_USER;
+const databasePassword = process.env.DATABASE_PASSWORD;
+
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
@@ -5,17 +15,12 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-const databasePort = "3306";
-const databaseHost = "127.0.0.1";
-const myIp = "192.168.0.38";
-const port = "3001";
-
 const config = {
   host: databaseHost,
   port: databasePort,
-  database: "database",
-  user: "root",
-  password: "password",
+  database: databaseName,
+  user: databaseUser,
+  password: databasePassword,
 };
 
 const db = mysql.createConnection(config);
@@ -117,6 +122,6 @@ app.get("/usersLevel/:cpf", (req, res) => {
   );
 });
 
-app.listen(port, myIp, () => {
+app.listen(serverPort, serverIp, () => {
   console.log("Servidor está ouvindo na porta => " + port + " ...");
 });
