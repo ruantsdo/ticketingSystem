@@ -23,9 +23,6 @@ import LoginIcon from "@mui/icons-material/Login";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-//Schemas
-import loginSchema from "../../schemas/login";
-
 //Services
 import api from "../../services/api";
 
@@ -79,10 +76,7 @@ function LoginPage() {
             Login
           </p>
           <Divider className="dark:bg-dark-background bg-light-background" />
-          <Formik
-            initialValues={formik.initialValues}
-            validationSchema={loginSchema}
-          >
+          <Formik initialValues={formik.initialValues}>
             <Form
               onSubmit={formik.handleSubmit}
               className="flex flex-col gap-3 justify-center items-center w-full"

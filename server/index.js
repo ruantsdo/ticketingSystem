@@ -7,7 +7,7 @@ const saltRounds = 10;
 
 const databasePort = "3306";
 const databaseHost = "127.0.0.1";
-const myIp = "192.168.8.108";
+const myIp = "192.168.0.38";
 const port = "3001";
 
 const config = {

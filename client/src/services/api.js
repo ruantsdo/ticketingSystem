@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const myIp = "192.168.8.108";
+export const myIp = "192.168.0.38";
 export const port = "3001";
 
 const api = axios.create({
