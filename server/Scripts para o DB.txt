@@ -32,3 +32,20 @@ CREATE TABLE `database`.`users` (
 );
 
 INSERT INTO users (name, email, cpf, sector, permission_level, password) VALUES ('Ruan Oliveira', 'ruantsdo@gmail.com', '05831605574', 'TI', '5', '$2b$10$Id3UhDjeo355Qk8GjxaGju0sYzCJ3ysrVCrIKkBG0wrEoCnten8Xi')
+
+==== Queue Table ====
+CREATE TABLE `database`.`queue` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `sector` INT NOT NULL,
+  `service` VARCHAR(50) NOT NULL,
+  `priority` VARCHAR(10) NOT NULL,
+  `created-at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `table` VARCHAR(50) NULL,
+  `served-at` TIMESTAMP NULL,
+  `created-by` INT NOT NULL,
+  `served-by` INT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`sector`) REFERENCES `sectors` (`id`),
+  FOREIGN KEY (`created-by`) REFERENCES `users` (`id`),
+  FOREIGN KEY (`served-by`) REFERENCES `users` (`id`)
+);
