@@ -109,7 +109,6 @@ app.get("/usersLevel/:cpf", (req, res) => {
 
       if (result.length > 0) {
         const permissionLevel = result[0].permission_level;
-        //console.log(permissionLevel);
         res.send({ permissionLevel });
       } else {
         res.status(404).send("CPF não encontrado");
