@@ -5,8 +5,14 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-const databaseHost = "127.0.0.1";
+const http = require("http");
+const httpServer = http.createServer(app);
+const io = require("socket.io")(httpServer);
+
 const databasePort = "3306";
+const databaseHost = "127.0.0.1";
+const myIp = "192.168.8.108";
+const port = "3001";
 
 const config = {
   host: databaseHost,
@@ -16,13 +22,28 @@ const config = {
   password: "password",
 };
 
-const myIp = "192.168.0.38";
-const port = "3001";
-
 const db = mysql.createConnection(config);
 
 app.use(express.json());
 app.use(cors());
+
+const queueEvent = io.of("/queue");
+
+queueEvent.on("connection", (socket) => {
+  // Escuta por novas inserções na tabela "queue"
+  db.query(
+    "SELECT * FROM queue WHERE date >= ?",
+    [new Date()],
+    (err, result) => {
+      if (err) {
+        return;
+      }
+
+      // Envia as novas inserções para a página inicial
+      socket.emit("newQueueItem", result);
+    }
+  );
+});
 
 db.connect((err) => {
   if (err) {
@@ -120,5 +141,5 @@ app.get("/usersLevel/:cpf", (req, res) => {
 });
 
 app.listen(port, myIp, () => {
-  console.log("Servidor está ouvindo na porta 3001...");
+  console.log("Servidor está ouvindo na porta => " + port + " ...");
 });
