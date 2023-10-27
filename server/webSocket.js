@@ -1,4 +1,4 @@
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config({ path: "./.env" });
 
 const databaseHost = process.env.DATABASE_HOST;
 const databasePort = process.env.DATABASE_PORT;
