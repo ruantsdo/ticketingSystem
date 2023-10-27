@@ -5,6 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
+
 import Home from "../pages/home";
 import NewUserPage from "../pages/registerNewUser";
 
@@ -13,7 +14,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/home" index element={<Home />} />
-        <Route path="/newUser" index element={<NewUserPage />} />
+        <Route path="/newUser" element={<NewUserPage />} />
 
         <Route path="*" element={<Home />} />
       </Routes>

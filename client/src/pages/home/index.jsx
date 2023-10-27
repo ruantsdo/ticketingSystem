@@ -1,8 +1,10 @@
 //React
-import { useState } from "react";
+// eslint-disable-next-line
+import React, { useState, useEffect } from "react";
 
 //Socket
-import * as socketIOClient from "socket.io-client";
+// eslint-disable-next-line
+import socketIOClient from "socket.io-client";
 
 //Components
 import Container from "../../components/container";
@@ -11,32 +13,36 @@ import NavBar from "../../components/navbar";
 //NextUI
 import {} from "@nextui-org/react";
 
-//Configs
-import { myIp, port } from "../../services/api";
+import dotenv from "dotenv";
+dotenv.config({ path: "../../../../.env" });
+
+//Env
 
 function Home() {
-  const [queueItems, setQueueItems] = useState([]);
+  const socketServer = process.env.SOCKET_SERVER;
+  const socketServerPort = process.env.SOCKET_SERVER_PORT;
+  useEffect(() => {
+    const socket = socketIOClient(
+      `http://${socketServer}:${socketServerPort}`,
+      {
+        transports: ["websocket", "polling", "flashsocket"],
+      }
+    );
 
-  const onNewQueueItem = (newQueueItem) => {
-    setQueueItems([...queueItems, newQueueItem]);
-  };
+    socket.on("table_change", (data) => {
+      // Handle the change in the table
+      console.log("Table changed:", data);
+    });
 
-  //const socket = socketIOClient.io(`http://${myIp}:${port}`);
-
-  //socket.connect();
-
-  //socket.on("newQueueItem", onNewQueueItem);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <>
       <NavBar />
-      <Container>
-        {queueItems.map((queueItem) => (
-          <div key={queueItem.id}>
-            {queueItem.id} - {queueItem.name}
-          </div>
-        ))}
-      </Container>
+      <Container>Home</Container>
     </>
   );
 }
