@@ -1,15 +1,5 @@
 require("dotenv").config({ path: "./.env" });
 
-const databaseHost = process.env.DATABASE_HOST;
-const databasePort = process.env.DATABASE_PORT;
-const clientIp = process.env.CLIENT_IP;
-const clientPort = process.env.CLIENT_PORT;
-const socketServer = process.env.SOCKET_SERVER;
-const socketServerPort = process.env.SOCKET_SERVER_PORT;
-const databaseName = process.env.DATABASE_NAME;
-const databaseUser = process.env.DATABASE_USER;
-const databasePassword = process.env.DATABASE_PASSWORD;
-
 const express = require("express");
 const cors = require("cors");
 const Sequelize = require("sequelize");
@@ -21,7 +11,7 @@ app.use(express.json());
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
   cors: {
-    origin: `http://${clientIp}:${clientPort}`,
+    origin: `http://${process.env.CLIENT_IP}:${process.env.CLIENT_PORT}`,
     methods: ["GET", "POST"],
     credentials: true,
     allowEIO3: true,
@@ -31,11 +21,16 @@ const io = require("socket.io")(http, {
   transport: ["websocket"],
 });
 
-const sequelize = new Sequelize(databaseName, databaseUser, databasePassword, {
-  host: databaseHost,
-  port: databasePort,
-  dialect: "mysql",
-});
+const sequelize = new Sequelize(
+  process.env.DATABASE_NAME,
+  process.env.DATABASE_USER,
+  process.env.DATABASE_PASSWORD,
+  {
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    dialect: "mysql",
+  }
+);
 
 const TableModel = sequelize.define("queue", {});
 
@@ -51,6 +46,12 @@ io.on("connection", (socket) => {
   });
 });
 
-http.listen(socketServerPort, socketServer, () => {
-  console.log("Socket Server ouvindo na porta => " + socketServerPort);
-});
+http.listen(
+  process.env.SOCKET_SERVER_PORT,
+  process.env.SOCKET_SERVER_IP,
+  () => {
+    console.log(
+      "Socket Server ouvindo na porta => " + process.env.SOCKET_SERVER_PORT
+    );
+  }
+);

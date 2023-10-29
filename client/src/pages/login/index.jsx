@@ -2,7 +2,6 @@
 import React, { useContext, useState } from "react";
 
 //Components
-import Container from "../../components/container";
 import ThemeSwitcher from "../../components/themeSwitch";
 
 //NextUI
@@ -50,8 +49,8 @@ function LoginPage() {
           })
           .then((response) => {
             if (response.data.length > 0) {
-              const currentUser = response.data;
-              setCurrentUser(response.data);
+              const currentUser = response.data[0];
+              setCurrentUser(response.data[0]);
 
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
             }
@@ -64,7 +63,7 @@ function LoginPage() {
   });
 
   return (
-    <Container>
+    <div className="flex w-full h-screen bg-light-background dark:bg-dark-background justify-center items-center transition-all delay-0 overflow-auto">
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card
         isBlurred
@@ -126,7 +125,7 @@ function LoginPage() {
           </Formik>
         </CardBody>
       </Card>
-    </Container>
+    </div>
   );
 }
 

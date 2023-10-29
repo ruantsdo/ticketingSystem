@@ -2,10 +2,19 @@
 import React from "react";
 
 //NextUi
-import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, NavbarMenuToggle, NavbarMenu, NavbarMenuItem} from "@nextui-org/react";
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  Link,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
+} from "@nextui-org/react";
 
 //Components
-import ThemeSwitcher from "../components/themeSwitch"
+import ThemeSwitcher from "../components/themeSwitch";
 
 export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -21,20 +30,31 @@ export default function NavBar() {
   ];
 
   return (
-    <Navbar isBordered onMenuOpenChange={setIsMenuOpen} height={'3rem'} className="w-screen bg-light-navBarBackground dark:bg-dark-navBarBackground">
+    <Navbar
+      isBordered
+      onMenuOpenChange={setIsMenuOpen}
+      height={"6vh"}
+      className="w-full bg-light-navBarBackground dark:bg-dark-navBarBackground"
+    >
       <NavbarContent>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           className="sm:hidden"
         />
         <NavbarBrand>
-          <p className="font-bold text-inherit">SISTEMA DE SENHAS</p>
+          <Link
+            color="foreground"
+            href="/home"
+            className="font-bold text-inherit"
+          >
+            SISTEMA DE SENHAS
+          </Link>
         </NavbarBrand>
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
-          <Link color="foreground" href="#">
+          <Link color="foreground" href="/queueRegistration">
             Senhas
           </Link>
         </NavbarItem>
@@ -59,7 +79,11 @@ export default function NavBar() {
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link
               color={
-                index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
+                index === 2
+                  ? "primary"
+                  : index === menuItems.length - 1
+                  ? "danger"
+                  : "foreground"
               }
               className="w-full"
               href="#"

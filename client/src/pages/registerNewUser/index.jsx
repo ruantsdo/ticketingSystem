@@ -1,5 +1,5 @@
 //React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import Container from "../../components/container";
@@ -28,12 +28,15 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 //Services
 import api from "../../services/api";
 
+//Contexts
+import AuthContext from "../../contexts/auth";
+
 function NewUserRegister() {
+  const { currentUser } = useContext(AuthContext);
+
   const [isVisible, setIsVisible] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [sectors, setSectors] = useState([]);
-  // eslint-disable-next-line
-  const [userLevel, setUserLevel] = useState(5);
   const [permissionLevel, setPermissionLevel] = useState([]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -81,7 +84,7 @@ function NewUserRegister() {
   const setLevelOfPermission = () => {
     const uniquePermissionLevels = [];
 
-    for (let i = 1; i < userLevel; i++) {
+    for (let i = 1; i < currentUser.permission_level; i++) {
       const permissionLevel = { id: i.toString(), value: i.toString() };
 
       if (!uniquePermissionLevels.includes(permissionLevel)) {
@@ -206,7 +209,7 @@ function NewUserRegister() {
                       )}
                     </button>
                   }
-                  //minLength={3}
+                  //minLength={6}
                 ></Input>
                 <Input
                   isRequired

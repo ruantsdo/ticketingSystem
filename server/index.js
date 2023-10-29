@@ -1,13 +1,5 @@
 require("dotenv").config({ path: "./.env" });
 
-const databaseHost = process.env.DATABASE_HOST;
-const databasePort = process.env.DATABASE_PORT;
-const serverIp = process.env.SERVER_IP;
-const serverPort = process.env.SERVER_PORT;
-const databaseName = process.env.DATABASE_NAME;
-const databaseUser = process.env.DATABASE_USER;
-const databasePassword = process.env.DATABASE_PASSWORD;
-
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
@@ -16,11 +8,11 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 const config = {
-  host: databaseHost,
-  port: databasePort,
-  database: databaseName,
-  user: databaseUser,
-  password: databasePassword,
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  database: process.env.DATABASE_NAME,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
 };
 
 const db = mysql.createConnection(config);
@@ -94,10 +86,37 @@ app.post("/newUser", async (req, res) => {
   );
 });
 
-app.get("/sectors", (req, res) => {
-  db.query("SELECT id, name FROM sectors", (err, result) => {
-    res.send(result);
-  });
+app.post("/queueRegistration", async (req, res) => {
+  try {
+    await db.query(
+      "INSERT INTO queue (sector, service, priority, created_by) VALUES (?, ?, ?, ?)",
+      [req.body.sector, req.body.service, req.body.priority, req.body.created]
+    );
+    res.send({ msg: "Ficha cadastrada com sucesso!" });
+  } catch (err) {
+    res.send({ msg: "Falha no cadastramento da ficha!" });
+  }
+});
+
+app.get("/sectors", async (req, res) => {
+  try {
+    await db.query("SELECT id, name FROM sectors", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/queue", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM queue", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.error("Erro ao buscar dados do banco de dados:", error);
+    res.status(500).json({ error: "Erro ao buscar dados do banco de dados" });
+  }
 });
 
 app.get("/usersLevel/:cpf", (req, res) => {
@@ -122,6 +141,8 @@ app.get("/usersLevel/:cpf", (req, res) => {
   );
 });
 
-app.listen(serverPort, serverIp, () => {
-  console.log("Servidor está ouvindo na porta => " + port + " ...");
+app.listen(process.env.SERVER_PORT, process.env.SERVER_IP, () => {
+  console.log(
+    "Servidor está ouvindo na porta => " + process.env.SERVER_PORT + " ..."
+  );
 });

@@ -1,5 +1,5 @@
 //React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import Container from "../../components/container";
@@ -10,9 +10,7 @@ import {
   Card,
   CardBody,
   Button,
-  Input,
   Divider,
-  Link,
   Select,
   SelectItem,
 } from "@nextui-org/react";
@@ -26,69 +24,40 @@ import LoginIcon from "@mui/icons-material/Login";
 //Services
 import api from "../../services/api";
 
-function QueueRegistration() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [passwordMismatch, setPasswordMismatch] = useState(false);
-  const [sectors, setSectors] = useState([]);
-  // eslint-disable-next-line
-  const [userLevel, setUserLevel] = useState(5);
-  const [permissionLevel, setPermissionLevel] = useState([]);
+//Contexts
+import AuthContext from "../../contexts/auth";
 
-  const toggleVisibility = () => setIsVisible(!isVisible);
+function QueueRegistration() {
+  const { currentUser } = useContext(AuthContext);
+  const [sectors, setSectors] = useState([]);
 
   useEffect(() => {
     handleSectors();
-    setLevelOfPermission();
-    //eslint-disable-next-line
   }, []);
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      email: "",
-      cpf: "",
+      priority: "0",
+      service: "",
       sector: "",
-      permissionLevel: "",
-      password: "",
-      confirmPassword: "",
+      created: currentUser.id,
     },
     onSubmit: async (values) => {
-      if (values.password !== values.confirmPassword) {
-        setPasswordMismatch(true);
-      } else {
-        setPasswordMismatch(false);
-        try {
-          await api.post("/newUser", {
-            name: values.name,
-            email: values.email,
-            cpf: values.cpf,
-            sector: values.sector,
-            permissionLevel: values.permissionLevel,
-            password: values.password,
-          });
+      try {
+        await api.post("/queueRegistration", {
+          priority: values.priority,
+          service: values.service,
+          sector: values.sector,
+          created: currentUser.id,
+        });
 
-          console.log("Cadastrado com sucesso!");
-        } catch (err) {
-          console.log(err);
-        }
+        console.log("Cadastrado com sucesso!");
+      } catch (err) {
+        console.log(err);
       }
     },
     validate: (values) => {},
   });
-
-  const setLevelOfPermission = () => {
-    const uniquePermissionLevels = [];
-
-    for (let i = 1; i < userLevel; i++) {
-      const permissionLevel = { id: i.toString(), value: i.toString() };
-
-      if (!uniquePermissionLevels.includes(permissionLevel)) {
-        uniquePermissionLevels.push(permissionLevel);
-      }
-    }
-
-    setPermissionLevel(uniquePermissionLevels);
-  };
 
   const handleSectors = async () => {
     await api
@@ -131,7 +100,7 @@ function QueueRegistration() {
                   value={formik.values.sector}
                 >
                   {(sectors) => (
-                    <SelectItem key={sectors.name} value={sectors.name}>
+                    <SelectItem key={sectors.id} value={sectors.id}>
                       {sectors.name}
                     </SelectItem>
                   )}
@@ -139,27 +108,27 @@ function QueueRegistration() {
                 <Select
                   isRequired
                   label="Prioridade?"
-                  defaultSelectedKeys="Não"
+                  defaultSelectedKeys="0"
                   className="w-full"
                   name="priority"
                   onChange={formik.handleChange}
                   value={formik.values.priority}
                 >
-                  <SelectItem key="Sim" value="Sim">
+                  <SelectItem key="1" value="1">
                     SIM
                   </SelectItem>
-                  <SelectItem key="Não" value="Não">
+                  <SelectItem key="0" value="0">
                     NÃO
                   </SelectItem>
                 </Select>
                 <Select
                   isRequired
-                  label="Prioridade?"
-                  placeholder="Indique nivel das permissões para esta pessoa"
+                  label="Para qual serviço?"
+                  placeholder="Indique o serviço desejado"
                   className="w-full"
-                  name="priority"
+                  name="service"
                   onChange={formik.handleChange}
-                  value={formik.values.priority}
+                  value={formik.values.service}
                 >
                   <SelectItem key={"Serviço 1"} value={1}>
                     Serviço 1
@@ -175,9 +144,7 @@ function QueueRegistration() {
                   endContent={<LoginIcon />}
                   type="submit"
                 >
-                  <Link className="bg-success" href="/home">
-                    Cadastrar
-                  </Link>
+                  Registar
                 </Button>
               </Form>
             </Formik>
