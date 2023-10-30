@@ -94,7 +94,7 @@ function QueueRegistration() {
                 value={formik.values.sector}
               >
                 {(sectors) => (
-                  <SelectItem key={sectors.id} value={sectors.id}>
+                  <SelectItem key={sectors.id} value={sectors.name}>
                     {sectors.name}
                   </SelectItem>
                 )}
@@ -124,10 +124,10 @@ function QueueRegistration() {
                 onChange={formik.handleChange}
                 value={formik.values.service}
               >
-                <SelectItem key={"Serviço 1"} value={1}>
+                <SelectItem key={1} value={"Serviço 1"}>
                   Serviço 1
                 </SelectItem>
-                <SelectItem key={"Serviço 2"} value={2}>
+                <SelectItem key={2} value={"Serviço 2"}>
                   Serviço 2
                 </SelectItem>
               </Select>

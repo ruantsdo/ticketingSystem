@@ -19,6 +19,20 @@ VALUES
 ('TI', 'Setor de Tecnologia da informação'),
 ('TRANSPORTE', 'Setor para gerenciar os transportes relacionados a empresa');
 
+==== Services Table ====
+
+CREATE TABLE `database`.`service` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(150) NOT NULL,
+  `description` VARCHAR(500) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE);
+
+INSERT INTO services (name, description)
+VALUES
+('Serviço 1', 'Serviço de testes'),
+('Serviço 2', 'Outro serviço para testes');
+
 ==== Permission Levels Table ====
 
 CREATE TABLE `database`.`permission_levels` (
@@ -46,6 +60,7 @@ CREATE TABLE `database`.`users` (
   `table` VARCHAR(50) NULL,
 	`permission_level` INT NOT NULL,
 	`password` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`, `cpf`),
   UNIQUE INDEX `cpf_UNIQUE` (`cpf` ASC) VISIBLE,
   FOREIGN KEY (`sector`) REFERENCES `database`.`sectors`(`name`),
@@ -87,6 +102,7 @@ CREATE TABLE `database`.`queue` (
   `token` INT NOT NULL,
   `requested_by` VARCHAR(60) NULL,
   `called_by` VARCHAR(150) NOT NULL,
+  `called_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sector` VARCHAR(150) NOT NULL,
   `table` VARCHAR(150) NOT NULL,
   PRIMARY KEY (`id`),
@@ -95,12 +111,14 @@ CREATE TABLE `database`.`queue` (
 
 ====  Delayed queue ====
 
-CREATE TABLE `database`.`queue` (
+CREATE TABLE `database`.`delayedQueue` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `token` INT NOT NULL,
   `requested_by` VARCHAR(60) NULL,
   `called_by` VARCHAR(150) NOT NULL,
+  `called_at` TIMESTAMP NOT NULL,
   `delayed_by` VARCHAR(150) NOT NULL,
+  `delayed_at` TIMESTAMP NOT NULL,
   `sector` VARCHAR(150) NOT NULL,
   `table` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`id`),

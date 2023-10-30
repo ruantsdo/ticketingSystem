@@ -105,9 +105,9 @@ function LoginPage() {
                     onClick={toggleVisibility}
                   >
                     {isVisible ? (
-                      <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                    ) : (
                       <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
+                    ) : (
+                      <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
                     )}
                   </button>
                 }
