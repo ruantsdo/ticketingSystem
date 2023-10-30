@@ -86,10 +86,10 @@ app.post("/newUser", async (req, res) => {
   );
 });
 
-app.post("/queueRegistration", async (req, res) => {
+app.post("/token/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO queue (sector, service, priority, created_by) VALUES (?, ?, ?, ?)",
+      "INSERT INTO tokens (sector, service, priority, created_by) VALUES (?, ?, ?, ?)",
       [req.body.sector, req.body.service, req.body.priority, req.body.created]
     );
     res.send({ msg: "Ficha cadastrada com sucesso!" });
@@ -98,9 +98,29 @@ app.post("/queueRegistration", async (req, res) => {
   }
 });
 
+app.get("/token/query", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM tokens ", (err, result) => {
+      res.send(result);
+    });
+  } catch (err) {
+    res.send({ msg: "Falha da consulta dos tokens!" });
+  }
+});
+
 app.get("/sectors", async (req, res) => {
   try {
     await db.query("SELECT id, name FROM sectors", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/permissionsLevels", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM permission_levels", (err, result) => {
       res.send(result);
     });
   } catch (error) {

@@ -3,6 +3,7 @@ import React, { useContext, useState } from "react";
 
 //Components
 import ThemeSwitcher from "../../components/themeSwitch";
+import Container from "../../components/container";
 
 //NextUI
 import {
@@ -63,7 +64,7 @@ function LoginPage() {
   });
 
   return (
-    <div className="flex w-full h-screen bg-light-background dark:bg-dark-background justify-center items-center transition-all delay-0 overflow-auto">
+    <Container>
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card
         isBlurred
@@ -125,7 +126,7 @@ function LoginPage() {
           </Formik>
         </CardBody>
       </Card>
-    </div>
+    </Container>
   );
 }
 

@@ -31,9 +31,10 @@ export default function NavBar() {
 
   return (
     <Navbar
+      shouldHideOnScroll
       isBordered
       onMenuOpenChange={setIsMenuOpen}
-      height={"6vh"}
+      height={"3rem"}
       className="w-full bg-light-navBarBackground dark:bg-dark-navBarBackground"
     >
       <NavbarContent>

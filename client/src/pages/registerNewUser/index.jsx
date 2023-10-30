@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useContext } from "react";
 
 //Components
-import Container from "../../components/container";
-import NavBar from "../../components/navbar";
+import FullContainer from "../../components/fullContainer";
 
 //NextUI
 import {
@@ -12,7 +11,6 @@ import {
   Button,
   Input,
   Divider,
-  Link,
   Select,
   SelectItem,
 } from "@nextui-org/react";
@@ -37,13 +35,13 @@ function NewUserRegister() {
   const [isVisible, setIsVisible] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [sectors, setSectors] = useState([]);
-  const [permissionLevel, setPermissionLevel] = useState([]);
+  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   useEffect(() => {
     handleSectors();
-    setLevelOfPermission();
+    handlePermissionsLevels();
     //eslint-disable-next-line
   }, []);
 
@@ -81,182 +79,200 @@ function NewUserRegister() {
     validate: (values) => {},
   });
 
-  const setLevelOfPermission = () => {
-    const uniquePermissionLevels = [];
-
-    for (let i = 1; i < currentUser.permission_level; i++) {
-      const permissionLevel = { id: i.toString(), value: i.toString() };
-
-      if (!uniquePermissionLevels.includes(permissionLevel)) {
-        uniquePermissionLevels.push(permissionLevel);
-      }
+  const handleSectors = async () => {
+    try {
+      const response = await api.get("/sectors");
+      defineFilteredSectors(response.data);
+    } catch (error) {
+      console.error(error);
     }
-
-    setPermissionLevel(uniquePermissionLevels);
   };
 
-  const handleSectors = async () => {
-    await api
-      .get("/sectors")
-      .then((response) => {
-        setSectors(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const handlePermissionsLevels = async () => {
+    try {
+      const response = await api.get("/permissionsLevels");
+      defineFilteredPermissionLevels(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const defineFilteredSectors = (data) => {
+    let filteredSectors = [];
+
+    if (currentUser.permission_level === 3) {
+      const sector = data.find((setor) => setor.name === currentUser.sector);
+      filteredSectors.push(sector);
+    } else if (currentUser.permission_level >= 4) {
+      filteredSectors = data;
+    }
+
+    setSectors(filteredSectors);
+  };
+
+  const defineFilteredPermissionLevels = (data) => {
+    let filteredPermissionLevels = [];
+
+    if (currentUser.permission_level === 3) {
+      filteredPermissionLevels.push({ id: data[1].id, name: data[1].name });
+    } else if (currentUser.permission_level === 4) {
+      filteredPermissionLevels = [
+        { id: data[1].id, name: data[1].name },
+        { id: data[2].id, name: data[2].name },
+      ];
+    } else if (currentUser.permission_level === 5) {
+      filteredPermissionLevels = data;
+    }
+
+    setFilteredPermissionLevels(filteredPermissionLevels);
   };
 
   return (
-    <>
-      <NavBar />
-      <Container>
-        <Card
-          isBlurred
-          className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%]"
-          shadow="md"
-        >
-          <CardBody className="flex gap-3 justify-center items-center">
-            <p className="dark:text-dark-background text-light-background text-3xl">
-              Cadastro
-            </p>
-            <Divider className="dark:bg-dark-background bg-light-background" />
-            <Formik initialValues={formik.initialValues}>
-              <Form
-                onSubmit={formik.handleSubmit}
-                className="flex flex-col gap-3 justify-center items-center w-full"
+    <FullContainer>
+      <Card
+        isBlurred
+        className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%] overflow-visible"
+        shadow="md"
+      >
+        <CardBody className="flex gap-3 justify-center items-center">
+          <p className="dark:text-dark-background text-light-background text-3xl">
+            Cadastro
+          </p>
+          <Divider className="dark:bg-dark-background bg-light-background" />
+          <Formik initialValues={formik.initialValues}>
+            <Form
+              onSubmit={formik.handleSubmit}
+              className="flex flex-col gap-3 justify-center items-center w-full"
+            >
+              <Input
+                isRequired
+                type="text"
+                label="Insira o nome"
+                className="w-full"
+                name="name"
+                onChange={formik.handleChange}
+                value={formik.values.name}
+              />
+              <Input
+                type="email"
+                label="Email"
+                className="w-full"
+                name="email"
+                onChange={formik.handleChange}
+                value={formik.values.email}
+              />
+              <Input
+                isRequired
+                type="text"
+                label="CPF"
+                className="w-full"
+                name="cpf"
+                maxLength={11}
+                onChange={formik.handleChange}
+                value={formik.values.cpf}
+              />
+              <Select
+                isRequired
+                items={sectors}
+                label="Selecione um setor"
+                placeholder="Indique o setor desta pessoa"
+                className="w-full"
+                name="sector"
+                onChange={formik.handleChange}
+                value={formik.values.sector}
               >
-                <Input
-                  isRequired
-                  type="text"
-                  label="Insira o nome"
-                  className="w-full"
-                  name="name"
-                  onChange={formik.handleChange}
-                  value={formik.values.name}
-                />
-                <Input
-                  type="email"
-                  label="Email"
-                  className="w-full"
-                  name="email"
-                  onChange={formik.handleChange}
-                  value={formik.values.email}
-                />
-                <Input
-                  isRequired
-                  type="text"
-                  label="CPF"
-                  className="w-full"
-                  name="cpf"
-                  maxLength={11}
-                  onChange={formik.handleChange}
-                  value={formik.values.cpf}
-                />
-                <Select
-                  isRequired
-                  items={sectors}
-                  label="Selecione um setor"
-                  placeholder="Indique o setor desta pessoa"
-                  className="w-full"
-                  name="sector"
-                  onChange={formik.handleChange}
-                  value={formik.values.sector}
-                >
-                  {(sectors) => (
-                    <SelectItem key={sectors.name} value={sectors.name}>
-                      {sectors.name}
-                    </SelectItem>
-                  )}
-                </Select>
-                <Select
-                  isRequired
-                  items={permissionLevel}
-                  label="Nivel de permissão"
-                  placeholder="Indique nivel das permissões para esta pessoa"
-                  className="w-full"
-                  name="permissionLevel"
-                  onChange={formik.handleChange}
-                  value={formik.values.permissionLevel}
-                >
-                  {(permissionLevel) => (
-                    <SelectItem
-                      key={permissionLevel.id}
-                      value={permissionLevel.value}
-                    >
-                      {permissionLevel.value}
-                    </SelectItem>
-                  )}
-                </Select>
-                <Input
-                  isRequired
-                  isInvalid={passwordMismatch}
-                  type={isVisible ? "text" : "password"}
-                  label="Senha"
-                  className="w-full"
-                  name="password"
-                  onChange={formik.handleChange}
-                  value={formik.values.password}
-                  endContent={
-                    <button
-                      className="focus:outline-none"
-                      type="button"
-                      onClick={toggleVisibility}
-                    >
-                      {isVisible ? (
-                        <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                      ) : (
-                        <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
-                      )}
-                    </button>
-                  }
-                  //minLength={6}
-                ></Input>
-                <Input
-                  isRequired
-                  isInvalid={passwordMismatch}
-                  type={isVisible ? "text" : "password"}
-                  label="Confirme a senha"
-                  className="w-full"
-                  name="confirmPassword"
-                  onChange={formik.handleChange}
-                  value={formik.values.confirmPassword}
-                  endContent={
-                    <button
-                      className="focus:outline-none"
-                      type="button"
-                      onClick={toggleVisibility}
-                    >
-                      {isVisible ? (
-                        <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                      ) : (
-                        <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
-                      )}
-                    </button>
-                  }
-                ></Input>
-                {passwordMismatch === true ? (
-                  <span className="text-failed">
-                    As senhas devem ser iguais...
-                  </span>
-                ) : (
-                  <></>
+                {(sectors) => (
+                  <SelectItem key={sectors.id} value={sectors.name}>
+                    {sectors.name}
+                  </SelectItem>
                 )}
-                <Divider className="dark:bg-dark-background bg-light-background" />
-                <Button
-                  className="bg-success w-[40%]"
-                  endContent={<LoginIcon />}
-                  type="submit"
-                >
-                  <Link className="bg-success" href="/home">
-                    Cadastrar
-                  </Link>
-                </Button>
-              </Form>
-            </Formik>
-          </CardBody>
-        </Card>
-      </Container>
-    </>
+              </Select>
+              <Select
+                isRequired
+                items={filteredPermissionLevels}
+                label="Nivel de permissão"
+                placeholder="Indique nivel das permissões para esta pessoa"
+                className="w-full"
+                name="permissionLevel"
+                onChange={formik.handleChange}
+                value={formik.values.permissionLevel}
+              >
+                {(filteredPermissionLevels) => (
+                  <SelectItem
+                    key={filteredPermissionLevels.id}
+                    value={filteredPermissionLevels.id}
+                  >
+                    {filteredPermissionLevels.name}
+                  </SelectItem>
+                )}
+              </Select>
+              <Input
+                isRequired
+                isInvalid={passwordMismatch}
+                type={isVisible ? "text" : "password"}
+                label="Senha"
+                className="w-full"
+                name="password"
+                minLength={6}
+                onChange={formik.handleChange}
+                value={formik.values.password}
+                endContent={
+                  <button
+                    className="focus:outline-none"
+                    type="button"
+                    onClick={toggleVisibility}
+                  >
+                    {isVisible ? (
+                      <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
+                    ) : (
+                      <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
+                    )}
+                  </button>
+                }
+              ></Input>
+              <Input
+                isRequired
+                isInvalid={passwordMismatch}
+                type={isVisible ? "text" : "password"}
+                label="Confirme a senha"
+                className="w-full"
+                name="confirmPassword"
+                onChange={formik.handleChange}
+                value={formik.values.confirmPassword}
+                endContent={
+                  <button
+                    className="focus:outline-none"
+                    type="button"
+                    onClick={toggleVisibility}
+                  >
+                    {isVisible ? (
+                      <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
+                    ) : (
+                      <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
+                    )}
+                  </button>
+                }
+              ></Input>
+              {passwordMismatch === true ? (
+                <span className="text-failed">
+                  As senhas devem ser iguais...
+                </span>
+              ) : (
+                <></>
+              )}
+              <Divider className="dark:bg-dark-background bg-light-background" />
+              <Button
+                className="bg-success w-[40%]"
+                endContent={<LoginIcon />}
+                type="submit"
+              >
+                Cadastrar
+              </Button>
+            </Form>
+          </Formik>
+        </CardBody>
+      </Card>
+    </FullContainer>
   );
 }
 

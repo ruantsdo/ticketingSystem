@@ -37,9 +37,17 @@ const TableModel = sequelize.define("queue", {});
 io.on("connection", (socket) => {
   console.log("Client connected");
 
-  TableModel.addHook("afterCreate", (data) => {
-    socket.emit("table_change", data);
-  });
+  function send_websocket_data(sector, service, priority, created_by) {
+    const data = {
+      sector,
+      service,
+      priority,
+      created_by,
+    };
+
+    console.log("Data received:", data);
+    io.emit("queued_update", data);
+  }
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
