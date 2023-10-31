@@ -7,48 +7,45 @@ import FullContainer from "../../components/fullContainer";
 //NextUI
 import {} from "@nextui-org/react";
 
-//Socket
-// import socketIOClient from "socket.io-client";
-
 //API
 import api from "../../services/api";
 
 function Home() {
   const [tokens, setTokens] = useState([]);
+  const [speaking, setSpeaking] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleTokens = async () => {
     try {
       const response = await api.get("/token/query");
-      await setTokens(response.data);
-      callToken(response.data);
+      const newTokens = response.data;
+
+      if (newTokens && newTokens.length > 0) {
+        setTokens((prevTokens) => [...prevTokens, ...newTokens]);
+      } else {
+        setTimeout(() => {
+          handleTokens();
+        }, 5000);
+      }
     } catch (error) {
       console.error(error);
     }
   };
 
-  const speakText = (text) => {
-    if ("speechSynthesis" in window) {
-      const synthesis = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
+  const speak = (item) => {
+    if (window.speechSynthesis) {
+      const textToSpeak = `Atenção ${item.id}, dirija-se a ${item.sector}.`;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      window.speechSynthesis.speak(utterance);
+      setSpeaking(true);
 
-      // Configurar a voz em português do Brasil, se disponível
-      const voices = synthesis.getVoices();
-      const ptBRVoice = voices.find((voice) => voice.lang === "pt-BR");
-      if (ptBRVoice) {
-        utterance.voice = ptBRVoice;
-      }
+      utterance.onend = () => {
+        setSpeaking(false);
 
-      synthesis.speak(utterance);
-    }
-  };
-
-  const callToken = (token) => {
-    if (token.lengh !== 0) {
-      token.forEach((sector) => {
-        speakText(
-          `Atenção ${token.service} ${token.id} dirija-se à sala do ${sector.sector}`
-        );
-      });
+        if (currentIndex < tokens.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        }
+      };
     }
   };
 
@@ -57,26 +54,14 @@ function Home() {
     // eslint-disable-next-line
   }, []);
 
+  useEffect(() => {
+    if (currentIndex < tokens.length) {
+      speak(tokens[currentIndex]);
+    }
+    // eslint-disable-next-line
+  }, [currentIndex, tokens]);
+
   return <FullContainer>Home Page {tokens[0]?.service}</FullContainer>;
 }
+
 export default Home;
-
-// const fetchData = async () => {
-//   console.log("Buscando novos dados");
-//   try {
-//     await api.get("/queue").then((response) => {
-//       setData(response.data);
-//     });
-//   } catch (error) {
-//     console.error("Erro ao buscar dados:", error);
-//   }
-// };
-
-// useEffect(() => {
-//   fetchData(); // Busque os dados inicialmente
-//   const intervalId = setInterval(fetchData, 5000);
-
-//   return () => {
-//     clearInterval(intervalId);
-//   };
-// }, [pageMounted]);
