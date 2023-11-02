@@ -118,7 +118,7 @@ CREATE TABLE `database`.`delayedQueue` (
   `called_by` VARCHAR(150) NOT NULL,
   `called_at` TIMESTAMP NOT NULL,
   `delayed_by` VARCHAR(150) NOT NULL,
-  `delayed_at` TIMESTAMP NOT NULL,
+  `delayed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sector` VARCHAR(150) NOT NULL,
   `table` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`id`),

@@ -61,7 +61,24 @@ function Home() {
     // eslint-disable-next-line
   }, [currentIndex, tokens]);
 
-  return <FullContainer>Home Page {tokens[0]?.service}</FullContainer>;
+  return <FullContainer>Home Page</FullContainer>;
 }
 
 export default Home;
+
+// useEffect(() => {
+//   const socket = socketIOClient(
+//     `http://${process.env.REACT_APP_SOCKET_SERVER}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
+//   );
+
+//
+//   socket.on("queued_update", (data) => {
+//
+//     console.log("Dados recebidos do servidor:", data);
+//   });
+
+//
+//   return () => {
+//     socket.disconnect();
+//   };
+// }, []);

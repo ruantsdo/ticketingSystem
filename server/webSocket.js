@@ -2,7 +2,7 @@ require("dotenv").config({ path: "./.env" });
 
 const express = require("express");
 const cors = require("cors");
-const Sequelize = require("sequelize");
+const { Sequelize, DataTypes } = require("sequelize");
 
 const app = express();
 app.use(cors());
@@ -32,26 +32,140 @@ const sequelize = new Sequelize(
   }
 );
 
-const TableModel = sequelize.define("queue", {});
+const TokenModel = sequelize.define(
+  "token",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    sector: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+    service: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+    priority: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
+    requested_by: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    created_by: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    solved_by: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    solved_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    table: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+  },
+  {
+    tableName: "tokens",
+    timestamps: false,
+    underscored: true,
+  }
+);
+
+const QueueModel = sequelize.define(
+  "queue",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    token: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    requested_by: {
+      type: DataTypes.STRING(60),
+      allowNull: true,
+    },
+    called_by: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+    called_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    sector: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+    table: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
+  },
+  {
+    tableName: "queue",
+    timestamps: false,
+    underscored: true,
+  }
+);
+
+QueueModel.belongsTo(TokenModel, {
+  foreignKey: "token",
+  targetKey: "id",
+  as: "tokenInfo",
+});
+
+const { Op } = require("sequelize");
 
 io.on("connection", (socket) => {
   console.log("Client connected");
 
-  function send_websocket_data(sector, service, priority, created_by) {
-    const data = {
-      sector,
-      service,
-      priority,
-      created_by,
-    };
-
-    console.log("Data received:", data);
-    io.emit("queued_update", data);
-  }
-
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
+
+  async function send_websocket_data() {
+    try {
+      const allQueueItems = await QueueModel.findAll();
+
+      if (allQueueItems.length > 0) {
+        allQueueItems.forEach((item) => {
+          const data = {
+            sector: item.sector,
+            service: item.table,
+            priority: item.called_by,
+            created_by: item.requested_by,
+          };
+
+          console.log("Data received:", data);
+          socket.emit("queued_update", data);
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching and sending data:", error);
+    }
+  }
+
+  send_websocket_data();
 });
 
 http.listen(
