@@ -45,7 +45,7 @@ function TokensList() {
   const [page, setPage] = useState(1);
   const [tokensLength, setTokensLength] = useState(1);
   const [tokens, setTokens] = useState([]);
-  const [key, setKey] = useState();
+  const [itemKey, setItemKey] = useState();
 
   const rowsPerPage = 5;
 
@@ -83,6 +83,16 @@ function TokensList() {
     }
   };
 
+  const findIndexById = (key) => {
+    for (let i = 0; i < tokensLength; i++) {
+      // eslint-disable-next-line
+      if (tokens[i].id == key) {
+        setItemKey(i);
+        return;
+      }
+    }
+  };
+
   useEffect(() => {
     handleTokens();
     // eslint-disable-next-line
@@ -117,7 +127,7 @@ function TokensList() {
       <Table
         aria-label="Lista de fichas disponiveis para o seu setor"
         onRowAction={(key) => {
-          setKey(key - 1);
+          findIndexById(key);
           onOpen();
         }}
         isStriped
@@ -184,7 +194,7 @@ function TokensList() {
               <ModalHeader className="flex flex-col gap-1">
                 <section className="flex gap-3 justify-center items-center">
                   Dados da Ficha
-                  {tokens[key].priority === 1 ? (
+                  {tokens[itemKey].priority === 1 ? (
                     <Chip size="sm" radius="sm" className="bg-alert">
                       PRIORIDADE
                     </Chip>
@@ -197,12 +207,12 @@ function TokensList() {
               </ModalHeader>
               <Divider />
               <ModalBody>
-                <p>Número da ficha: {tokens[key].position} </p>
-                <p>Setor: {tokens[key].sector}</p>
-                <p>Serviço desejado: {tokens[key].service}</p>
-                <p>Ficha criada por: {tokens[key].created_by}</p>
-                {tokens[key].requested_by !== "" ? (
-                  <p>Ficha solicitada por: {tokens[key].requested_by}</p>
+                <p>Número da ficha: {tokens[itemKey].position} </p>
+                <p>Setor: {tokens[itemKey].sector}</p>
+                <p>Serviço desejado: {tokens[itemKey].service}</p>
+                <p>Ficha criada por: {tokens[itemKey].created_by}</p>
+                {tokens[itemKey].requested_by !== "" ? (
+                  <p>Ficha solicitada por: {tokens[itemKey].requested_by}</p>
                 ) : (
                   <p>Ficha solicitada por: NÃO FOI ESPECIFICADO</p>
                 )}

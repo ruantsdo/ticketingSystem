@@ -82,15 +82,14 @@ function QueueRegistration() {
           created: currentUser.name,
           requested_by: values.requested_by,
         });
+        toast.success("Ficha cadastrada!");
+        emitSignal();
       } catch (err) {
         toast.error(
           "Houve um problema ao cadastrar sua ficha! Tente novamente mais tarde!"
         );
         console.log(err);
-        return;
       }
-      toast.success("Ficha cadastrada!");
-      emitSignal();
     },
     validate: (values) => {},
   });

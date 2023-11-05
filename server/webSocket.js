@@ -137,37 +137,9 @@ QueueModel.belongsTo(TokenModel, {
 io.on("connection", (socket) => {
   console.log("Client connected");
 
-  socket.on("send_data_to_clients", () => {
-    send_websocket_data();
-  });
-
   socket.on("new_token", () => {
     io.emit("new_token");
   });
-
-  async function send_websocket_data() {
-    try {
-      const allQueueItems = await QueueModel.findAll();
-
-      if (allQueueItems.length > 0) {
-        allQueueItems.forEach((item) => {
-          const data = {
-            sector: item.sector,
-            service: item.table,
-            priority: item.called_by,
-            created_by: item.requested_by,
-          };
-
-          console.log("Data received:", data);
-          io.emit("queued_update", data);
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching and sending data:", error);
-    }
-  }
-
-  // send_websocket_data();
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
