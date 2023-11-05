@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -28,6 +29,9 @@ import api from "../../services/api";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+
+//Toast
+import { toast } from "react-toastify";
 
 function NewUserRegister() {
   const { currentUser } = useContext(AuthContext);
@@ -58,6 +62,7 @@ function NewUserRegister() {
     onSubmit: async (values) => {
       if (values.password !== values.confirmPassword) {
         setPasswordMismatch(true);
+        toast.warn("As senhas devem ser iguais!");
       } else {
         setPasswordMismatch(false);
         try {
@@ -69,11 +74,14 @@ function NewUserRegister() {
             permissionLevel: values.permissionLevel,
             password: values.password,
           });
-
-          console.log("Cadastrado com sucesso!");
         } catch (err) {
+          toast.error(
+            "Houve um problema ao cadastrar o novo usuário! Tente novamente mais tarde!"
+          );
           console.log(err);
+          return;
         }
+        toast.success("Novo usuário cadastrado!");
       }
     },
     validate: (values) => {},
@@ -81,7 +89,7 @@ function NewUserRegister() {
 
   const handleSectors = async () => {
     try {
-      const response = await api.get("/sectors");
+      const response = await api.get("/sectors/query");
       defineFilteredSectors(response.data);
     } catch (error) {
       console.error(error);
@@ -129,6 +137,7 @@ function NewUserRegister() {
 
   return (
     <FullContainer>
+      <Notification />
       <Card
         isBlurred
         className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%] overflow-visible"
@@ -182,7 +191,7 @@ function NewUserRegister() {
                 value={formik.values.sector}
               >
                 {(sectors) => (
-                  <SelectItem key={sectors.id} value={sectors.name}>
+                  <SelectItem key={sectors.name} value={sectors.name}>
                     {sectors.name}
                   </SelectItem>
                 )}
@@ -213,7 +222,7 @@ function NewUserRegister() {
                 label="Senha"
                 className="w-full"
                 name="password"
-                minLength={6}
+                minLength={2}
                 onChange={formik.handleChange}
                 value={formik.values.password}
                 endContent={
@@ -229,7 +238,7 @@ function NewUserRegister() {
                     )}
                   </button>
                 }
-              ></Input>
+              />
               <Input
                 isRequired
                 isInvalid={passwordMismatch}
@@ -252,7 +261,7 @@ function NewUserRegister() {
                     )}
                   </button>
                 }
-              ></Input>
+              />
               {passwordMismatch === true ? (
                 <span className="text-failed">
                   As senhas devem ser iguais...

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -12,6 +13,7 @@ import {
   Divider,
   Select,
   SelectItem,
+  Input,
 } from "@nextui-org/react";
 
 //Validation
@@ -26,48 +28,98 @@ import api from "../../services/api";
 //Contexts
 import AuthContext from "../../contexts/auth";
 
+//Socket
+import socketIOClient from "socket.io-client";
+
+//Toast
+import { toast } from "react-toastify";
+
+const socket = socketIOClient(
+  `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
+);
+
 function QueueRegistration() {
   const { currentUser } = useContext(AuthContext);
   const [sectors, setSectors] = useState([]);
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    const socket = socketIOClient(
+      `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
+    );
+
+    socket.on("connect", () => {
+      console.log("Conectado");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Desconectado");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     handleSectors();
+    handleServices();
   }, []);
 
   const formik = useFormik({
     initialValues: {
       priority: false,
-      service: "",
+      services: "",
       sector: "",
+      requested_by: "",
     },
     onSubmit: async (values) => {
       try {
         await api.post("/token/registration", {
           priority: values.priority,
-          service: values.service,
+          services: values.services,
           sector: values.sector,
           created: currentUser.name,
+          requested_by: values.requested_by,
         });
-
-        console.log("Cadastrado com sucesso!");
       } catch (err) {
+        toast.error(
+          "Houve um problema ao cadastrar sua ficha! Tente novamente mais tarde!"
+        );
         console.log(err);
+        return;
       }
+      toast.success("Ficha cadastrada!");
+      emitSignal();
     },
     validate: (values) => {},
   });
 
   const handleSectors = async () => {
     try {
-      const response = await api.get("/sectors");
+      const response = await api.get("/sectors/query");
       setSectors(response.data);
     } catch (error) {
       console.error(error);
     }
   };
 
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  function emitSignal() {
+    socket.emit("new_token");
+  }
+
   return (
     <FullContainer>
+      <Notification />
       <Card
         isBlurred
         className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%]"
@@ -94,7 +146,7 @@ function QueueRegistration() {
                 value={formik.values.sector}
               >
                 {(sectors) => (
-                  <SelectItem key={sectors.id} value={sectors.name}>
+                  <SelectItem key={sectors.name} value={sectors.name}>
                     {sectors.name}
                   </SelectItem>
                 )}
@@ -117,28 +169,36 @@ function QueueRegistration() {
               </Select>
               <Select
                 isRequired
-                label="Para qual serviço?"
-                placeholder="Indique o serviço desejado"
+                items={services}
+                label="Indique o serviço desejado"
+                placeholder="Selecione um serviço"
                 className="w-full"
-                name="service"
+                name="services"
                 onChange={formik.handleChange}
                 value={formik.values.service}
               >
-                <SelectItem key={1} value={"Serviço 1"}>
-                  Serviço 1
-                </SelectItem>
-                <SelectItem key={2} value={"Serviço 2"}>
-                  Serviço 2
-                </SelectItem>
+                {(services) => (
+                  <SelectItem key={services.name} value={services.name}>
+                    {services.name}
+                  </SelectItem>
+                )}
               </Select>
-
+              <Input
+                type="text"
+                label="Solicitado por"
+                className="w-full"
+                name="requested_by"
+                onChange={formik.handleChange}
+                value={formik.values.requested_by}
+                description="Informe o nome da pessoa que está solicitanto esse serviço. (Opcional)"
+              />
               <Divider className="dark:bg-dark-background bg-light-background" />
               <Button
                 className="bg-success w-[40%]"
                 endContent={<LoginIcon />}
                 type="submit"
               >
-                Registar
+                Registrar
               </Button>
             </Form>
           </Formik>

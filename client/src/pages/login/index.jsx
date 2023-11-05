@@ -4,6 +4,7 @@ import React, { useContext, useState } from "react";
 //Components
 import ThemeSwitcher from "../../components/themeSwitch";
 import Container from "../../components/container";
+import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -28,6 +29,9 @@ import api from "../../services/api";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+
+//Toast
+import { toast } from "react-toastify";
 
 function LoginPage() {
   const { setCurrentUser } = useContext(AuthContext);
@@ -54,17 +58,22 @@ function LoginPage() {
               setCurrentUser(response.data[0]);
 
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            } else {
+              toast.warn("Verifique suas crendenciais e tente novamente!");
             }
             return;
           });
       } catch (err) {
         console.log(err);
+        toast.error("Um erro aconteceu! Tente novamente mais tarde!");
       }
+      toast.success("Logado com sucesso!");
     },
   });
 
   return (
     <Container>
+      <Notification />
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card
         isBlurred

@@ -66,6 +66,7 @@ app.post("/newUser", async (req, res) => {
       const hash = await bcrypt.hash(req.body.password, saltRounds);
 
       try {
+        let emailValue = req.body.email !== undefined ? req.body.email : "";
         await db.query(
           "INSERT INTO users (name, password, cpf, sector, email, permission_level) VALUES (?, ?, ?, ?, ?, ?)",
           [
@@ -73,7 +74,7 @@ app.post("/newUser", async (req, res) => {
             hash,
             req.body.cpf,
             req.body.sector,
-            req.body.email,
+            emailValue,
             req.body.permissionLevel,
           ]
         );
@@ -88,10 +89,28 @@ app.post("/newUser", async (req, res) => {
 
 app.post("/token/registration", async (req, res) => {
   try {
-    await db.query(
-      "INSERT INTO tokens (sector, service, priority, created_by) VALUES (?, ?, ?, ?)",
-      [req.body.sector, req.body.service, req.body.priority, req.body.created]
-    );
+    const sector = req.body.sector;
+    const service = req.body.services;
+    const priority = req.body.priority;
+    const created_by = req.body.created;
+    const requested_by = req.body.requested_by;
+
+    const query = `
+      INSERT INTO tokens (sector, position, service, priority, created_by, requested_by)
+      SELECT ?, COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?
+      FROM tokens
+      WHERE sector = ?
+    `;
+
+    await db.query(query, [
+      sector,
+      service,
+      priority,
+      created_by,
+      requested_by,
+      sector,
+    ]);
+
     res.send({ msg: "Ficha cadastrada com sucesso!" });
   } catch (err) {
     res.send({ msg: "Falha no cadastramento da ficha!" });
@@ -100,7 +119,7 @@ app.post("/token/registration", async (req, res) => {
 
 app.get("/token/query", async (req, res) => {
   try {
-    await db.query("SELECT * FROM tokens ", (err, result) => {
+    await db.query("SELECT * FROM tokens", (err, result) => {
       res.send(result);
     });
   } catch (err) {
@@ -108,9 +127,19 @@ app.get("/token/query", async (req, res) => {
   }
 });
 
-app.get("/sectors", async (req, res) => {
+app.get("/sectors/query", async (req, res) => {
   try {
-    await db.query("SELECT id, name FROM sectors", (err, result) => {
+    await db.query("SELECT * FROM sectors", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/services/query", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM services", (err, result) => {
       res.send(result);
     });
   } catch (error) {

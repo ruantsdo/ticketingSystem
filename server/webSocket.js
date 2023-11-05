@@ -134,13 +134,15 @@ QueueModel.belongsTo(TokenModel, {
   as: "tokenInfo",
 });
 
-const { Op } = require("sequelize");
-
 io.on("connection", (socket) => {
   console.log("Client connected");
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
+  socket.on("send_data_to_clients", () => {
+    send_websocket_data();
+  });
+
+  socket.on("new_token", () => {
+    io.emit("new_token");
   });
 
   async function send_websocket_data() {
@@ -157,7 +159,7 @@ io.on("connection", (socket) => {
           };
 
           console.log("Data received:", data);
-          socket.emit("queued_update", data);
+          io.emit("queued_update", data);
         });
       }
     } catch (error) {
@@ -165,7 +167,11 @@ io.on("connection", (socket) => {
     }
   }
 
-  send_websocket_data();
+  // send_websocket_data();
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
 });
 
 http.listen(

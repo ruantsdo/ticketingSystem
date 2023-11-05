@@ -56,17 +56,17 @@ export default function NavBar() {
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
           <Link color="foreground" href="/queueRegistration">
-            Senhas
+            Criar ficha
           </Link>
         </NavbarItem>
         <NavbarItem isActive>
-          <Link href="#" aria-current="page">
+          <Link href="/newUser" aria-current="page">
             Gerência
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="#">
-            Serviços
+          <Link color="foreground" href="/tokensList">
+            Fichas
           </Link>
         </NavbarItem>
       </NavbarContent>
