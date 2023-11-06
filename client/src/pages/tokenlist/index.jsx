@@ -37,7 +37,7 @@ import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
 function TokensList() {
-  const socket = useWebSocket();
+  const { socket } = useWebSocket();
 
   const { currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -98,9 +98,18 @@ function TokensList() {
     // eslint-disable-next-line
   }, []);
 
+  useEffect(() => {
+    socket.on("new_token", () => {
+      handleTokens();
+    });
+
+    return () => {
+      socket.off("new_token");
+    };
+  });
+
   function emitSignalQueueUpdate() {
     socket.emit("queued_update");
-    console.log("O sinal foi enviado...");
   }
 
   return (

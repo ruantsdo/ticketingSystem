@@ -13,6 +13,7 @@ export default function Notification() {
       autoClose={3000}
       hideProgressBar={false}
       newestOnTop={true}
+      pauseOnFocusLoss={false}
       closeOnClick
       rtl={false}
       draggable

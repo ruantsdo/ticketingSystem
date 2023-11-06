@@ -33,11 +33,10 @@ import { useWebSocket } from "../../contexts/webSocket";
 import { toast } from "react-toastify";
 
 function QueueRegistration() {
+  const { socket } = useWebSocket();
   const { currentUser } = useContext(AuthContext);
   const [sectors, setSectors] = useState([]);
   const [services, setServices] = useState([]);
-
-  const socket = useWebSocket();
 
   useEffect(() => {
     handleSectors();
@@ -61,7 +60,7 @@ function QueueRegistration() {
           requested_by: values.requested_by,
         });
         toast.success("Ficha cadastrada!");
-        emitSignal();
+        emitNewTokenSignal();
       } catch (err) {
         toast.error(
           "Houve um problema ao cadastrar sua ficha! Tente novamente mais tarde!"
@@ -90,10 +89,9 @@ function QueueRegistration() {
     }
   };
 
-  function emitSignal() {
+  const emitNewTokenSignal = () => {
     socket.emit("new_token");
-    console.log("Sinal emitido...");
-  }
+  };
 
   return (
     <FullContainer>

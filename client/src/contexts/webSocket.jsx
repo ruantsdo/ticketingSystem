@@ -1,5 +1,4 @@
-// Exemplo usando React Context
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useRef } from "react";
 import socketIOClient from "socket.io-client";
 
 const WebSocketContext = createContext();
@@ -9,14 +8,14 @@ export function WebSocketProvider({ children }) {
     `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
   );
 
-  useEffect(() => {
-    return () => {
-      socket.disconnect();
-    };
-  }, [socket]);
+  const socketRef = useRef(socket);
+
+  const addSocketEventListener = (event, callback) => {
+    socketRef.current.on(event, callback);
+  };
 
   return (
-    <WebSocketContext.Provider value={socket}>
+    <WebSocketContext.Provider value={{ socket, addSocketEventListener }}>
       {children}
     </WebSocketContext.Provider>
   );

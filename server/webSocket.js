@@ -149,13 +149,10 @@ io.on("connection", (socket) => {
 
   socket.on("new_token", () => {
     io.emit("new_token");
-    console.log("Novo token recebido...");
   });
 
   socket.on("queued_update", () => {
     io.emit("queued_update");
-
-    console.log("Atualização na fila recebida...");
   });
 
   socket.on("disconnect", () => {
