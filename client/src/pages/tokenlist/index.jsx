@@ -34,11 +34,11 @@ import api from "../../services/api";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
-
-//Socket
-import socketIOClient from "socket.io-client";
+import { useWebSocket } from "../../contexts/webSocket";
 
 function TokensList() {
+  const socket = useWebSocket();
+
   const { currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -98,29 +98,10 @@ function TokensList() {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-    const socket = socketIOClient(
-      `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
-    );
-
-    socket.on("connect", () => {
-      console.log("Conectado");
-    });
-
-    socket.on("new_token", () => {
-      handleTokens();
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Desconectado");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-
-    // eslint-disable-next-line
-  }, []);
+  function emitSignalQueueUpdate() {
+    socket.emit("queued_update");
+    console.log("O sinal foi enviado...");
+  }
 
   return (
     <FullContainer>
@@ -219,10 +200,21 @@ function TokensList() {
               </ModalBody>
               <Divider />
               <ModalFooter>
-                <Button className="bg-failed" onPress={onClose}>
+                <Button
+                  className="bg-failed"
+                  onPress={() => {
+                    onClose();
+                  }}
+                >
                   Fechar
                 </Button>
-                <Button onPress={onClose} className="bg-success">
+                <Button
+                  onPress={() => {
+                    onClose();
+                    emitSignalQueueUpdate();
+                  }}
+                  className="bg-success"
+                >
                   Chamar
                 </Button>
               </ModalFooter>

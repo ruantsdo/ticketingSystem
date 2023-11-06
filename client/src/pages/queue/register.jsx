@@ -27,39 +27,17 @@ import api from "../../services/api";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
-
-//Socket
-import socketIOClient from "socket.io-client";
+import { useWebSocket } from "../../contexts/webSocket";
 
 //Toast
 import { toast } from "react-toastify";
-
-const socket = socketIOClient(
-  `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
-);
 
 function QueueRegistration() {
   const { currentUser } = useContext(AuthContext);
   const [sectors, setSectors] = useState([]);
   const [services, setServices] = useState([]);
 
-  useEffect(() => {
-    const socket = socketIOClient(
-      `http://${process.env.REACT_APP_SOCKET_SERVER_IP}:${process.env.REACT_APP_SOCKET_SERVER_PORT}`
-    );
-
-    socket.on("connect", () => {
-      console.log("Conectado");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Desconectado");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  const socket = useWebSocket();
 
   useEffect(() => {
     handleSectors();
@@ -114,6 +92,7 @@ function QueueRegistration() {
 
   function emitSignal() {
     socket.emit("new_token");
+    console.log("Sinal emitido...");
   }
 
   return (

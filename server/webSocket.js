@@ -29,8 +29,18 @@ const sequelize = new Sequelize(
     host: process.env.DATABASE_HOST,
     port: process.env.DATABASE_PORT,
     dialect: "mysql",
+    logging: false, //Disable query messages
   }
 );
+
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log("Conexão com o banco de dados foi estabelecida com sucesso...");
+  })
+  .catch((err) => {
+    console.error("Erro ao conectar com o banco de dados:", err);
+  });
 
 const TokenModel = sequelize.define(
   "token",
@@ -135,14 +145,21 @@ QueueModel.belongsTo(TokenModel, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Client connected");
+  console.log("Cliente conectado");
 
   socket.on("new_token", () => {
     io.emit("new_token");
+    console.log("Novo token recebido...");
+  });
+
+  socket.on("queued_update", () => {
+    io.emit("queued_update");
+
+    console.log("Atualização na fila recebida...");
   });
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    console.log("Cliente desconectado");
   });
 });
 

@@ -10,18 +10,23 @@ import NewUserPage from "../pages/registerNewUser";
 import QueueRegistration from "../pages/queue/register";
 import TokensList from "../pages/tokenlist";
 
+//Contexts
+import { WebSocketProvider } from "../contexts/webSocket";
+
 const AppRoutes = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/home" index element={<Home />} />
-        <Route path="/newUser" index element={<NewUserPage />} />
-        <Route path="/queueRegistration" element={<QueueRegistration />} />
-        <Route path="/tokensList" element={<TokensList />} />
+    <WebSocketProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/home" index element={<Home />} />
+          <Route path="/newUser" index element={<NewUserPage />} />
+          <Route path="/queueRegistration" element={<QueueRegistration />} />
+          <Route path="/tokensList" element={<TokensList />} />
 
-        <Route path="*" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </BrowserRouter>
+    </WebSocketProvider>
   );
 };
 
