@@ -151,8 +151,8 @@ io.on("connection", (socket) => {
     io.emit("new_token");
   });
 
-  socket.on("queued_update", () => {
-    io.emit("queued_update");
+  socket.on("queued_update", (data) => {
+    io.emit("queued_update", data);
   });
 
   socket.on("disconnect", () => {

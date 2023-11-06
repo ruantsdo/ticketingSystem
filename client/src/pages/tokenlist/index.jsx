@@ -108,8 +108,8 @@ function TokensList() {
     };
   });
 
-  function emitSignalQueueUpdate() {
-    socket.emit("queued_update");
+  function emitSignalQueueUpdate(data) {
+    socket.emit("queued_update", data);
   }
 
   return (
@@ -220,7 +220,7 @@ function TokensList() {
                 <Button
                   onPress={() => {
                     onClose();
-                    emitSignalQueueUpdate();
+                    emitSignalQueueUpdate(tokens[itemKey]);
                   }}
                   className="bg-success"
                 >
