@@ -1,5 +1,5 @@
 // React
-import React from "react";
+import React, { useState, useContext } from "react";
 
 //NextUi
 import {
@@ -11,23 +11,30 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
+  Button,
 } from "@nextui-org/react";
 
 //Components
 import ThemeSwitcher from "../components/themeSwitch";
 
-export default function NavBar() {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+//Models
+import menuItems from "./models/navbarItems";
 
-  const menuItems = [
-    "Gerenciar usuários",
-    "Gerenciar serviços",
-    "Gerenciar setores",
-    "Adicionar uma nova senha",
-    "Senhas",
-    "Serviços",
-    "Sair",
-  ];
+//Contexts
+import AuthContext from "../contexts/auth";
+
+//Toast
+import { toast } from "react-toastify";
+
+export default function NavBar() {
+  const { setCurrentUser } = useContext(AuthContext);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const logout = () => {
+    toast.warn("Você escolheu sair!");
+    localStorage.clear();
+    setCurrentUser(null);
+  };
 
   return (
     <Navbar
@@ -40,7 +47,7 @@ export default function NavBar() {
       <NavbarContent>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
+          //className="sm:hidden"
         />
         <NavbarBrand>
           <Link
@@ -56,17 +63,17 @@ export default function NavBar() {
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
           <Link color="foreground" href="/queueRegistration">
-            Criar ficha
+            Criar nova ficha
           </Link>
         </NavbarItem>
-        <NavbarItem isActive>
-          <Link href="/newUser" aria-current="page">
-            Gerência
+        <NavbarItem>
+          <Link href="/newUser" color="foreground" aria-current="page">
+            Novo usuário
           </Link>
         </NavbarItem>
         <NavbarItem>
           <Link color="foreground" href="/tokensList">
-            Fichas
+            Lista de Fichas
           </Link>
         </NavbarItem>
       </NavbarContent>
@@ -77,23 +84,23 @@ export default function NavBar() {
       </NavbarContent>
       <NavbarMenu className="w-screen bg-containerBackground opacity-90">
         {menuItems.map((item, index) => (
-          <NavbarMenuItem key={`${item}-${index}`}>
+          <NavbarMenuItem
+            key={`${item}-${index}`}
+            className="hover:cursor-pointer"
+          >
             <Link
-              color={
-                index === 2
-                  ? "primary"
-                  : index === menuItems.length - 1
-                  ? "danger"
-                  : "foreground"
-              }
+              color={item.color}
+              href={item.address}
               className="w-full"
-              href="#"
               size="lg"
             >
-              {item}
+              {item.name}
             </Link>
           </NavbarMenuItem>
         ))}
+        <Button onClick={() => logout()} className="bg-failed w-3/6">
+          Sair
+        </Button>
       </NavbarMenu>
     </Navbar>
   );

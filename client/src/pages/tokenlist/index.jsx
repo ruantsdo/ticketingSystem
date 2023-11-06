@@ -22,6 +22,8 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 
 //Validation
@@ -36,6 +38,9 @@ import api from "../../services/api";
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
+//Toast
+import { toast } from "react-toastify";
+
 function TokensList() {
   const { socket } = useWebSocket();
 
@@ -46,6 +51,16 @@ function TokensList() {
   const [tokensLength, setTokensLength] = useState(1);
   const [tokens, setTokens] = useState([]);
   const [itemKey, setItemKey] = useState();
+  const [sectorTable, setSectorTable] = useState([]);
+  const [currentTable, setCurrentTable] = useState("MESA 1");
+
+  const count = (x) => {
+    const numbers = [];
+    for (let i = 1; i <= x; i++) {
+      numbers.push({ value: `MESA ${i}` });
+    }
+    setSectorTable(numbers);
+  };
 
   const rowsPerPage = 5;
 
@@ -95,6 +110,7 @@ function TokensList() {
 
   useEffect(() => {
     handleTokens();
+    handleSectors();
     // eslint-disable-next-line
   }, []);
 
@@ -106,14 +122,70 @@ function TokensList() {
     return () => {
       socket.off("new_token");
     };
-  });
+    // eslint-disable-next-line
+  }, []);
 
-  function emitSignalQueueUpdate(data) {
+  const emitSignalQueueUpdate = (token) => {
+    const data = {
+      token_id: token.id,
+      sector: token.sector,
+      position: token.position,
+      service: token.service,
+      priority: token.priority,
+      requested_by: token.requestedBy,
+      created_by: token.createdBy,
+      table: currentTable,
+    };
     socket.emit("queued_update", data);
-  }
+  };
+
+  const insertOnQueue = async (token) => {
+    try {
+      await api.post("/queue/registration", {
+        token_id: token.id,
+        sector: token.sector,
+        position: token.position,
+        service: token.service,
+        priority: token.priority,
+        requested_by: token.requestedBy,
+        created_by: token.createdBy,
+        table: currentTable,
+      });
+    } catch (err) {
+      toast.error(
+        "Houve um problema ao cadastrar na fila! Tente novamente em alguns instantes!"
+      );
+      console.log(err);
+      return;
+    }
+  };
+
+  const handleSectors = async () => {
+    try {
+      const response = await api.get("/sectors/query");
+      const data = response.data;
+      const sector = data.find((setor) => setor.name === currentUser.sector);
+      count(sector.tables);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <FullContainer>
+      <Select
+        items={sectorTable}
+        label="Qual mesa você está no momento?"
+        placeholder="Selecione sua mesa"
+        className="max-w-xs"
+        value={currentTable}
+        onChange={(key) => setCurrentTable(key)}
+      >
+        {sectorTable.map((item) => (
+          <SelectItem key={item.value}>{item.value}</SelectItem>
+        ))}
+      </Select>
+
       <Table
         aria-label="Lista de fichas disponiveis para o seu setor"
         onRowAction={(key) => {
@@ -136,6 +208,7 @@ function TokensList() {
         classNames={{
           wrapper: "min-h-[222px]",
         }}
+        className="w-[95%]"
       >
         <TableHeader>
           <TableColumn>FICHA Nº</TableColumn>
@@ -176,7 +249,6 @@ function TokensList() {
           )}
         </TableBody>
       </Table>
-
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="opaque">
         <ModalContent>
           {(onClose) => (
@@ -219,8 +291,9 @@ function TokensList() {
                 </Button>
                 <Button
                   onPress={() => {
-                    onClose();
+                    insertOnQueue(tokens[itemKey]);
                     emitSignalQueueUpdate(tokens[itemKey]);
+                    //onClose();
                   }}
                   className="bg-success"
                 >

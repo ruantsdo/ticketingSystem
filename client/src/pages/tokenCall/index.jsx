@@ -12,12 +12,12 @@ import { useWebSocket } from "../../contexts/webSocket";
 
 function TokenCall() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
-
   const { socket } = useWebSocket();
 
   const [queue, setQueue] = useState([]);
   //const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("TokenCall Page");
 
   const speakText = useCallback(
     (text) => {
@@ -32,6 +32,9 @@ function TokenCall() {
 
   const speakQueue = () => {
     if (currentIndex < queue.length) {
+      setDisplayText(
+        `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - MESA 2`
+      );
       speakText(
         `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, Mesa 2`
       );
@@ -54,12 +57,7 @@ function TokenCall() {
     // eslint-disable-next-line
   }, [queue]);
 
-  return (
-    <FullContainer>
-      TokenCall Page
-      {queue.length > 0 ? queue[queue.length - 1].sector : null}
-    </FullContainer>
-  );
+  return <FullContainer>{displayText}</FullContainer>;
 }
 
 export default TokenCall;
