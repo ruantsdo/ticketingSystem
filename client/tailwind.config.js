@@ -11,30 +11,49 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "gradient-to-r from-cyan-500 to-blue-500",
-        secondary: "",
-        alert: "#E07B0F",
-        success: "#4E911B",
-        failed: "#CE1E1E",
+        alert: "#F5A524",
         info: "#008EDB",
-
-        dark: {
-          primary: "",
-          secondary: "#27374D",
-          background: "#282A3A",
-          navBarBackground: "#2B2D42",
-          success: "#4E911B",
-        },
-        light: {
-          primary: "",
-          secondary: "",
-          background: "#F4FAFF",
-          navBarBackground: "#8FACE1",
-          success: "#A2F897",
-        },
       },
     },
   },
   darkMode: "class",
-  plugins: [nextui()],
+  plugins: [
+    nextui({
+      prefix: "nextui",
+      addCommonColors: false,
+      defaultTheme: "light",
+      defaultExtendTheme: "light",
+      layout: {},
+      themes: {
+        light: {
+          layout: {},
+          colors: {
+            primary: "",
+            secondary: "",
+            background: "#fff",
+            containerBackground: "#d0d0d0",
+            navBarBackground: "#7286D3",
+            success: "#4CB250",
+            failed: "#FF6254",
+            defaultTextColor: "#000",
+            divider: "#000",
+          },
+        },
+        dark: {
+          layout: {},
+          colors: {
+            primary: "",
+            secondary: "#27374D",
+            background: "#ffffff",
+            containerBackground: "#27272a",
+            navBarBackground: "#2B2D42",
+            success: "#2C931F",
+            failed: "#CE1E1E",
+            defaultTextColor: "#fff",
+            divider: "#fff",
+          },
+        },
+      },
+    }),
+  ],
 };

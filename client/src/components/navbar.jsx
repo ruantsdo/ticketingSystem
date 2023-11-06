@@ -35,7 +35,7 @@ export default function NavBar() {
       isBordered
       onMenuOpenChange={setIsMenuOpen}
       height={"3rem"}
-      className="w-full bg-light-navBarBackground dark:bg-dark-navBarBackground"
+      className="w-full bg-navBarBackground"
     >
       <NavbarContent>
         <NavbarMenuToggle
@@ -75,7 +75,7 @@ export default function NavBar() {
           <ThemeSwitcher />
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className="w-screen">
+      <NavbarMenu className="w-screen bg-containerBackground opacity-90">
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link

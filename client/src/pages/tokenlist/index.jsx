@@ -161,7 +161,7 @@ function TokensList() {
           {(item) => (
             <TableRow
               key={item.id}
-              className="hover:cursor-pointer hover:opacity-90 hover:border dark:border-light-navBarBackground border-dark-navBarBackground hover:shadow-md"
+              className="hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md"
             >
               <TableCell>{item.position}</TableCell>
               <TableCell>{item.sector}</TableCell>
@@ -219,11 +219,11 @@ function TokensList() {
               </ModalBody>
               <Divider />
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
+                <Button className="bg-failed" onPress={onClose}>
+                  Fechar
                 </Button>
-                <Button color="default" onPress={onClose}>
-                  Action
+                <Button onPress={onClose} className="bg-success">
+                  Chamar
                 </Button>
               </ModalFooter>
             </>

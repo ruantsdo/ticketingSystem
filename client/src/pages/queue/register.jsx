@@ -119,16 +119,10 @@ function QueueRegistration() {
   return (
     <FullContainer>
       <Notification />
-      <Card
-        isBlurred
-        className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%]"
-        shadow="md"
-      >
+      <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
         <CardBody className="flex gap-3 justify-center items-center">
-          <p className="dark:text-dark-background text-light-background text-3xl">
-            Cadastro de ficha
-          </p>
-          <Divider className="dark:bg-dark-background bg-light-background" />
+          <p className="text-defaultTextColor text-3xl">Cadastro de ficha</p>
+          <Divider className="bg-divider" />
           <Formik initialValues={formik.initialValues}>
             <Form
               onSubmit={formik.handleSubmit}
@@ -185,13 +179,13 @@ function QueueRegistration() {
               <Input
                 type="text"
                 label="Solicitado por"
+                placeholder="Informe o nome da pessoa que está solicitanto esse serviço. (Opcional)"
                 className="w-full"
                 name="requested_by"
                 onChange={formik.handleChange}
                 value={formik.values.requested_by}
-                description="Informe o nome da pessoa que está solicitanto esse serviço. (Opcional)"
               />
-              <Divider className="dark:bg-dark-background bg-light-background" />
+              <Divider className="bg-divider" />
               <Button
                 className="bg-success w-[40%]"
                 endContent={<LoginIcon />}

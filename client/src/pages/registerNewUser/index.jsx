@@ -140,14 +140,12 @@ function NewUserRegister() {
       <Notification />
       <Card
         isBlurred
-        className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%] overflow-visible"
+        className="bg-background sm:w-[50%] w-[95%] overflow-visible"
         shadow="md"
       >
         <CardBody className="flex gap-3 justify-center items-center">
-          <p className="dark:text-dark-background text-light-background text-3xl">
-            Cadastro
-          </p>
-          <Divider className="dark:bg-dark-background bg-light-background" />
+          <p className="text-defaultTextColor text-3xl">Cadastro</p>
+          <Divider className="bg-divider" />
           <Formik initialValues={formik.initialValues}>
             <Form
               onSubmit={formik.handleSubmit}
@@ -269,7 +267,7 @@ function NewUserRegister() {
               ) : (
                 <></>
               )}
-              <Divider className="dark:bg-dark-background bg-light-background" />
+              <Divider className="bg-divider" />
               <Button
                 className="bg-success w-[40%]"
                 endContent={<LoginIcon />}

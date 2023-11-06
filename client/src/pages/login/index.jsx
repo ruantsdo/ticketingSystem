@@ -7,14 +7,7 @@ import Container from "../../components/container";
 import Notification from "../../components/notification";
 
 //NextUI
-import {
-  Card,
-  CardBody,
-  Button,
-  Input,
-  Divider,
-  Link,
-} from "@nextui-org/react";
+import { Card, CardBody, Button, Input, Divider } from "@nextui-org/react";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -75,16 +68,10 @@ function LoginPage() {
     <Container>
       <Notification />
       <ThemeSwitcher className="absolute top-5 right-3" />
-      <Card
-        isBlurred
-        className="bg-dark-background dark:bg-light-background sm:w-[50%] w-[95%]"
-        shadow="md"
-      >
+      <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
         <CardBody className="flex gap-3 justify-center items-center">
-          <p className="dark:text-dark-background text-light-background text-3xl">
-            Login
-          </p>
-          <Divider className="dark:bg-dark-background bg-light-background" />
+          <p className="text-defaultTextColor text-3xl">Login</p>
+          <Divider className="bg-background" />
           <Formik initialValues={formik.initialValues}>
             <Form
               onSubmit={formik.handleSubmit}
@@ -121,15 +108,13 @@ function LoginPage() {
                   </button>
                 }
               />
-              <Divider className="dark:bg-dark-background bg-light-background" />
+              <Divider className="bg-background" />
               <Button
                 className="bg-success w-[40%]"
                 endContent={<LoginIcon />}
                 type="submit"
               >
-                <Link className="bg-success" href="/home">
-                  Entrar
-                </Link>
+                Entrar
               </Button>
             </Form>
           </Formik>
