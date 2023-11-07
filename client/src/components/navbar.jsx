@@ -98,7 +98,7 @@ export default function NavBar() {
             </Link>
           </NavbarMenuItem>
         ))}
-        <Button onClick={() => logout()} className="bg-failed w-3/6">
+        <Button onClick={() => logout()} className="bg-failed w-1/6">
           Sair
         </Button>
       </NavbarMenu>

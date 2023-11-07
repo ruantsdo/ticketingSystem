@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -52,7 +53,7 @@ function TokensList() {
   const [tokens, setTokens] = useState([]);
   const [itemKey, setItemKey] = useState();
   const [sectorTable, setSectorTable] = useState([]);
-  const [currentTable, setCurrentTable] = useState("MESA 1");
+  const [currentTable, setCurrentTable] = useState("");
 
   const count = (x) => {
     const numbers = [];
@@ -132,8 +133,8 @@ function TokensList() {
       position: token.position,
       service: token.service,
       priority: token.priority,
-      requested_by: token.requestedBy,
-      created_by: token.createdBy,
+      requested_by: token.requested_by,
+      created_by: token.created_by,
       table: currentTable,
     };
     socket.emit("queued_update", data);
@@ -147,8 +148,8 @@ function TokensList() {
         position: token.position,
         service: token.service,
         priority: token.priority,
-        requested_by: token.requestedBy,
-        created_by: token.createdBy,
+        requested_by: token.requested_by,
+        created_by: token.created_by,
         table: currentTable,
       });
     } catch (err) {
@@ -174,12 +175,17 @@ function TokensList() {
   return (
     <FullContainer>
       <Select
+        isRequired
+        size="sm"
         items={sectorTable}
         label="Qual mesa você está no momento?"
         placeholder="Selecione sua mesa"
-        className="max-w-xs"
+        className="max-w-xs shadow-md mb-1 absolute top-[15%] right-[2.5%]"
+        variant="faded"
         value={currentTable}
-        onChange={(key) => setCurrentTable(key)}
+        onSelectionChange={(key) => {
+          setCurrentTable(key.currentKey);
+        }}
       >
         {sectorTable.map((item) => (
           <SelectItem key={item.value}>{item.value}</SelectItem>
@@ -249,6 +255,7 @@ function TokensList() {
           )}
         </TableBody>
       </Table>
+
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="opaque">
         <ModalContent>
           {(onClose) => (
@@ -291,9 +298,18 @@ function TokensList() {
                 </Button>
                 <Button
                   onPress={() => {
-                    insertOnQueue(tokens[itemKey]);
-                    emitSignalQueueUpdate(tokens[itemKey]);
-                    //onClose();
+                    if (currentTable) {
+                      insertOnQueue(tokens[itemKey]);
+                      emitSignalQueueUpdate(tokens[itemKey]);
+                      toast.success(
+                        "A senha foi adicionada a fila de chamada..."
+                      );
+                    } else {
+                      toast.info(
+                        "Você deve definir a sua mesa antes de fazer uma chamada..."
+                      );
+                      onClose();
+                    }
                   }}
                   className="bg-success"
                 >
@@ -304,6 +320,8 @@ function TokensList() {
           )}
         </ModalContent>
       </Modal>
+
+      <Notification />
     </FullContainer>
   );
 }

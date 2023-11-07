@@ -96,7 +96,7 @@ router.post("/token/registration", async (req, res) => {
 router.post("/queue/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO queue (token_id, sector, position, service, priority, requested_by, created_by, table) VALUES (?,?,?,?,?,?,?,?)",
+      "INSERT INTO queue (token_id, sector, position, service, priority, requested_by, created_by, `table`) VALUES (?,?,?,?,?,?,?,?)",
       [
         req.body.token_id,
         req.body.sector,
