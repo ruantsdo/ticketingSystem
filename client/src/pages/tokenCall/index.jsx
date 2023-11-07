@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import VideoJS from "../../components/videoPlayer";
 
 //NextUI
 import {
@@ -18,6 +19,8 @@ import {
 import { useWebSocket } from "../../contexts/webSocket";
 
 function TokenCall() {
+  //const playerRef = React.useRef(null);
+
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
 
@@ -25,6 +28,44 @@ function TokenCall() {
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayText, setDisplayText] = useState("TokenCall Page");
+
+  // const videoJsOptions = {
+  //   autoplay: true,
+  //   controls: true,
+  //   responsive: true,
+  //   width: "350",
+  //   height: "350",
+  //   //fluid: true,
+  //   // playerVars: {
+  //   //   listType: "playlist",
+  //   //   list: "https://www.youtube.com/playlist?list=PLTHOGCUnYUS1auqvXd8uD1KAG-dqKEzIQ", // Substitua pelo ID da sua playlist
+  //   // },
+  //   // sources: [
+  //   //   {
+  //   //     type: "video/youtube",
+  //   //     src: "https://www.youtube.com/watch?v=9_OnWhIST3A",
+  //   //   },
+  //   // ],
+  //   // sources: [
+  //   //   {
+  //   //     src: "https://www.youtube.com/watch?v=9_OnWhIST3A",
+  //   //     type: "video",
+  //   //   },
+  //   // ],
+  // };
+
+  // const handlePlayerReady = (player) => {
+  //   playerRef.current = player;
+
+  //   // You can handle player events here, for example:
+  //   player.on("waiting", () => {
+  //     console.log("player is waiting");
+  //   });
+
+  //   player.on("dispose", () => {
+  //     console.log("player will dispose");
+  //   });
+  // };
 
   const speakText = useCallback(
     (text) => {
@@ -104,6 +145,8 @@ function TokenCall() {
           )}
         </TableBody>
       </Table>
+
+      <VideoJS />
     </FullContainer>
   );
 }
