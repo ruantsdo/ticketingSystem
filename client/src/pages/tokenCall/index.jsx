@@ -42,20 +42,22 @@ function TokenCall() {
       setDisplayText(
         `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`
       );
+
       speakText(
         `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
       );
+
+      if (lastsTokens.length >= 5) {
+        setLastsTokens(lastsTokens.pop());
+      }
+
       setLastsTokens([
-        ...lastsTokens,
         {
           id: `${queue[currentIndex].id}`,
           value: `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`,
         },
+        ...lastsTokens,
       ]);
-
-      if (lastsTokens.length >= 5) {
-        setLastsTokens(lastsTokens.shift());
-      }
 
       setCurrentIndex(currentIndex + 1);
     }
@@ -76,20 +78,24 @@ function TokenCall() {
     // eslint-disable-next-line
   }, [queue]);
 
-  const defineLastsTokens = () => {
-    setLastsTokens(lastsTokens.slice(-5));
-  };
+  // const defineLastsTokens = () => {
+  //   setLastsTokens(lastsTokens.slice(-5));
+  // };
 
   return (
     <FullContainer>
       {displayText}
-      <Table isStriped>
+      <Table
+        aria-label="Lista das últimas senhas que foram chamadas"
+        isStriped
+        className="w-1/6"
+      >
         <TableHeader>
-          <TableColumn>Ultimas Senhas</TableColumn>
+          <TableColumn>Últimas Senhas</TableColumn>
         </TableHeader>
         <TableBody
           items={lastsTokens}
-          emptyContent={"Nenhuma ficha foi chamada..."}
+          emptyContent={"Nenhuma ficha foi chamada ainda..."}
         >
           {(item) => (
             <TableRow key={item.id}>
