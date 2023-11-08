@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
-import VideoJS from "../../components/videoPlayer";
 
 //NextUI
 import {
@@ -18,8 +17,13 @@ import {
 //Contexts
 import { useWebSocket } from "../../contexts/webSocket";
 
+//Services
+import api from "../../services/api";
+
 function TokenCall() {
-  //const playerRef = React.useRef(null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [videos, setVideos] = useState([]);
+  const [currentVideo, setCurrentVideo] = useState();
 
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
@@ -28,44 +32,7 @@ function TokenCall() {
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayText, setDisplayText] = useState("TokenCall Page");
-
-  // const videoJsOptions = {
-  //   autoplay: true,
-  //   controls: true,
-  //   responsive: true,
-  //   width: "350",
-  //   height: "350",
-  //   //fluid: true,
-  //   // playerVars: {
-  //   //   listType: "playlist",
-  //   //   list: "https://www.youtube.com/playlist?list=PLTHOGCUnYUS1auqvXd8uD1KAG-dqKEzIQ", // Substitua pelo ID da sua playlist
-  //   // },
-  //   // sources: [
-  //   //   {
-  //   //     type: "video/youtube",
-  //   //     src: "https://www.youtube.com/watch?v=9_OnWhIST3A",
-  //   //   },
-  //   // ],
-  //   // sources: [
-  //   //   {
-  //   //     src: "https://www.youtube.com/watch?v=9_OnWhIST3A",
-  //   //     type: "video",
-  //   //   },
-  //   // ],
-  // };
-
-  // const handlePlayerReady = (player) => {
-  //   playerRef.current = player;
-
-  //   // You can handle player events here, for example:
-  //   player.on("waiting", () => {
-  //     console.log("player is waiting");
-  //   });
-
-  //   player.on("dispose", () => {
-  //     console.log("player will dispose");
-  //   });
-  // };
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const speakText = useCallback(
     (text) => {
@@ -104,6 +71,29 @@ function TokenCall() {
     }
   };
 
+  const onVideoEnd = () => {
+    if (currentVideoIndex < videos.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
+      // videoRef.current.load();
+      // videoRef.current.play();
+    } else {
+      setCurrentVideoIndex(0);
+      // videoRef.current.load();
+      // videoRef.current.play();
+    }
+  };
+
+  const handleVideos = async () => {
+    try {
+      const response = await api.get("/videoList");
+      const data = response.data.videos;
+      setVideos(data);
+      importVideos(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     socket.on("queued_update", (data) => {
       setQueue([...queue, data]);
@@ -115,13 +105,22 @@ function TokenCall() {
   });
 
   useEffect(() => {
+    handleVideos().then(() => setVideoLoaded(true));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
     speakQueue();
     // eslint-disable-next-line
   }, [queue]);
 
-  // const defineLastsTokens = () => {
-  //   setLastsTokens(lastsTokens.slice(-5));
-  // };
+  const importVideos = async (videoNames) => {
+    for (const videoName of videoNames) {
+      setCurrentVideo(require("../../assets/videos/" + videoName));
+    }
+
+    onVideoEnd();
+  };
 
   return (
     <FullContainer>
@@ -146,7 +145,11 @@ function TokenCall() {
         </TableBody>
       </Table>
 
-      <VideoJS />
+      {videoLoaded === true ? (
+        <video src={currentVideo} controls autoPlay width="500" muted></video>
+      ) : (
+        <p>Carregando...</p>
+      )}
     </FullContainer>
   );
 }

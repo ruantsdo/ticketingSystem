@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../dbConnection");
+const fs = require("fs");
+
+const videosFolder = "../client/src/assets/videos";
 
 router.get("/token/query", async (req, res) => {
   try {
@@ -71,6 +74,17 @@ router.get("/usersLevel/:cpf", (req, res) => {
       }
     }
   );
+});
+
+router.get("/videoList", (req, res) => {
+  fs.readdir(videosFolder, (err, files) => {
+    if (err) {
+      console.error("Erro ao ler a pasta:", err);
+      res.status(500).json({ error: "Erro ao listar vídeos" });
+      return;
+    }
+    res.json({ videos: files });
+  });
 });
 
 module.exports = router;
