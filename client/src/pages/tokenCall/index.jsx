@@ -1,5 +1,5 @@
 //React
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
@@ -21,18 +21,20 @@ import { useWebSocket } from "../../contexts/webSocket";
 import api from "../../services/api";
 
 function TokenCall() {
+  const { speechSynthesis, SpeechSynthesisUtterance } = window;
+  const { socket } = useWebSocket();
+
+  const videoRef = useRef(null);
+
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [videos, setVideos] = useState([]);
   const [currentVideo, setCurrentVideo] = useState();
-
-  const { speechSynthesis, SpeechSynthesisUtterance } = window;
-  const { socket } = useWebSocket();
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayText, setDisplayText] = useState("TokenCall Page");
-  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const speakText = useCallback(
     (text) => {
@@ -74,12 +76,9 @@ function TokenCall() {
   const onVideoEnd = () => {
     if (currentVideoIndex < videos.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
-      // videoRef.current.load();
-      // videoRef.current.play();
+      console.log("Video acabou...");
     } else {
       setCurrentVideoIndex(0);
-      // videoRef.current.load();
-      // videoRef.current.play();
     }
   };
 
@@ -94,6 +93,25 @@ function TokenCall() {
     }
   };
 
+  const importVideos = async (videoNames, videoRef) => {
+    let currentVideoIndex = 0;
+
+    const playNextVideo = () => {
+      if (currentVideoIndex < videoNames.length) {
+        const videoName = videoNames[currentVideoIndex];
+        videoRef.current.src = require(`../../assets/videos/${videoName}`);
+        currentVideoIndex++;
+        videoRef.current.play();
+      } else {
+        currentVideoIndex = 0;
+      }
+    };
+
+    videoRef.current.addEventListener("ended", playNextVideo);
+
+    playNextVideo();
+  };
+
   useEffect(() => {
     socket.on("queued_update", (data) => {
       setQueue([...queue, data]);
@@ -105,7 +123,19 @@ function TokenCall() {
   });
 
   useEffect(() => {
-    handleVideos().then(() => setVideoLoaded(true));
+    handleVideos().then(() => {
+      if (videoRef.current) {
+        importVideos(videos, videoRef);
+        setVideoLoaded(true);
+      }
+    });
+
+    return () => {
+      if (videoRef.current) {
+        // eslint-disable-next-line
+        videoRef.current.removeEventListener("ended", onVideoEnd);
+      }
+    };
     // eslint-disable-next-line
   }, []);
 
@@ -113,14 +143,6 @@ function TokenCall() {
     speakQueue();
     // eslint-disable-next-line
   }, [queue]);
-
-  const importVideos = async (videoNames) => {
-    for (const videoName of videoNames) {
-      setCurrentVideo(require("../../assets/videos/" + videoName));
-    }
-
-    onVideoEnd();
-  };
 
   return (
     <FullContainer>
@@ -146,7 +168,14 @@ function TokenCall() {
       </Table>
 
       {videoLoaded === true ? (
-        <video src={currentVideo} controls autoPlay width="500" muted></video>
+        <video
+          ref={videoRef}
+          src={currentVideo}
+          controls
+          autoPlay
+          width="500"
+          muted
+        ></video>
       ) : (
         <p>Carregando...</p>
       )}
