@@ -37,12 +37,14 @@ function TokenCall() {
   const [displayText, setDisplayText] = useState(
     "Nenhuma ficha foi chamada ainda..."
   );
+  const [displaySubtitle, setDisplaySubTitle] = useState("");
 
   const speakText = useCallback(
     (text) => {
       const voices = window.speechSynthesis.getVoices();
+      const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voices[0];
+      utterance.voice = voices[ptBrVoice];
       speechSynthesis.speak(utterance);
     },
     // eslint-disable-next-line
@@ -52,8 +54,9 @@ function TokenCall() {
   const speakQueue = () => {
     if (currentIndex < queue.length) {
       setDisplayText(
-        `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`
+        `SENHA: ${queue[currentIndex].sector} ${queue[currentIndex].position}`
       );
+      setDisplaySubTitle(`${queue[currentIndex].table}`);
 
       speakText(
         `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
@@ -157,7 +160,7 @@ function TokenCall() {
   return (
     <Container className="justify-between">
       <section className="flex border-1 w-11/12 h-[30%] justify-center items-center">
-        <p className="text-6xl">{displayText}</p>
+        <p className="text-6xl text-red-700">{displayText}</p>
       </section>
 
       <div className="flex w-screen h-[66%] justify-around">
@@ -188,6 +191,7 @@ function TokenCall() {
               src={currentVideo}
               controls
               autoPlay
+              muted
               className="w-full h-full"
             />
           ) : (

@@ -51,6 +51,7 @@ function LoginPage() {
               setCurrentUser(response.data[0]);
 
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
+              toast.success("Logado com sucesso!");
             } else {
               toast.warn("Verifique suas crendenciais e tente novamente!");
             }
@@ -60,7 +61,6 @@ function LoginPage() {
         console.log(err);
         toast.error("Um erro aconteceu! Tente novamente mais tarde!");
       }
-      toast.success("Logado com sucesso!");
     },
   });
 
