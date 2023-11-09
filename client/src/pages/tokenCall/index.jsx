@@ -25,16 +25,16 @@ function TokenCall() {
   const { socket } = useWebSocket();
 
   const videoRef = useRef(null);
-
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [videos, setVideos] = useState([]);
   const [currentVideo, setCurrentVideo] = useState();
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayText, setDisplayText] = useState("TokenCall Page");
+  const [displayText, setDisplayText] = useState(
+    "Nenhuma ficha foi chamada ainda..."
+  );
 
   const speakText = useCallback(
     (text) => {
@@ -73,44 +73,43 @@ function TokenCall() {
     }
   };
 
-  const onVideoEnd = () => {
-    if (currentVideoIndex < videos.length - 1) {
+  const onVideoEnd = (data) => {
+    setVideoLoaded(false);
+
+    if (currentVideoIndex < data.length - 1) {
+      setCurrentVideo(
+        `http://${process.env.REACT_APP_VIDEOS_SERVER_IP}:${process.env.REACT_APP_VIDEOS_SERVER_PORT}/${data[currentVideoIndex]}`
+      );
       setCurrentVideoIndex(currentVideoIndex + 1);
-      console.log("Video acabou...");
     } else {
       setCurrentVideoIndex(0);
+      setCurrentVideo(
+        `http://${process.env.REACT_APP_VIDEOS_SERVER_IP}:${process.env.REACT_APP_VIDEOS_SERVER_PORT}/${data[currentVideoIndex]}`
+      );
     }
+
+    setVideoLoaded(true);
   };
 
   const handleVideos = async () => {
     try {
       const response = await api.get("/videoList");
       const data = response.data.videos;
-      setVideos(data);
-      importVideos(data);
+      onVideoEnd(data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const importVideos = async (videoNames, videoRef) => {
-    let currentVideoIndex = 0;
+  useEffect(() => {
+    handleVideos();
+    // eslint-disable-next-line
+  }, []);
 
-    const playNextVideo = () => {
-      if (currentVideoIndex < videoNames.length) {
-        const videoName = videoNames[currentVideoIndex];
-        videoRef.current.src = require(`../../assets/videos/${videoName}`);
-        currentVideoIndex++;
-        videoRef.current.play();
-      } else {
-        currentVideoIndex = 0;
-      }
-    };
-
-    videoRef.current.addEventListener("ended", playNextVideo);
-
-    playNextVideo();
-  };
+  useEffect(() => {
+    speakQueue();
+    // eslint-disable-next-line
+  }, [queue]);
 
   useEffect(() => {
     socket.on("queued_update", (data) => {
@@ -123,30 +122,23 @@ function TokenCall() {
   });
 
   useEffect(() => {
-    handleVideos().then(() => {
-      if (videoRef.current) {
-        importVideos(videos, videoRef);
-        setVideoLoaded(true);
-      }
-    });
+    if (videoRef.current) {
+      videoRef.current.addEventListener("ended", handleVideos);
+    }
 
     return () => {
       if (videoRef.current) {
         // eslint-disable-next-line
-        videoRef.current.removeEventListener("ended", onVideoEnd);
+        videoRef.current.removeEventListener("ended", handleVideos);
       }
     };
     // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    speakQueue();
-    // eslint-disable-next-line
-  }, [queue]);
+  }, [currentVideoIndex]);
 
   return (
     <FullContainer>
-      {displayText}
+      <section className="bg-red-700">{displayText}</section>
+
       <Table
         aria-label="Lista das últimas senhas que foram chamadas"
         isStriped
@@ -173,7 +165,8 @@ function TokenCall() {
           src={currentVideo}
           controls
           autoPlay
-          width="500"
+          width="250"
+          height="250"
           muted
         ></video>
       ) : (
