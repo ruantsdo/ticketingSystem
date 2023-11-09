@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../dbConnection");
 const fs = require("fs");
 
-const videosFolder = "../client/src/assets/videos";
+const videosFolder = "./videos";
 
 router.get("/token/query", async (req, res) => {
   try {

@@ -1,8 +1,10 @@
+import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
+
 //React
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
 //Components
-import FullContainer from "../../components/fullContainer";
+import Container from "../../components/container";
 
 //NextUI
 import {
@@ -57,7 +59,7 @@ function TokenCall() {
         `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
       );
 
-      if (lastsTokens.length >= 5) {
+      if (lastsTokens.length >= 9) {
         setLastsTokens(lastsTokens.pop());
       }
 
@@ -101,13 +103,30 @@ function TokenCall() {
     }
   };
 
+  function playAudio() {
+    const audio = document.getElementById("myAudio");
+
+    return new Promise((resolve) => {
+      // Código para iniciar a reprodução de áudio
+      audio.play();
+      audio.onended = resolve; // Resolva a promessa quando a reprodução terminar
+    });
+  }
+
   useEffect(() => {
     handleVideos();
     // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    speakQueue();
+    async function playAndSpeak() {
+      if (queue.length > 0) {
+        await playAudio();
+      }
+      speakQueue();
+    }
+
+    playAndSpeak();
     // eslint-disable-next-line
   }, [queue]);
 
@@ -136,43 +155,48 @@ function TokenCall() {
   }, [currentVideoIndex]);
 
   return (
-    <FullContainer>
-      <section className="bg-red-700">{displayText}</section>
+    <Container className="justify-between">
+      <section className="flex border-1 w-11/12 h-[30%] justify-center items-center">
+        <p className="text-6xl">{displayText}</p>
+      </section>
 
-      <Table
-        aria-label="Lista das últimas senhas que foram chamadas"
-        isStriped
-        className="w-1/6"
-      >
-        <TableHeader>
-          <TableColumn>Últimas Senhas</TableColumn>
-        </TableHeader>
-        <TableBody
-          items={lastsTokens}
-          emptyContent={"Nenhuma ficha foi chamada ainda..."}
+      <div className="flex w-screen h-[66%] justify-around">
+        <Table
+          aria-label="Lista das últimas senhas que foram chamadas"
+          isStriped
+          className="w-5/12 h-full transition-all"
         >
-          {(item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.value}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          <TableHeader>
+            <TableColumn>Últimas Senhas</TableColumn>
+          </TableHeader>
+          <TableBody
+            items={lastsTokens}
+            emptyContent={"Nenhuma ficha foi chamada ainda..."}
+          >
+            {(item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.value}</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
-      {videoLoaded === true ? (
-        <video
-          ref={videoRef}
-          src={currentVideo}
-          controls
-          autoPlay
-          width="250"
-          height="250"
-          muted
-        ></video>
-      ) : (
-        <p>Carregando...</p>
-      )}
-    </FullContainer>
+        <div className="flex items-center justify-center w-6/12 h-full border-1 bg-black">
+          {videoLoaded === true ? (
+            <video
+              ref={videoRef}
+              src={currentVideo}
+              controls
+              autoPlay
+              className="w-full h-full"
+            />
+          ) : (
+            <p>Carregando...</p>
+          )}
+        </div>
+      </div>
+      <audio id="myAudio" src={NotificationAudio}></audio>
+    </Container>
   );
 }
 
