@@ -9,7 +9,7 @@ import Home from "../pages/home";
 import NewUserPage from "../pages/registerNewUser";
 import QueueRegistration from "../pages/queue/register";
 import TokensList from "../pages/tokenlist";
-import TokenCall from "../pages/tokenCall";
+import TokenCall from "../pages/tokenCall/type_2";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";

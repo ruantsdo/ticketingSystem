@@ -3,9 +3,6 @@ import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
 //React
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
-//Components
-import Container from "../../components/container";
-
 //NextUI
 import {
   Table,
@@ -34,9 +31,12 @@ function TokenCall() {
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayText, setDisplayText] = useState(
-    "Nenhuma ficha foi chamada ainda..."
+  const [displayToken, setdisplayToken] = useState(
+    "Nenhuma senha foi chamada ainda..."
   );
+  const [displaySector, setDisplaySector] = useState("");
+  const [displayTable, setDisplayTable] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
   const speakText = useCallback(
     (text) => {
@@ -51,19 +51,19 @@ function TokenCall() {
   );
 
   const speakQueue = () => {
-    console.log("Entrou da função");
-    console.log("Index: " + currentIndex + " Queue: " + queue.length);
     if (currentIndex < queue.length) {
-      console.log("Entrou na condição");
-      setDisplayText(
+      setdisplayToken(
         `${queue[currentIndex].sector} ${queue[currentIndex].position}`
       );
+      setDisplaySector("Dirija-se ao setor de " + queue[currentIndex].sector);
+      setDisplayTable(queue[currentIndex].table);
+      setDisplayName(queue[currentIndex].requested_by);
 
       speakText(
         `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
       );
 
-      if (lastsTokens.length >= 9) {
+      if (lastsTokens.length >= 5) {
         setLastsTokens(lastsTokens.pop());
       }
 
@@ -117,7 +117,7 @@ function TokenCall() {
   };
 
   const playAndSpeak = async () => {
-    if (queue.length > 0) {
+    if (queue.length > 0 && queue.length === currentIndex) {
       await playAudio();
     }
     speakQueue();
@@ -136,6 +136,7 @@ function TokenCall() {
   useEffect(() => {
     socket.on("queued_update", (data) => {
       setQueue([...queue, data]);
+      console.log("O sinal foi recebido!");
     });
 
     return () => {
@@ -159,16 +160,20 @@ function TokenCall() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <Container className="justify-between">
-      <section className="flex border-1 w-11/12 h-[30%] justify-center items-center">
-        <p className="text-6xl text-red-700">{displayText}</p>
-      </section>
+    <div className="flex flex-row p-3 gap-3 w-screen h-screen bg-containerBackground justify-evenly transition-all delay-0 overflow-auto">
+      <div className="flex flex-col border-1 w-6/12 h-full justify-around items-center">
+        <p className="text-6xl text-red-700">SENHA</p>
+        <p className="text-5xl text-center text-red-700">{displayToken}</p>
+        <p className="text-5xl text-center text-red-700">{displaySector}</p>
+        <p className="text-4xl text-center text-red-700">{displayTable}</p>
+        <p className="text-3xl text-center text-blue-700">{displayName}</p>
+      </div>
 
-      <div className="flex w-screen h-[66%] justify-around">
+      <div className="flex flex-col w-6/12 h-5/12 items-end">
         <Table
           aria-label="Lista das últimas senhas que foram chamadas"
           isStriped
-          className="w-5/12 h-full transition-all"
+          className="w-full h-full transition-all"
         >
           <TableHeader>
             <TableColumn>Últimas Senhas</TableColumn>
@@ -185,7 +190,7 @@ function TokenCall() {
           </TableBody>
         </Table>
 
-        <div className="flex items-center justify-center w-6/12 h-full border-1 bg-black">
+        <div className="flex items-center justify-center w-full h-[50%] bg-black">
           {videoLoaded === true ? (
             <video
               ref={videoRef}
@@ -201,7 +206,7 @@ function TokenCall() {
         </div>
       </div>
       <audio id="notification" src={NotificationAudio}></audio>
-    </Container>
+    </div>
   );
 }
 
