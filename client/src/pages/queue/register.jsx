@@ -154,9 +154,10 @@ function QueueRegistration() {
                 )}
               </Select>
               <Input
+                isRequired
                 type="text"
                 label="Solicitado por"
-                placeholder="Informe o nome da pessoa que está solicitanto esse serviço. (Opcional)"
+                placeholder="Informe o nome da pessoa que está solicitanto esse serviço."
                 className="w-full"
                 name="requested_by"
                 onChange={formik.handleChange}

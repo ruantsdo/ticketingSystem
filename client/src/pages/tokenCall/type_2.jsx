@@ -142,7 +142,6 @@ function TokenCall() {
     return () => {
       socket.off("queued_update");
     };
-    // eslint-disable-next-line
   }); //Socket Server Connection
 
   useEffect(() => {

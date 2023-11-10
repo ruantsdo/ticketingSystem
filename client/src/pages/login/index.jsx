@@ -49,12 +49,11 @@ function LoginPage() {
             if (response.data.length > 0) {
               const currentUser = response.data[0];
               setCurrentUser(response.data[0]);
-
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
-              toast.success("Logado com sucesso!");
             } else {
               toast.warn("Verifique suas crendenciais e tente novamente!");
             }
+
             return;
           });
       } catch (err) {

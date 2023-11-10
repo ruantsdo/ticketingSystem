@@ -14,11 +14,13 @@ export const AuthProvider = ({ children }) => {
       try {
         setCurrentUser(currentUser);
       } catch (err) {
+        console.warn("Falha na verificação do usuário!");
       } finally {
         setIsLoading(false);
       }
     }
     setIsLoading(false);
+    // eslint-disable-next-line
   }, []);
 
   return (

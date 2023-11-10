@@ -34,9 +34,10 @@ function TokenCall() {
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayText, setDisplayText] = useState(
+  const [displayToken, setDisplayToken] = useState(
     "Nenhuma ficha foi chamada ainda..."
   );
+  const [displaySector, setDisplaySector] = useState("");
 
   const speakText = useCallback(
     (text) => {
@@ -51,12 +52,14 @@ function TokenCall() {
   );
 
   const speakQueue = () => {
-    console.log("Entrou da função");
-    console.log("Index: " + currentIndex + " Queue: " + queue.length);
     if (currentIndex < queue.length) {
-      console.log("Entrou na condição");
-      setDisplayText(
+      setDisplayToken(
         `${queue[currentIndex].sector} ${queue[currentIndex].position}`
+      );
+      setDisplaySector(
+        queue[currentIndex].requested_by +
+          ", dirija-se ao setor de: " +
+          queue[currentIndex].sector
       );
 
       speakText(
@@ -141,7 +144,6 @@ function TokenCall() {
     return () => {
       socket.off("queued_update");
     };
-    // eslint-disable-next-line
   }); //Socket Server Connection
 
   useEffect(() => {
@@ -160,14 +162,15 @@ function TokenCall() {
 
   return (
     <Container className="justify-between">
-      <section className="flex border-1 w-11/12 h-[30%] justify-center items-center">
-        <p className="text-6xl text-red-700">{displayText}</p>
+      <section className="flex border-1 w-11/12 h-[40%] justify-center items-center">
+        <p className="text-6xl text-red-700">{displayToken}</p>
+        <p className="text-3xl text-blue-700">{displaySector}</p>
       </section>
 
-      <div className="flex w-screen h-[66%] justify-around">
+      <div className="flex w-screen h-[60%] justify-around">
         <Table
-          aria-label="Lista das últimas senhas que foram chamadas"
           isStriped
+          aria-label="Lista das últimas senhas que foram chamadas"
           className="w-5/12 h-full transition-all"
         >
           <TableHeader>
@@ -200,6 +203,7 @@ function TokenCall() {
           )}
         </div>
       </div>
+
       <audio id="notification" src={NotificationAudio}></audio>
     </Container>
   );
