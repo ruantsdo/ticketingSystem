@@ -70,7 +70,7 @@ function TokenCall() {
       setLastsTokens([
         {
           id: `${queue[currentIndex].id}`,
-          value: `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`,
+          value: `${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`,
         },
         ...lastsTokens,
       ]);
@@ -161,11 +161,11 @@ function TokenCall() {
   return (
     <div className="flex flex-row p-3 gap-3 w-screen h-screen bg-containerBackground justify-evenly transition-all delay-0 overflow-auto">
       <div className="flex flex-col border-1 w-6/12 h-full justify-around items-center">
-        <p className="text-6xl text-red-700">SENHA</p>
+        <p className="text-6xl text-red-700 underline">SENHA</p>
         <p className="text-5xl text-center text-red-700">{displayToken}</p>
-        <p className="text-5xl text-center text-red-700">{displaySector}</p>
-        <p className="text-4xl text-center text-red-700">{displayTable}</p>
         <p className="text-3xl text-center text-blue-700">{displayName}</p>
+        <p className="text-5xl text-center ">{displaySector}</p>
+        <p className="text-4xl text-center ">{displayTable}</p>
       </div>
 
       <div className="flex flex-col w-6/12 h-5/12 items-end">
