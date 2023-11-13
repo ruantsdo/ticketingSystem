@@ -15,9 +15,9 @@ router.get("/token/query", async (req, res) => {
   }
 });
 
-router.get("/sectors/query", async (req, res) => {
+router.get("/location/query", async (req, res) => {
   try {
-    await db.query("SELECT * FROM sectors", (err, result) => {
+    await db.query("SELECT * FROM locations", (err, result) => {
       res.send(result);
     });
   } catch (error) {

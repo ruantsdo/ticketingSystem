@@ -53,7 +53,6 @@ function LoginPage() {
             } else {
               toast.warn("Verifique suas crendenciais e tente novamente!");
             }
-
             return;
           });
       } catch (err) {

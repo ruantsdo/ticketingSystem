@@ -94,7 +94,7 @@ function QueueRegistration() {
             >
               <Select
                 isRequired
-                label="Prioridade?"
+                label="É prioridade?"
                 defaultSelectedKeys={"0"}
                 className="w-full"
                 name="priority"

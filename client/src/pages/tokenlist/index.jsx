@@ -49,19 +49,15 @@ function TokensList() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [page, setPage] = useState(1);
+
   const [tokensLength, setTokensLength] = useState(1);
   const [tokens, setTokens] = useState([]);
   const [itemKey, setItemKey] = useState();
-  const [sectorTable, setSectorTable] = useState([]);
-  const [currentTable, setCurrentTable] = useState("");
 
-  const count = (x) => {
-    const numbers = [];
-    for (let i = 1; i <= x; i++) {
-      numbers.push({ value: `MESA ${i}` });
-    }
-    setSectorTable(numbers);
-  };
+  const [locations, setLocations] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState("");
+  const [locationTable, setLocationTable] = useState([]);
+  const [currentTable, setCurrentTable] = useState("");
 
   const rowsPerPage = 5;
 
@@ -111,7 +107,7 @@ function TokensList() {
 
   useEffect(() => {
     handleTokens();
-    handleSectors();
+    handleLocations();
     // eslint-disable-next-line
   }, []);
 
@@ -161,15 +157,29 @@ function TokensList() {
     }
   };
 
-  const handleSectors = async () => {
+  const handleLocations = async () => {
     try {
-      const response = await api.get("/sectors/query");
+      const response = await api.get("/location/query");
       const data = response.data;
-      const sector = data.find((setor) => setor.name === currentUser.sector);
-      count(sector.tables);
+      setLocations(data);
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const countTables = (definedLocation) => {
+    const location = locations.find(
+      (location) => location.name === definedLocation
+    );
+    count(location.tables);
+  };
+
+  const count = (x) => {
+    const numbers = [];
+    for (let i = 1; i <= x; i++) {
+      numbers.push({ value: `MESA ${i}` });
+    }
+    setLocationTable(numbers);
   };
 
   return (
@@ -177,17 +187,34 @@ function TokensList() {
       <Select
         isRequired
         size="sm"
-        items={sectorTable}
-        label="Qual mesa você está no momento?"
-        placeholder="Selecione sua mesa"
-        className="max-w-xs shadow-md mb-1 absolute top-[15%] right-[2.5%]"
+        items={locations}
+        label="Qual local você está no momento?"
+        placeholder="Indique seu local"
+        className="max-w-xs shadow-md mb-1 absolute top-[10%] right-[2.5%]"
+        variant="faded"
+        value={currentLocation}
+        onSelectionChange={(key) => {
+          countTables(key.currentKey);
+          setCurrentLocation(key.currentKey);
+        }}
+      >
+        {locations.map((item) => (
+          <SelectItem key={item.name}>{item.name}</SelectItem>
+        ))}
+      </Select>
+      <Select
+        size="sm"
+        items={locationTable}
+        label="Em qual mesa?"
+        placeholder="Indique sua mesa"
+        className="max-w-xs shadow-md mb-1 absolute top-[20%] right-[2.5%]"
         variant="faded"
         value={currentTable}
         onSelectionChange={(key) => {
           setCurrentTable(key.currentKey);
         }}
       >
-        {sectorTable.map((item) => (
+        {locationTable.map((item) => (
           <SelectItem key={item.value}>{item.value}</SelectItem>
         ))}
       </Select>
