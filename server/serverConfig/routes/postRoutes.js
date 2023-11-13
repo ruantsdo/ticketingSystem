@@ -32,59 +32,79 @@ router.post("/login", (req, res) => {
   );
 });
 
-router.post("/newUser", async (req, res) => {
+router.post("/user/registration", async (req, res) => {
   db.query(
+    //Checks if the user already exists
     "SELECT cpf FROM users WHERE cpf = ?",
     [req.body.cpf],
     async (err, result) => {
       if (err) {
-        return;
+        return res.send("Falied to check users");
       }
 
-      const hash = await bcrypt.hash(req.body.password, saltRounds);
-
-      try {
+      if (result.length > 0) {
+        return res.send("User already exists");
+      } else {
+        //If it does not exist, start the registration procedure
+        const hash = await bcrypt.hash(req.body.password, saltRounds);
         let emailValue = req.body.email !== undefined ? req.body.email : "";
-        await db.query(
-          "INSERT INTO users (name, password, cpf, sector, email, permission_level) VALUES (?, ?, ?, ?, ?, ?)",
-          [
-            req.body.name,
-            hash,
-            req.body.cpf,
-            req.body.sector,
-            emailValue,
-            req.body.permissionLevel,
-          ]
-        );
-      } catch (err) {
-        res.send({ msg: "Falha no cadastrado!" });
-      }
+
+        try {
+          await db.query(
+            "INSERT INTO users (name, password, cpf, email, permission_level) VALUES (?,?,?,?,?)",
+            [
+              req.body.name,
+              hash,
+              req.body.cpf,
+              emailValue,
+              req.body.permissionLevel,
+            ]
+          );
+        } catch (error) {
+          res.send("Falied to create new user in database");
+        } //Try to insert a new user into the database
+
+        try {
+          await db.query(
+            "SELECT * FROM users WHERE cpf = ?",
+            [req.body.cpf],
+            (err, result) => {
+              insertSelectedServices(result[0].id, req.body.services).then(
+                (response) => {
+                  res.send(response);
+                }
+              );
+            }
+          );
+        } catch (error) {
+          res.send("Failed to link user to services");
+          await db.query("DELETE FROM users WHERE cpf = ?", [req.body.cpf]);
+        } //Attempts to link the user to the services, and if it fails, removes the user from the database
+      } //End of insertion attempt
     }
   );
 });
 
 router.post("/token/registration", async (req, res) => {
   try {
-    const sector = req.body.sector;
     const service = req.body.services;
     const priority = req.body.priority;
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;
 
     const query = `
-        INSERT INTO tokens (sector, position, service, priority, created_by, requested_by)
-        SELECT ?, COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?
+        INSERT INTO tokens (position, service, priority, created_by, requested_by)
+        SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?
         FROM tokens
-        WHERE sector = ?
+        WHERE service = ?
       `;
 
     await db.query(query, [
-      sector,
       service,
       priority,
       created_by,
       requested_by,
-      sector,
+      service,
     ]);
 
     res.send({ msg: "Ficha cadastrada com sucesso!" });
@@ -115,3 +135,17 @@ router.post("/queue/registration", async (req, res) => {
 });
 
 module.exports = router;
+
+async function insertSelectedServices(id, services) {
+  try {
+    await services.map(async (service) => {
+      await db.query(
+        "INSERT INTO user_services (user_id, service_id) VALUES (?, ?)",
+        [id, service]
+      );
+    });
+    return "New user created";
+  } catch (error) {
+    return "Failed to link services";
+  }
+}

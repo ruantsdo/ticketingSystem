@@ -4,10 +4,8 @@ import Container from "./container";
 
 function FullContainer({ children, ...props }) {
   return (
-    <div className="relative">
-      <div className="top-0 left-0 right-0">
-        <NavBar />
-      </div>
+    <div className="flex flex-col">
+      <NavBar />
       <Container {...props}>{children}</Container>
     </div>
   );

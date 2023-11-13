@@ -80,6 +80,7 @@ function LoginPage() {
                 isRequired
                 type="text"
                 label="CPF"
+                maxLength={11}
                 className="w-full"
                 name="cpf"
                 onChange={formik.handleChange}

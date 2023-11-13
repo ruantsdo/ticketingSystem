@@ -35,27 +35,23 @@ import { toast } from "react-toastify";
 function QueueRegistration() {
   const { socket } = useWebSocket();
   const { currentUser } = useContext(AuthContext);
-  const [sectors, setSectors] = useState([]);
   const [services, setServices] = useState([]);
 
   useEffect(() => {
-    handleSectors();
     handleServices();
   }, []);
 
   const formik = useFormik({
     initialValues: {
       priority: false,
-      services: "",
-      sector: "",
+      service: "",
       requested_by: "",
     },
     onSubmit: async (values) => {
       try {
         await api.post("/token/registration", {
           priority: values.priority,
-          services: values.services,
-          sector: values.sector,
+          service: values.service,
           created: currentUser.name,
           requested_by: values.requested_by,
         });
@@ -70,15 +66,6 @@ function QueueRegistration() {
     },
     validate: (values) => {},
   });
-
-  const handleSectors = async () => {
-    try {
-      const response = await api.get("/sectors/query");
-      setSectors(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleServices = async () => {
     try {
@@ -107,22 +94,6 @@ function QueueRegistration() {
             >
               <Select
                 isRequired
-                items={sectors}
-                label="Selecione um setor"
-                placeholder="Indique o setor desta pessoa"
-                className="w-full"
-                name="sector"
-                onChange={formik.handleChange}
-                value={formik.values.sector}
-              >
-                {(sectors) => (
-                  <SelectItem key={sectors.name} value={sectors.name}>
-                    {sectors.name}
-                  </SelectItem>
-                )}
-              </Select>
-              <Select
-                isRequired
                 label="Prioridade?"
                 defaultSelectedKeys={"0"}
                 className="w-full"
@@ -143,13 +114,13 @@ function QueueRegistration() {
                 label="Indique o serviço desejado"
                 placeholder="Selecione um serviço"
                 className="w-full"
-                name="services"
+                name="service"
                 onChange={formik.handleChange}
                 value={formik.values.service}
               >
-                {(services) => (
-                  <SelectItem key={services.name} value={services.name}>
-                    {services.name}
+                {(service) => (
+                  <SelectItem key={service.name} value={service.name}>
+                    {service.name}
                   </SelectItem>
                 )}
               </Select>

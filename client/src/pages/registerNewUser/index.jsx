@@ -20,7 +20,7 @@ import {
 import { Formik, Form, useFormik } from "formik";
 
 //Icons
-import LoginIcon from "@mui/icons-material/Login";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -38,13 +38,15 @@ function NewUserRegister() {
 
   const [isVisible, setIsVisible] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
-  const [sectors, setSectors] = useState([]);
+  const [services, setServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]);
   const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
+  const [selectedPermission, setSelectedPermission] = useState([]);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   useEffect(() => {
-    handleSectors();
+    handleServices();
     handlePermissionsLevels();
     //eslint-disable-next-line
   }, []);
@@ -54,8 +56,6 @@ function NewUserRegister() {
       name: "",
       email: "",
       cpf: "",
-      sector: "",
-      permissionLevel: "",
       password: "",
       confirmPassword: "",
     },
@@ -66,31 +66,30 @@ function NewUserRegister() {
       } else {
         setPasswordMismatch(false);
         try {
-          await api.post("/newUser", {
-            name: values.name,
-            email: values.email,
-            cpf: values.cpf,
-            sector: values.sector,
-            permissionLevel: values.permissionLevel,
-            password: values.password,
-          });
+          await api
+            .post("/user/registration", {
+              name: values.name,
+              email: values.email,
+              cpf: values.cpf,
+              services: selectedServices,
+              permissionLevel: selectedPermission,
+              password: values.password,
+            })
+            .then((response) => {
+              notify(response.data);
+            });
         } catch (err) {
-          toast.error(
-            "Houve um problema ao cadastrar o novo usuário! Tente novamente mais tarde!"
-          );
           console.log(err);
-          return;
         }
-        toast.success("Novo usuário cadastrado!");
       }
     },
     validate: (values) => {},
   });
 
-  const handleSectors = async () => {
+  const handleServices = async () => {
     try {
-      const response = await api.get("/sectors/query");
-      defineFilteredSectors(response.data);
+      const response = await api.get("/services/query");
+      setServices(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -103,19 +102,6 @@ function NewUserRegister() {
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const defineFilteredSectors = (data) => {
-    let filteredSectors = [];
-
-    if (currentUser.permission_level === 3) {
-      const sector = data.find((setor) => setor.name === currentUser.sector);
-      filteredSectors.push(sector);
-    } else if (currentUser.permission_level >= 4) {
-      filteredSectors = data;
-    }
-
-    setSectors(filteredSectors);
   };
 
   const defineFilteredPermissionLevels = (data) => {
@@ -135,6 +121,24 @@ function NewUserRegister() {
     setFilteredPermissionLevels(filteredPermissionLevels);
   };
 
+  const notify = (response) => {
+    if (response === "New user created") {
+      toast.success("Novo usuário cadastrado!");
+      setSelectedServices([]);
+      setSelectedPermission(null);
+      formik.resetForm();
+    } else if (response === "User already exists") {
+      toast.info("Já existe um cadastrado usuário com esse CPF!");
+      setSelectedServices([]);
+      setSelectedPermission(null);
+      formik.resetForm();
+    } else {
+      toast.error(
+        "Houve um problema ao cadastrar o novo usuário! Tente novamente mais tarde!"
+      );
+    }
+  };
+
   return (
     <FullContainer>
       <Notification />
@@ -144,7 +148,7 @@ function NewUserRegister() {
         shadow="md"
       >
         <CardBody className="flex gap-3 justify-center items-center">
-          <p className="text-defaultTextColor text-3xl">Cadastro</p>
+          <p className="text-defaultTextColor text-3xl">Cadastro de usuário</p>
           <Divider className="bg-divider" />
           <Formik initialValues={formik.initialValues}>
             <Form
@@ -180,34 +184,40 @@ function NewUserRegister() {
               />
               <Select
                 isRequired
-                items={sectors}
-                label="Selecione um setor"
-                placeholder="Indique o setor desta pessoa"
+                selectionMode="multiple"
+                items={services}
+                label="Indique os serviços que este usuário prestará"
+                placeholder="Selecione pelo menos um serviço"
                 className="w-full"
-                name="sector"
-                onChange={formik.handleChange}
-                value={formik.values.sector}
+                name="service"
+                selectedKeys={selectedServices}
+                onSelectionChange={(values) => {
+                  setSelectedServices(Array.from(values));
+                }}
               >
-                {(sectors) => (
-                  <SelectItem key={sectors.name} value={sectors.name}>
-                    {sectors.name}
+                {(service) => (
+                  <SelectItem key={service.id} value={service.name}>
+                    {service.name}
                   </SelectItem>
                 )}
               </Select>
               <Select
                 isRequired
                 items={filteredPermissionLevels}
+                selectionMode="single"
                 label="Nivel de permissão"
-                placeholder="Indique nivel das permissões para esta pessoa"
+                placeholder="Indique nivel de permissão desta pessoa"
                 className="w-full"
                 name="permissionLevel"
-                onChange={formik.handleChange}
-                value={formik.values.permissionLevel}
+                selectedKeys={selectedPermission}
+                onSelectionChange={(values) => {
+                  setSelectedPermission(values.currentKey);
+                }}
               >
                 {(filteredPermissionLevels) => (
                   <SelectItem
                     key={filteredPermissionLevels.id}
-                    value={filteredPermissionLevels.id}
+                    value={filteredPermissionLevels.name}
                   >
                     {filteredPermissionLevels.name}
                   </SelectItem>
@@ -220,7 +230,7 @@ function NewUserRegister() {
                 label="Senha"
                 className="w-full"
                 name="password"
-                minLength={2}
+                minLength={6}
                 onChange={formik.handleChange}
                 value={formik.values.password}
                 endContent={
@@ -269,8 +279,8 @@ function NewUserRegister() {
               )}
               <Divider className="bg-divider" />
               <Button
-                className="bg-success w-[40%]"
-                endContent={<LoginIcon />}
+                className="bg-success w-[50%] text-lg"
+                endContent={<HowToRegIcon />}
                 type="submit"
               >
                 Cadastrar
