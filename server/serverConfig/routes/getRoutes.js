@@ -35,6 +35,26 @@ router.get("/services/query", async (req, res) => {
   }
 });
 
+router.get("/user_services/query/:id", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT service_id FROM user_services WHERE user_id = ?",
+      [req.params.id],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send("Erro interno do servidor");
+        } else {
+          res.send(result);
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Erro interno do servidor");
+  }
+});
+
 router.get("/permissionsLevels", async (req, res) => {
   try {
     await db.query("SELECT * FROM permission_levels", (err, result) => {

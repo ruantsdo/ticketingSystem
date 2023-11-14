@@ -44,14 +44,20 @@ function QueueRegistration() {
   const formik = useFormik({
     initialValues: {
       priority: false,
-      service: "",
+      services: "",
       requested_by: "",
     },
     onSubmit: async (values) => {
       try {
+        console.log(
+          values.priority,
+          values.service,
+          currentUser.name,
+          values.requested_by
+        );
         await api.post("/token/registration", {
           priority: values.priority,
-          service: values.service,
+          services: values.service,
           created: currentUser.name,
           requested_by: values.requested_by,
         });
@@ -119,7 +125,7 @@ function QueueRegistration() {
                 value={formik.values.service}
               >
                 {(service) => (
-                  <SelectItem key={service.name} value={service.name}>
+                  <SelectItem key={service.id} value={service.id}>
                     {service.name}
                   </SelectItem>
                 )}

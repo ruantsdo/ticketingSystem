@@ -59,6 +59,8 @@ function TokensList() {
   const [locationTable, setLocationTable] = useState([]);
   const [currentTable, setCurrentTable] = useState("");
 
+  const [services, setServices] = useState([]);
+
   const rowsPerPage = 5;
 
   const pages = Math.ceil(tokensLength / rowsPerPage);
@@ -69,31 +71,6 @@ function TokensList() {
 
     return tokens.slice(start, end);
   }, [page, tokens]);
-
-  const handleTokens = async () => {
-    try {
-      const response = await api.get("/token/query");
-      defineFilteredTokens(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const defineFilteredTokens = (data) => {
-    if (
-      currentUser.permission_level === 3 ||
-      currentUser.permission_level === 2
-    ) {
-      const tokens = data.filter(
-        (token) => token.sector === currentUser.sector
-      );
-      setTokens(tokens);
-      setTokensLength(tokens.length);
-    } else if (currentUser.permission_level >= 4) {
-      setTokens(data);
-      setTokensLength(data.length);
-    }
-  };
 
   const findIndexById = (key) => {
     for (let i = 0; i < tokensLength; i++) {
@@ -106,7 +83,8 @@ function TokensList() {
   };
 
   useEffect(() => {
-    handleTokens();
+    handleServices();
+    handleUserServices();
     handleLocations();
     // eslint-disable-next-line
   }, []);
@@ -140,7 +118,6 @@ function TokensList() {
     try {
       await api.post("/queue/registration", {
         token_id: token.id,
-        sector: token.sector,
         position: token.position,
         service: token.service,
         priority: token.priority,
@@ -157,6 +134,13 @@ function TokensList() {
     }
   };
 
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {}
+  };
+
   const handleLocations = async () => {
     try {
       const response = await api.get("/location/query");
@@ -164,6 +148,40 @@ function TokensList() {
       setLocations(data);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleUserServices = async () => {
+    try {
+      const response = await api.get(`/user_services/query/${currentUser.id}`);
+      handleTokens(response.data);
+    } catch (error) {}
+  };
+
+  const handleTokens = async (userServices) => {
+    try {
+      const response = await api.get("/token/query");
+      defineFilteredTokens(response.data, userServices);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const defineFilteredTokens = (data, userServices) => {
+    if (
+      currentUser.permission_level === 3 ||
+      currentUser.permission_level === 2
+    ) {
+      const tokens = data.filter((token) => {
+        return userServices.some(
+          (userService) => userService.service_id === token.service
+        );
+      });
+      setTokens(tokens);
+      setTokensLength(tokens.length);
+    } else if (currentUser.permission_level >= 4) {
+      setTokens(data);
+      setTokensLength(data.length);
     }
   };
 
@@ -205,7 +223,7 @@ function TokensList() {
       <Select
         size="sm"
         items={locationTable}
-        label="Em qual mesa?"
+        label="Em qual mesa você está?"
         placeholder="Indique sua mesa"
         className="max-w-xs shadow-md mb-1 absolute top-[20%] right-[2.5%]"
         variant="faded"
@@ -245,7 +263,6 @@ function TokensList() {
       >
         <TableHeader>
           <TableColumn>FICHA Nº</TableColumn>
-          <TableColumn>SETOR</TableColumn>
           <TableColumn>SERVIÇO</TableColumn>
           <TableColumn>SOLICITADO POR</TableColumn>
           <TableColumn>PRIORIDADE</TableColumn>
@@ -260,8 +277,7 @@ function TokensList() {
               className="hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md"
             >
               <TableCell>{item.position}</TableCell>
-              <TableCell>{item.sector}</TableCell>
-              <TableCell>{item.service}</TableCell>
+              <TableCell>{services[item.service - 1].name}</TableCell>
               <TableCell>
                 {item.requested_by !== ""
                   ? item.requested_by
@@ -304,8 +320,9 @@ function TokensList() {
               <Divider />
               <ModalBody>
                 <p>Número da ficha: {tokens[itemKey].position} </p>
-                <p>Setor: {tokens[itemKey].sector}</p>
-                <p>Serviço desejado: {tokens[itemKey].service}</p>
+                <p>
+                  Serviço desejado: {services[tokens[itemKey].service - 1].name}
+                </p>
                 <p>Ficha criada por: {tokens[itemKey].created_by}</p>
                 {tokens[itemKey].requested_by !== "" ? (
                   <p>Ficha solicitada por: {tokens[itemKey].requested_by}</p>
