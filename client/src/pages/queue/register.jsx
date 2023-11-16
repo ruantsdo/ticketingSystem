@@ -49,12 +49,6 @@ function QueueRegistration() {
     },
     onSubmit: async (values) => {
       try {
-        console.log(
-          values.priority,
-          values.service,
-          currentUser.name,
-          values.requested_by
-        );
         await api.post("/token/registration", {
           priority: values.priority,
           services: values.service,

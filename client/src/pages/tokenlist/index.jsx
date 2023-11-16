@@ -91,7 +91,7 @@ function TokensList() {
 
   useEffect(() => {
     socket.on("new_token", () => {
-      handleTokens();
+      handleUserServices();
     });
 
     return () => {
