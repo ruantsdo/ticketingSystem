@@ -13,6 +13,7 @@ module.exports = {
       colors: {
         alert: "#F5A524",
         info: "#008EDB",
+        infoSecondary: "#A946A0",
       },
     },
   },

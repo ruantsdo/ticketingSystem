@@ -116,21 +116,29 @@ router.post("/token/registration", async (req, res) => {
 router.post("/queue/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO queue (token_id, sector, position, service, priority, requested_by, created_by, `table`) VALUES (?,?,?,?,?,?,?,?)",
+      "INSERT INTO queue (token_id, position, service, priority, requested_by, `table`, location) VALUES (?,?,?,?,?,?,?)",
       [
         req.body.token_id,
-        req.body.sector,
         req.body.position,
         req.body.service,
         req.body.priority,
         req.body.requested_by,
-        req.body.created_by,
         req.body.table,
+        req.body.location,
       ]
     );
     res.send({ msg: "Ficha cadastrada com sucesso!" });
   } catch (err) {
     res.status(500).send({ msg: "Falha no cadastramento da ficha!" });
+  }
+});
+
+router.post("/queue/remove", async (req, res) => {
+  try {
+    await db.query("DELETE FROM queue WHERE token_id = ?", [req.body.token_id]);
+    res.send("sucess");
+  } catch (err) {
+    res.send("failed");
   }
 });
 

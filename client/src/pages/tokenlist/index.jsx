@@ -25,6 +25,7 @@ import {
   ModalFooter,
   Select,
   SelectItem,
+  Spinner,
 } from "@nextui-org/react";
 
 //Validation
@@ -47,6 +48,7 @@ function TokensList() {
 
   const { currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [inService, setInService] = useState(false);
 
   const [page, setPage] = useState(1);
 
@@ -122,12 +124,26 @@ function TokensList() {
         service: token.service,
         priority: token.priority,
         requested_by: token.requested_by,
-        created_by: token.created_by,
         table: currentTable,
+        location: currentLocation,
       });
     } catch (err) {
       toast.error(
         "Houve um problema ao cadastrar na fila! Tente novamente em alguns instantes!"
+      );
+      console.log(err);
+      return;
+    }
+  };
+
+  const removeFromQueue = async (token) => {
+    try {
+      await api.post("/queue/remove", {
+        token_id: token.id,
+      });
+    } catch (err) {
+      toast.error(
+        "Houve um problema ao adiar esse chamado... Tente novamente em alguns instantes!"
       );
       console.log(err);
       return;
@@ -187,7 +203,7 @@ function TokensList() {
 
   const countTables = (definedLocation) => {
     const location = locations.find(
-      (location) => location.name === definedLocation
+      (location) => location.id === definedLocation
     );
     count(location.tables);
   };
@@ -212,14 +228,15 @@ function TokensList() {
         variant="faded"
         value={currentLocation}
         onSelectionChange={(key) => {
-          countTables(key.currentKey);
-          setCurrentLocation(key.currentKey);
+          countTables(parseInt(key.currentKey));
+          setCurrentLocation(parseInt(key.currentKey));
         }}
       >
         {locations.map((item) => (
-          <SelectItem key={item.name}>{item.name}</SelectItem>
+          <SelectItem key={item.id}>{item.name}</SelectItem>
         ))}
       </Select>
+
       <Select
         size="sm"
         items={locationTable}
@@ -265,11 +282,17 @@ function TokensList() {
           <TableColumn>FICHA Nº</TableColumn>
           <TableColumn>SERVIÇO</TableColumn>
           <TableColumn>SOLICITADO POR</TableColumn>
-          <TableColumn>PRIORIDADE</TableColumn>
+          <TableColumn>STATUS</TableColumn>
         </TableHeader>
         <TableBody
           items={items}
-          emptyContent={"Ainda não há fichas para o seu setor..."}
+          emptyContent={
+            tokensLength > 0 ? (
+              <Spinner />
+            ) : (
+              <Spinner label="Ainda não há fichas para o seu setor..." />
+            )
+          }
         >
           {(item) => (
             <TableRow
@@ -285,13 +308,26 @@ function TokensList() {
               </TableCell>
               <TableCell>
                 {item.priority === 1 ? (
-                  <Chip size="sm" radius="sm" className="bg-alert">
-                    PRIORIDADE
-                  </Chip>
+                  <Chip
+                    radius="full"
+                    className="bg-alert w-2 h-2 self-center mr-3"
+                  />
                 ) : (
-                  <Chip size="sm" radius="sm" className="bg-success">
-                    NORMAL
-                  </Chip>
+                  <Chip
+                    radius="full"
+                    className="bg-success w-2 h-2 self-center mr-3"
+                  />
+                )}
+                {item.status === "EM ESPERA" ? (
+                  <Chip
+                    radius="full"
+                    className="bg-info w-2 h-2 self-center mr-3 "
+                  />
+                ) : (
+                  <Chip
+                    radius="full"
+                    className="bg-info w-2 h-2 self-center mr-3 opacity-30"
+                  />
                 )}
               </TableCell>
             </TableRow>
@@ -299,13 +335,20 @@ function TokensList() {
         </TableBody>
       </Table>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="opaque">
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        backdrop={inService ? "blur" : "opaque"}
+        isDismissable={inService ? false : true}
+        hideCloseButton={inService ? true : false}
+        className="transition-all"
+      >
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
+              <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
+                Dados da Ficha
                 <section className="flex gap-3 justify-center items-center">
-                  Dados da Ficha
                   {tokens[itemKey].priority === 1 ? (
                     <Chip size="sm" radius="sm" className="bg-alert">
                       PRIORIDADE
@@ -313,6 +356,15 @@ function TokensList() {
                   ) : (
                     <Chip size="sm" radius="sm" className="bg-success">
                       NORMAL
+                    </Chip>
+                  )}
+                  {tokens[itemKey].status === "EM ESPERA" ? (
+                    <Chip size="sm" radius="sm" className="bg-infoSecondary">
+                      EM ESPERA
+                    </Chip>
+                  ) : (
+                    <Chip size="sm" radius="sm" className="bg-info">
+                      EM ATENDIMENTO
                     </Chip>
                   )}
                 </section>
@@ -331,34 +383,71 @@ function TokensList() {
                 )}
               </ModalBody>
               <Divider />
-              <ModalFooter>
-                <Button
-                  className="bg-failed"
-                  onPress={() => {
-                    onClose();
-                  }}
-                >
-                  Fechar
-                </Button>
-                <Button
-                  onPress={() => {
-                    if (currentTable) {
-                      insertOnQueue(tokens[itemKey]);
-                      emitSignalQueueUpdate(tokens[itemKey]);
-                      toast.success(
-                        "A senha foi adicionada a fila de chamada..."
-                      );
-                    } else {
-                      toast.info(
-                        "Você deve definir a sua mesa antes de fazer uma chamada..."
-                      );
-                      onClose();
-                    }
-                  }}
-                  className="bg-success"
-                >
-                  Chamar
-                </Button>
+              <ModalFooter className="flex justify-center align-middle">
+                {inService ? (
+                  <>
+                    <Button
+                      className="bg-failed"
+                      onPress={() => {
+                        removeFromQueue(tokens[itemKey]).then((response) => {
+                          if (response === "failed") {
+                            toast.error(
+                              "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
+                            );
+                          } else {
+                            toast.info("A ficha foi adiada!");
+                            setInService(false);
+                            onClose();
+                          }
+                        });
+                      }}
+                    >
+                      Adiar
+                    </Button>
+                    <Button
+                      onPress={() => {
+                        setInService(false);
+                        onClose();
+                        toast.success("O chamado foi concluído");
+                      }}
+                      className="bg-success"
+                    >
+                      Concluir
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      className="bg-failed"
+                      onPress={() => {
+                        setInService(false);
+                        onClose();
+                      }}
+                    >
+                      Fechar
+                    </Button>
+                    <Button
+                      onPress={() => {
+                        if (currentLocation) {
+                          insertOnQueue(tokens[itemKey]);
+                          emitSignalQueueUpdate(tokens[itemKey]);
+                          setInService(true);
+                          toast.success(
+                            "A ficha foi adicionada a fila de chamada..."
+                          );
+                        } else {
+                          toast.info(
+                            "Você deve definir o seu local antes de fazer uma chamada..."
+                          );
+                          onClose();
+                        }
+                      }}
+                      className="bg-success"
+                    >
+                      Chamar
+                    </Button>
+                  </>
+                )}
               </ModalFooter>
             </>
           )}
