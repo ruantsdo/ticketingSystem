@@ -233,6 +233,8 @@ function TokensList() {
 
       setTokens(data);
       setTokensLength(data.length);
+
+      getSessionContext(data);
     }
   };
 
@@ -290,7 +292,9 @@ function TokensList() {
   };
 
   const getSessionContext = async (tokens) => {
-    const currentSession = JSON.parse(localStorage.getItem("currentSession"));
+    const currentSession = await JSON.parse(
+      localStorage.getItem("currentSession")
+    );
 
     if (currentSession) {
       if (

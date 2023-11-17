@@ -37,17 +37,35 @@ function TokenCall() {
   const [displayLocation, setDisplayLocation] = useState("");
   const [displayTable, setDisplayTable] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [services, setServices] = useState([]);
   const [locations, setLocations] = useState([]);
 
   const speakText = useCallback(
     async (text) => {
-      await playAudio();
+      const audio = document.getElementById("notification");
+
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = voices[ptBrVoice];
+
+      utterance.addEventListener("start", () => {
+        audio.volume = 0.05;
+        if (videoRef.current) {
+          videoRef.current.volume = 0;
+        }
+      });
+
+      utterance.addEventListener("end", () => {
+        audio.volume = 1.0;
+        if (videoRef.current) {
+          videoRef.current.volume = 0.7;
+        }
+      });
+
+      await playAudio();
 
       speechSynthesis.speak(utterance);
     },
@@ -73,43 +91,49 @@ function TokenCall() {
     }
   };
 
-  const speakQueue = () => {
-    if (currentIndex < queue.length) {
-      setdisplayToken(
-        `${services[queue[currentIndex].service - 1].name} ${
-          queue[currentIndex].position
-        }`
-      );
-      setDisplayLocation(
-        "Dirija-se á " + locations[queue[currentIndex].location - 1].name
-      );
-      setDisplayTable(queue[currentIndex].table);
-      setDisplayName(queue[currentIndex].requested_by);
-
-      speakText(
-        `Atenção ${queue[currentIndex].requested_by}, senha ${
-          services[queue[currentIndex].service - 1].name
-        } ${queue[currentIndex].position}, por favor dirija-se á ${
-          locations[queue[currentIndex].location - 1].name
-        }, ${queue[currentIndex].table}`
-      );
-
-      if (lastsTokens.length >= 5) {
-        setLastsTokens(lastsTokens.pop());
-      }
-
-      setLastsTokens([
-        {
-          id: `${queue[currentIndex].id}`,
-          value: `${services[queue[currentIndex].service - 1].name} ${
-            queue[currentIndex].position
-          }`,
-        },
-        ...lastsTokens,
-      ]);
-
-      setCurrentIndex(currentIndex + 1);
+  const speakQueue = async () => {
+    if (isSpeaking || currentIndex >= queue.length) {
+      return;
     }
+
+    setIsSpeaking(true);
+
+    setdisplayToken(
+      `${services[queue[currentIndex].service - 1].name} ${
+        queue[currentIndex].position
+      }`
+    );
+    setDisplayLocation(
+      "Dirija-se á " + locations[queue[currentIndex].location - 1].name
+    );
+    setDisplayTable(queue[currentIndex].table);
+    setDisplayName(queue[currentIndex].requested_by);
+
+    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
+      services[queue[currentIndex].service - 1].name
+    } ${queue[currentIndex].position}, por favor dirija-se á ${
+      locations[queue[currentIndex].location - 1].name
+    }, ${queue[currentIndex].table}`;
+
+    speakText(textToSpeak);
+
+    if (lastsTokens.length >= 5) {
+      setLastsTokens((prevTokens) => prevTokens.slice(1));
+    }
+
+    setLastsTokens((prevTokens) => [
+      {
+        id: `${queue[currentIndex].id}`,
+        value: `${services[queue[currentIndex].service - 1].name} ${
+          queue[currentIndex].position
+        }`,
+      },
+      ...prevTokens,
+    ]);
+
+    setCurrentIndex((prevIndex) => prevIndex + 1);
+
+    setIsSpeaking(false);
   };
 
   const onVideoEnd = (data) => {
@@ -149,14 +173,6 @@ function TokenCall() {
     });
   };
 
-  const playAndSpeak = async () => {
-    if (queue.length > 0 && queue.length > currentIndex) {
-      await playAudio();
-    }
-
-    await speakQueue();
-  };
-
   useEffect(() => {
     handleServices();
     handleLocations();
@@ -166,7 +182,6 @@ function TokenCall() {
 
   useEffect(() => {
     speakQueue();
-    //playAndSpeak();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
 
@@ -183,12 +198,15 @@ function TokenCall() {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("ended", handleVideos);
+      videoRef.current.volume = 0.8;
     }
 
     return () => {
       if (videoRef.current) {
         // eslint-disable-next-line
         videoRef.current.removeEventListener("ended", handleVideos);
+        // eslint-disable-next-line
+        videoRef.current.volume = 0.8;
       }
     };
     // eslint-disable-next-line
