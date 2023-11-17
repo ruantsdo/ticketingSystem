@@ -51,13 +51,14 @@ router.post("/user/registration", async (req, res) => {
 
         try {
           await db.query(
-            "INSERT INTO users (name, password, cpf, email, permission_level) VALUES (?,?,?,?,?)",
+            "INSERT INTO users (name, password, cpf, email, permission_level, created_at) VALUES (?,?,?,?,?,?)",
             [
               req.body.name,
               hash,
               req.body.cpf,
               emailValue,
               req.body.permissionLevel,
+              getTime(),
             ]
           );
         } catch (error) {
@@ -93,8 +94,8 @@ router.post("/token/registration", async (req, res) => {
     const requested_by = req.body.requested_by;
 
     const query = `
-        INSERT INTO tokens (position, service, priority, created_by, requested_by)
-        SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?
+        INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
+        SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?
         FROM tokens
         WHERE service = ?
       `;
@@ -104,8 +105,42 @@ router.post("/token/registration", async (req, res) => {
       priority,
       created_by,
       requested_by,
+      getTime(),
       service,
     ]);
+
+    res.send({ msg: "Ficha cadastrada com sucesso!" });
+  } catch (err) {
+    res.send({ msg: "Falha no cadastramento da ficha!" });
+  }
+});
+
+router.post("/token/update", async (req, res) => {
+  try {
+    if (req.body.status === "ADIADO") {
+      await db.query(
+        "UPDATE tokens SET status = ?, delayed_at = ?, delayed_by = ? WHERE id = ?",
+        [req.body.status, getTime(), req.body.delayed_by, req.body.id]
+      );
+    } else {
+      await db.query("UPDATE tokens SET status = ? WHERE id = ?", [
+        req.body.status,
+        req.body.id,
+      ]);
+    }
+
+    res.send({ msg: "Ficha cadastrada com sucesso!" });
+  } catch (err) {
+    res.send({ msg: "Falha no cadastramento da ficha!" });
+  }
+});
+
+router.post("/token/close", async (req, res) => {
+  try {
+    await db.query(
+      "UPDATE tokens SET status = ?, solved_by = ?, solved_at = ? WHERE id = ?",
+      [req.body.status, req.body.solved_by, getTime(), req.body.id]
+    );
 
     res.send({ msg: "Ficha cadastrada com sucesso!" });
   } catch (err) {
@@ -136,7 +171,7 @@ router.post("/queue/registration", async (req, res) => {
 router.post("/queue/remove", async (req, res) => {
   try {
     await db.query("DELETE FROM queue WHERE token_id = ?", [req.body.token_id]);
-    res.send("sucess");
+    res.send("success");
   } catch (err) {
     res.send("failed");
   }
@@ -156,4 +191,21 @@ async function insertSelectedServices(id, services) {
   } catch (error) {
     return "Failed to link services";
   }
+}
+
+function getTime() {
+  const currentDate = new Date();
+  const timeZone = "America/Sao_Paulo";
+
+  const formattedDate = currentDate.toLocaleString("pt-BR", {
+    timeZone: timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  return formattedDate;
 }

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
-import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -28,10 +27,13 @@ import {
   Spinner,
 } from "@nextui-org/react";
 
-//Validation
-//import { Formik, Form, useFormik } from "formik";
-
 //Icons
+import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
+import PersonIcon from "@mui/icons-material/Person";
+import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
+import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import ReportIcon from "@mui/icons-material/Report";
 
 //Services
 import api from "../../services/api";
@@ -116,6 +118,10 @@ function TokensList() {
     socket.emit("queued_update", data);
   };
 
+  const emitSignalTokenUpdate = () => {
+    socket.emit("new_token");
+  };
+
   const insertOnQueue = async (token) => {
     try {
       await api.post("/queue/registration", {
@@ -193,11 +199,53 @@ function TokensList() {
           (userService) => userService.service_id === token.service
         );
       });
+
+      tokens.sort((a, b) => {
+        const statusA = a.status.toUpperCase();
+        const statusB = b.status.toUpperCase();
+
+        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
+          return 1;
+        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
       setTokens(tokens);
       setTokensLength(tokens.length);
     } else if (currentUser.permission_level >= 4) {
       setTokens(data);
       setTokensLength(data.length);
+    }
+  };
+
+  const updateToken = async (newStatus, id) => {
+    try {
+      await api.post("/token/update", {
+        status: newStatus,
+        id: id,
+        delayed_by: currentUser.name,
+      });
+
+      emitSignalTokenUpdate();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const closeToken = async (id) => {
+    try {
+      await api.post("/token/close", {
+        status: "CONCLUIDO",
+        id: id,
+        solved_by: currentUser.name,
+      });
+
+      emitSignalTokenUpdate();
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -218,122 +266,155 @@ function TokensList() {
 
   return (
     <FullContainer>
-      <Select
-        isRequired
-        size="sm"
-        items={locations}
-        label="Qual local você está no momento?"
-        placeholder="Indique seu local"
-        className="max-w-xs shadow-md mb-1 absolute top-[10%] right-[2.5%]"
-        variant="faded"
-        value={currentLocation}
-        onSelectionChange={(key) => {
-          countTables(parseInt(key.currentKey));
-          setCurrentLocation(parseInt(key.currentKey));
-        }}
-      >
-        {locations.map((item) => (
-          <SelectItem key={item.id}>{item.name}</SelectItem>
-        ))}
-      </Select>
+      <div className="flex flex-col w-11/12">
+        <div className="flex gap-3 justify-end">
+          <Select
+            isRequired
+            size="sm"
+            items={locations}
+            label="Qual local você está no momento?"
+            placeholder="Indique seu local"
+            className="max-w-xs shadow-md mb-1"
+            variant="faded"
+            value={currentLocation}
+            onSelectionChange={(key) => {
+              countTables(parseInt(key.currentKey));
+              setCurrentLocation(parseInt(key.currentKey));
+            }}
+          >
+            {locations.map((item) => (
+              <SelectItem key={item.id}>{item.name}</SelectItem>
+            ))}
+          </Select>
+          <Select
+            size="sm"
+            items={locationTable}
+            label="Em qual mesa você está?"
+            placeholder="Indique sua mesa"
+            className="max-w-xs shadow-md mb-1"
+            variant="faded"
+            value={currentTable}
+            onSelectionChange={(key) => {
+              setCurrentTable(key.currentKey);
+            }}
+          >
+            {locationTable.map((item) => (
+              <SelectItem key={item.value}>{item.value}</SelectItem>
+            ))}
+          </Select>
+        </div>
 
-      <Select
-        size="sm"
-        items={locationTable}
-        label="Em qual mesa você está?"
-        placeholder="Indique sua mesa"
-        className="max-w-xs shadow-md mb-1 absolute top-[20%] right-[2.5%]"
-        variant="faded"
-        value={currentTable}
-        onSelectionChange={(key) => {
-          setCurrentTable(key.currentKey);
-        }}
-      >
-        {locationTable.map((item) => (
-          <SelectItem key={item.value}>{item.value}</SelectItem>
-        ))}
-      </Select>
-
-      <Table
-        aria-label="Lista de fichas disponiveis para o seu setor"
-        onRowAction={(key) => {
-          findIndexById(key);
-          onOpen();
-        }}
-        isStriped
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              isCompact
-              showControls
-              color="success"
-              page={page}
-              total={pages}
-              onChange={(page) => setPage(page)}
-            />
-          </div>
-        }
-        classNames={{
-          wrapper: "min-h-[222px]",
-        }}
-        className="w-[95%]"
-      >
-        <TableHeader>
-          <TableColumn>FICHA Nº</TableColumn>
-          <TableColumn>SERVIÇO</TableColumn>
-          <TableColumn>SOLICITADO POR</TableColumn>
-          <TableColumn>STATUS</TableColumn>
-        </TableHeader>
-        <TableBody
-          items={items}
-          emptyContent={
-            tokensLength > 0 ? (
-              <Spinner />
-            ) : (
-              <Spinner label="Ainda não há fichas para o seu setor..." />
-            )
+        <Table
+          aria-label="Lista de fichas disponiveis para você"
+          onRowAction={(key) => {
+            findIndexById(key);
+            onOpen();
+          }}
+          isStriped
+          bottomContent={
+            <div className="flex w-full justify-center">
+              <Pagination
+                isCompact
+                showControls
+                color="success"
+                page={page}
+                total={pages}
+                onChange={(page) => setPage(page)}
+              />
+            </div>
           }
+          classNames={{
+            wrapper: "min-h-[222px]",
+          }}
         >
-          {(item) => (
-            <TableRow
-              key={item.id}
-              className="hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md"
-            >
-              <TableCell>{item.position}</TableCell>
-              <TableCell>{services[item.service - 1].name}</TableCell>
-              <TableCell>
-                {item.requested_by !== ""
-                  ? item.requested_by
-                  : "Nome não fornecido"}
-              </TableCell>
-              <TableCell>
-                {item.priority === 1 ? (
-                  <Chip
-                    radius="full"
-                    className="bg-alert w-2 h-2 self-center mr-3"
+          <TableHeader>
+            <TableColumn className="w-1/12">FICHA Nº</TableColumn>
+            <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>SOLICITADO POR</TableColumn>
+            <TableColumn className="w-2/12">STATUS</TableColumn>
+          </TableHeader>
+          <TableBody
+            items={items}
+            emptyContent={
+              tokensLength > 0 ? (
+                <Spinner size="lg" label="Carregando..." color="primary" />
+              ) : (
+                <div className="flex flex-col text-sm">
+                  <Spinner
+                    size="sm"
+                    color="success"
+                    label="Não há fichas disponíveis no momento..."
                   />
-                ) : (
-                  <Chip
-                    radius="full"
-                    className="bg-success w-2 h-2 self-center mr-3"
-                  />
-                )}
-                {item.status === "EM ESPERA" ? (
-                  <Chip
-                    radius="full"
-                    className="bg-info w-2 h-2 self-center mr-3 "
-                  />
-                ) : (
-                  <Chip
-                    radius="full"
-                    className="bg-info w-2 h-2 self-center mr-3 opacity-30"
-                  />
-                )}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+                  Não se preocupe, novas fichas serão mostradas automaticamente
+                  assim que estiverem disponíveis.
+                </div>
+              )
+            }
+          >
+            {(item) => (
+              <TableRow
+                key={item.id}
+                className="hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md"
+              >
+                <TableCell>{item.position}</TableCell>
+                <TableCell>{services[item.service - 1].name}</TableCell>
+                <TableCell>
+                  {item.requested_by !== ""
+                    ? item.requested_by
+                    : "Nome não fornecido"}
+                </TableCell>
+                <TableCell className="flex">
+                  {item.priority === 1 ? (
+                    <Chip
+                      radius="full"
+                      startContent={<AssistWalkerIcon size={18} />}
+                      className="bg-alert w-8 self-center mr-2"
+                    />
+                  ) : (
+                    <Chip
+                      radius="full"
+                      startContent={<PersonIcon size={18} />}
+                      className="bg-success w-8 self-center mr-2"
+                    />
+                  )}
+                  {item.status === "EM ESPERA" ? (
+                    <Chip
+                      radius="full"
+                      startContent={<HourglassBottomIcon size={18} />}
+                      className="bg-info w-8 self-center mr-2"
+                    />
+                  ) : item.status === "EM ATENDIMENTO" ? (
+                    <Chip
+                      radius="full"
+                      startContent={<AirlineSeatReclineNormalIcon size={18} />}
+                      className="bg-info w-8 self-center mr-2"
+                    />
+                  ) : item.status === "ADIADO" ? (
+                    <div>
+                      <Chip
+                        radius="full"
+                        startContent={<HourglassBottomIcon size={18} />}
+                        className="bg-info w-8 self-center mr-2"
+                      />
+                      <Chip
+                        radius="full"
+                        startContent={<ReportIcon size={18} />}
+                        className="bg-failed w-8 self-center mr-2"
+                      />
+                    </div>
+                  ) : item.status === "CONCLUIDO" ? (
+                    <Chip
+                      radius="full"
+                      startContent={<EmojiEmotionsIcon size={18} />}
+                      className="bg-success w-8 self-center mr-2"
+                    />
+                  ) : null}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <Modal
         isOpen={isOpen}
@@ -341,7 +422,6 @@ function TokensList() {
         backdrop={inService ? "blur" : "opaque"}
         isDismissable={inService ? false : true}
         hideCloseButton={inService ? true : false}
-        className="transition-all"
       >
         <ModalContent>
           {(onClose) => (
@@ -350,23 +430,71 @@ function TokensList() {
                 Dados da Ficha
                 <section className="flex gap-3 justify-center items-center">
                   {tokens[itemKey].priority === 1 ? (
-                    <Chip size="sm" radius="sm" className="bg-alert">
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-alert"
+                      startContent={<AssistWalkerIcon size={18} />}
+                    >
                       PRIORIDADE
                     </Chip>
                   ) : (
-                    <Chip size="sm" radius="sm" className="bg-success">
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-success"
+                      startContent={<PersonIcon size={18} />}
+                    >
                       NORMAL
                     </Chip>
                   )}
                   {tokens[itemKey].status === "EM ESPERA" ? (
-                    <Chip size="sm" radius="sm" className="bg-infoSecondary">
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-info"
+                      startContent={<HourglassBottomIcon size={18} />}
+                    >
                       EM ESPERA
                     </Chip>
-                  ) : (
-                    <Chip size="sm" radius="sm" className="bg-info">
+                  ) : tokens[itemKey].status === "EM ATENDIMENTO" ? (
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-infoSecondary"
+                      startContent={<AirlineSeatReclineNormalIcon size={18} />}
+                    >
                       EM ATENDIMENTO
                     </Chip>
-                  )}
+                  ) : tokens[itemKey].status === "CONCLUIDO" ? (
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-success"
+                      startContent={<EmojiEmotionsIcon size={18} />}
+                    >
+                      CONCLUÍDO
+                    </Chip>
+                  ) : tokens[itemKey].status === "ADIADO" ? (
+                    <div className="flex gap-3">
+                      <Chip
+                        size="sm"
+                        radius="sm"
+                        className="bg-info"
+                        startContent={<HourglassBottomIcon size={18} />}
+                      >
+                        EM ESPERA
+                      </Chip>
+                      <Chip
+                        size="sm"
+                        radius="sm"
+                        className="bg-failed"
+                        startContent={<ReportIcon size={18} />}
+                      >
+                        ADIADO
+                      </Chip>
+                    </div>
+                  ) : null}
                 </section>
               </ModalHeader>
               <Divider />
@@ -375,12 +503,29 @@ function TokensList() {
                 <p>
                   Serviço desejado: {services[tokens[itemKey].service - 1].name}
                 </p>
-                <p>Ficha criada por: {tokens[itemKey].created_by}</p>
+                <p>Criada por: {tokens[itemKey].created_by}</p>
                 {tokens[itemKey].requested_by !== "" ? (
-                  <p>Ficha solicitada por: {tokens[itemKey].requested_by}</p>
+                  <p>Solicitada por: {tokens[itemKey].requested_by}</p>
                 ) : (
-                  <p>Ficha solicitada por: NÃO FOI ESPECIFICADO</p>
+                  <p>Solicitada por: NÃO FOI ESPECIFICADO</p>
                 )}
+
+                {tokens[itemKey].delayed_at !== null ? (
+                  <>
+                    <p>
+                      Adiada por: {tokens[itemKey].delayed_by} em{" "}
+                      {tokens[itemKey].delayed_at.replace(",", " às ")}
+                    </p>
+                  </>
+                ) : null}
+                {tokens[itemKey].solved_at !== null ? (
+                  <>
+                    <p>
+                      Atendida por {tokens[itemKey].solved_by} em{" "}
+                      {tokens[itemKey].solved_at.replace(",", " às ")}
+                    </p>
+                  </>
+                ) : null}
               </ModalBody>
               <Divider />
               <ModalFooter className="flex justify-center align-middle">
@@ -395,6 +540,7 @@ function TokensList() {
                               "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
                             );
                           } else {
+                            updateToken("ADIADO", tokens[itemKey].id);
                             toast.info("A ficha foi adiada!");
                             setInService(false);
                             onClose();
@@ -406,6 +552,7 @@ function TokensList() {
                     </Button>
                     <Button
                       onPress={() => {
+                        closeToken(tokens[itemKey].id);
                         setInService(false);
                         onClose();
                         toast.success("O chamado foi concluído");
@@ -427,8 +574,12 @@ function TokensList() {
                       Fechar
                     </Button>
                     <Button
+                      isDisabled={
+                        tokens[itemKey].status === "CONCLUIDO" ? true : false
+                      }
                       onPress={() => {
                         if (currentLocation) {
+                          updateToken("EM ATENDIMENTO", tokens[itemKey].id);
                           insertOnQueue(tokens[itemKey]);
                           emitSignalQueueUpdate(tokens[itemKey]);
                           setInService(true);
@@ -453,8 +604,6 @@ function TokensList() {
           )}
         </ModalContent>
       </Modal>
-
-      <Notification />
     </FullContainer>
   );
 }

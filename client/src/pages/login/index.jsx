@@ -4,7 +4,6 @@ import React, { useContext, useState } from "react";
 //Components
 import ThemeSwitcher from "../../components/themeSwitch";
 import Container from "../../components/container";
-import Notification from "../../components/notification";
 
 //NextUI
 import { Card, CardBody, Button, Input, Divider } from "@nextui-org/react";
@@ -64,7 +63,6 @@ function LoginPage() {
 
   return (
     <Container>
-      <Notification />
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
         <CardBody className="flex gap-3 justify-center items-center">

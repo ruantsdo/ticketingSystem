@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
-import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -141,7 +140,6 @@ function NewUserRegister() {
 
   return (
     <FullContainer>
-      <Notification />
       <Card
         isBlurred
         className="bg-background sm:w-[50%] w-[95%] overflow-visible"

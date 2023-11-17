@@ -3,7 +3,6 @@ import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
-import Notification from "../../components/notification";
 
 //NextUI
 import {
@@ -82,7 +81,6 @@ function QueueRegistration() {
 
   return (
     <FullContainer>
-      <Notification />
       <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
         <CardBody className="flex gap-3 justify-center items-center">
           <p className="text-defaultTextColor text-3xl">Cadastro de ficha</p>
