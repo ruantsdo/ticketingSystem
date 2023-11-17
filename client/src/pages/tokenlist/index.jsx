@@ -215,6 +215,8 @@ function TokensList() {
 
       setTokens(tokens);
       setTokensLength(tokens.length);
+
+      getSessionContext(tokens);
     } else if (currentUser.permission_level >= 4) {
       setTokens(data);
       setTokensLength(data.length);
@@ -262,6 +264,33 @@ function TokensList() {
       numbers.push({ value: `MESA ${i}` });
     }
     setLocationTable(numbers);
+  };
+
+  const updateSessionContext = async (tokenKey, inService, id) => {
+    const session = {
+      inService: inService,
+      token_position: tokenKey,
+      token_id: id,
+    };
+
+    localStorage.setItem("currentSession", JSON.stringify(session));
+  };
+
+  const getSessionContext = async (tokens) => {
+    const currentSession = JSON.parse(localStorage.getItem("currentSession"));
+
+    if (currentSession) {
+      if (
+        currentSession.token_id === tokens[currentSession.token_position].id
+      ) {
+        setItemKey(currentSession.token_position);
+        setInService(currentSession.inService);
+        onOpen();
+      } else {
+        toast.info("Parece que o seu atendimento anterior foi encerrado...");
+        localStorage.removeItem("currentSession");
+      }
+    }
   };
 
   return (
@@ -543,6 +572,7 @@ function TokensList() {
                             updateToken("ADIADO", tokens[itemKey].id);
                             toast.info("A ficha foi adiada!");
                             setInService(false);
+                            localStorage.removeItem("currentSession");
                             onClose();
                           }
                         });
@@ -554,6 +584,7 @@ function TokensList() {
                       onPress={() => {
                         closeToken(tokens[itemKey].id);
                         setInService(false);
+                        localStorage.removeItem("currentSession");
                         onClose();
                         toast.success("O chamado foi concluído");
                       }}
@@ -567,7 +598,6 @@ function TokensList() {
                     <Button
                       className="bg-failed"
                       onPress={() => {
-                        setInService(false);
                         onClose();
                       }}
                     >
@@ -575,7 +605,10 @@ function TokensList() {
                     </Button>
                     <Button
                       isDisabled={
-                        tokens[itemKey].status === "CONCLUIDO" ? true : false
+                        tokens[itemKey].status === "CONCLUIDO" ||
+                        tokens[itemKey].status === "EM ATENDIMENTO"
+                          ? true
+                          : false
                       }
                       onPress={() => {
                         if (currentLocation) {
@@ -583,6 +616,11 @@ function TokensList() {
                           insertOnQueue(tokens[itemKey]);
                           emitSignalQueueUpdate(tokens[itemKey]);
                           setInService(true);
+                          updateSessionContext(
+                            itemKey,
+                            true,
+                            tokens[itemKey].id
+                          );
                           toast.success(
                             "A ficha foi adicionada a fila de chamada..."
                           );
