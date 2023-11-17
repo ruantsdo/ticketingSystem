@@ -34,52 +34,109 @@ function TokenCall() {
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayToken, setDisplayToken] = useState(
-    "Nenhuma ficha foi chamada ainda..."
+  const [displayToken, setdisplayToken] = useState(
+    "Nenhuma senha foi chamada ainda..."
   );
   const [displayLocation, setDisplayLocation] = useState("");
+  const [displayTable, setDisplayTable] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const [services, setServices] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   const speakText = useCallback(
-    (text) => {
+    async (text) => {
+      const audio = document.getElementById("notification");
+
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = voices[ptBrVoice];
+
+      utterance.addEventListener("start", () => {
+        audio.volume = 0.05;
+        if (videoRef.current) {
+          videoRef.current.volume = 0;
+        }
+      });
+
+      utterance.addEventListener("end", () => {
+        audio.volume = 1.0;
+        if (videoRef.current) {
+          videoRef.current.volume = 0.7;
+        }
+      });
+
+      await playAudio();
+
       speechSynthesis.speak(utterance);
     },
     // eslint-disable-next-line
     [speechSynthesis]
   );
 
-  const speakQueue = () => {
-    if (currentIndex < queue.length) {
-      setDisplayToken(
-        `${queue[currentIndex].service} ${queue[currentIndex].position}`
-      );
-      setDisplayLocation(
-        queue[currentIndex].requested_by +
-          ", dirija-se á: " +
-          queue[currentIndex].location
-      );
-
-      speakText(
-        `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].service} ${queue[currentIndex].position}, por favor dirija-se á ${queue[currentIndex].location}, ${queue[currentIndex].table}`
-      );
-
-      if (lastsTokens.length >= 8) {
-        setLastsTokens(lastsTokens.pop());
-      }
-
-      setLastsTokens([
-        {
-          id: `${queue[currentIndex].id}`,
-          value: `SENHA ${queue[currentIndex].service} ${queue[currentIndex].position}`,
-        },
-        ...lastsTokens,
-      ]);
-
-      setCurrentIndex(currentIndex + 1);
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      console.log(error);
     }
+  };
+
+  const handleLocations = async () => {
+    try {
+      const response = await api.get("/location/query");
+      setLocations(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const speakQueue = async () => {
+    if (isSpeaking || currentIndex >= queue.length) {
+      return;
+    }
+
+    setIsSpeaking(true);
+
+    setdisplayToken(
+      `${services[queue[currentIndex].service - 1].name} ${
+        queue[currentIndex].position
+      }`
+    );
+    setDisplayLocation(
+      "Dirija-se á " + locations[queue[currentIndex].location - 1].name
+    );
+    setDisplayTable(queue[currentIndex].table);
+    setDisplayName(queue[currentIndex].requested_by);
+
+    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
+      services[queue[currentIndex].service - 1].name
+    } ${queue[currentIndex].position}, por favor dirija-se á ${
+      locations[queue[currentIndex].location - 1].name
+    }, ${queue[currentIndex].table}`;
+
+    speakText(textToSpeak);
+
+    if (lastsTokens.length >= 5) {
+      setLastsTokens((prevTokens) => prevTokens.slice(1));
+    }
+
+    setLastsTokens((prevTokens) => [
+      {
+        id: `${queue[currentIndex].id}`,
+        value: `${services[queue[currentIndex].service - 1].name} ${
+          queue[currentIndex].position
+        }`,
+      },
+      ...prevTokens,
+    ]);
+
+    setCurrentIndex((prevIndex) => prevIndex + 1);
+
+    setIsSpeaking(false);
   };
 
   const onVideoEnd = (data) => {
@@ -119,20 +176,15 @@ function TokenCall() {
     });
   };
 
-  const playAndSpeak = async () => {
-    if (queue.length > 0) {
-      await playAudio();
-    }
-    speakQueue();
-  };
-
   useEffect(() => {
+    handleServices();
+    handleLocations();
     handleVideos();
     // eslint-disable-next-line
-  }, []); //Handle Video List
+  }, []); //Handle Video List, Locations, Services
 
   useEffect(() => {
-    playAndSpeak();
+    speakQueue();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
 
@@ -149,12 +201,15 @@ function TokenCall() {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("ended", handleVideos);
+      videoRef.current.volume = 0.8;
     }
 
     return () => {
       if (videoRef.current) {
         // eslint-disable-next-line
         videoRef.current.removeEventListener("ended", handleVideos);
+        // eslint-disable-next-line
+        videoRef.current.volume = 0.8;
       }
     };
     // eslint-disable-next-line
@@ -164,7 +219,10 @@ function TokenCall() {
     <Container className="justify-between">
       <section className="flex border-1 w-11/12 h-[40%] justify-center items-center">
         <p className="text-6xl text-red-700">{displayToken}</p>
-        <p className="text-3xl text-blue-700">{displayLocation}</p>
+        <p className="text-3xl text-blue-700">
+          {displayLocation} {displayTable}
+        </p>
+        <p className="text-3xl text-blue-700">{displayName}</p>
       </section>
 
       <div className="flex w-screen h-[60%] justify-around">
