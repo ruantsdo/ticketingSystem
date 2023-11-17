@@ -37,7 +37,7 @@ function TokenCall() {
   const [displayToken, setDisplayToken] = useState(
     "Nenhuma ficha foi chamada ainda..."
   );
-  const [displaySector, setDisplaySector] = useState("");
+  const [displayLocation, setDisplayLocation] = useState("");
 
   const speakText = useCallback(
     (text) => {
@@ -54,26 +54,26 @@ function TokenCall() {
   const speakQueue = () => {
     if (currentIndex < queue.length) {
       setDisplayToken(
-        `${queue[currentIndex].sector} ${queue[currentIndex].position}`
+        `${queue[currentIndex].service} ${queue[currentIndex].position}`
       );
-      setDisplaySector(
+      setDisplayLocation(
         queue[currentIndex].requested_by +
-          ", dirija-se ao setor de: " +
-          queue[currentIndex].sector
+          ", dirija-se á: " +
+          queue[currentIndex].location
       );
 
       speakText(
-        `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
+        `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].service} ${queue[currentIndex].position}, por favor dirija-se á ${queue[currentIndex].location}, ${queue[currentIndex].table}`
       );
 
-      if (lastsTokens.length >= 9) {
+      if (lastsTokens.length >= 8) {
         setLastsTokens(lastsTokens.pop());
       }
 
       setLastsTokens([
         {
           id: `${queue[currentIndex].id}`,
-          value: `SENHA ${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`,
+          value: `SENHA ${queue[currentIndex].service} ${queue[currentIndex].position}`,
         },
         ...lastsTokens,
       ]);
@@ -164,7 +164,7 @@ function TokenCall() {
     <Container className="justify-between">
       <section className="flex border-1 w-11/12 h-[40%] justify-center items-center">
         <p className="text-6xl text-red-700">{displayToken}</p>
-        <p className="text-3xl text-blue-700">{displaySector}</p>
+        <p className="text-3xl text-blue-700">{displayLocation}</p>
       </section>
 
       <div className="flex w-screen h-[60%] justify-around">

@@ -34,33 +34,64 @@ function TokenCall() {
   const [displayToken, setdisplayToken] = useState(
     "Nenhuma senha foi chamada ainda..."
   );
-  const [displaySector, setDisplaySector] = useState("");
+  const [displayLocation, setDisplayLocation] = useState("");
   const [displayTable, setDisplayTable] = useState("");
   const [displayName, setDisplayName] = useState("");
 
+  const [services, setServices] = useState([]);
+  const [locations, setLocations] = useState([]);
+
   const speakText = useCallback(
-    (text) => {
+    async (text) => {
+      await playAudio();
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = voices[ptBrVoice];
+
       speechSynthesis.speak(utterance);
     },
     // eslint-disable-next-line
     [speechSynthesis]
   );
 
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleLocations = async () => {
+    try {
+      const response = await api.get("/location/query");
+      setLocations(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const speakQueue = () => {
     if (currentIndex < queue.length) {
       setdisplayToken(
-        `${queue[currentIndex].sector} ${queue[currentIndex].position}`
+        `${services[queue[currentIndex].service - 1].name} ${
+          queue[currentIndex].position
+        }`
       );
-      setDisplaySector("Dirija-se ao setor de " + queue[currentIndex].sector);
+      setDisplayLocation(
+        "Dirija-se á " + locations[queue[currentIndex].location - 1].name
+      );
       setDisplayTable(queue[currentIndex].table);
       setDisplayName(queue[currentIndex].requested_by);
 
       speakText(
-        `Atenção ${queue[currentIndex].requested_by}, senha ${queue[currentIndex].sector} ${queue[currentIndex].position}, por favor dirija-se ao setor de ${queue[currentIndex].sector}, ${queue[currentIndex].table}`
+        `Atenção ${queue[currentIndex].requested_by}, senha ${
+          services[queue[currentIndex].service - 1].name
+        } ${queue[currentIndex].position}, por favor dirija-se á ${
+          locations[queue[currentIndex].location - 1].name
+        }, ${queue[currentIndex].table}`
       );
 
       if (lastsTokens.length >= 5) {
@@ -70,7 +101,9 @@ function TokenCall() {
       setLastsTokens([
         {
           id: `${queue[currentIndex].id}`,
-          value: `${queue[currentIndex].sector} ${queue[currentIndex].position} - ${queue[currentIndex].table}`,
+          value: `${services[queue[currentIndex].service - 1].name} ${
+            queue[currentIndex].position
+          }`,
         },
         ...lastsTokens,
       ]);
@@ -117,26 +150,29 @@ function TokenCall() {
   };
 
   const playAndSpeak = async () => {
-    if (queue.length > 0 && queue.length === currentIndex) {
+    if (queue.length > 0 && queue.length > currentIndex) {
       await playAudio();
     }
-    speakQueue();
+
+    await speakQueue();
   };
 
   useEffect(() => {
+    handleServices();
+    handleLocations();
     handleVideos();
     // eslint-disable-next-line
-  }, []); //Handle Video List
+  }, []); //Handle Video List, Locations, Services
 
   useEffect(() => {
-    playAndSpeak();
+    speakQueue();
+    //playAndSpeak();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
 
   useEffect(() => {
     socket.on("queued_update", (data) => {
       setQueue([...queue, data]);
-      console.log("O sinal foi recebido!");
     });
 
     return () => {
@@ -164,7 +200,7 @@ function TokenCall() {
         <p className="text-6xl text-red-700 underline">SENHA</p>
         <p className="text-5xl text-center text-red-700">{displayToken}</p>
         <p className="text-3xl text-center text-blue-700">{displayName}</p>
-        <p className="text-5xl text-center ">{displaySector}</p>
+        <p className="text-5xl text-center ">{displayLocation}</p>
         <p className="text-4xl text-center ">{displayTable}</p>
       </div>
 

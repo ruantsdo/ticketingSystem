@@ -107,12 +107,12 @@ function TokensList() {
   const emitSignalQueueUpdate = (token) => {
     const data = {
       token_id: token.id,
-      sector: token.sector,
       position: token.position,
       service: token.service,
       priority: token.priority,
       requested_by: token.requested_by,
       created_by: token.created_by,
+      location: currentLocation,
       table: currentTable,
     };
     socket.emit("queued_update", data);
@@ -218,6 +218,19 @@ function TokensList() {
 
       getSessionContext(tokens);
     } else if (currentUser.permission_level >= 4) {
+      data.sort((a, b) => {
+        const statusA = a.status.toUpperCase();
+        const statusB = b.status.toUpperCase();
+
+        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
+          return 1;
+        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
       setTokens(data);
       setTokensLength(data.length);
     }
