@@ -23,6 +23,10 @@ import api from "../../services/api";
 import Clock from "./components/clock";
 import Menu from "./components/menu";
 
+//Icons
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ReplayIcon from "@mui/icons-material/Replay";
+
 function TokenCallDefault() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
@@ -69,8 +73,6 @@ function TokenCallDefault() {
         }
       });
 
-      await playAudio();
-
       speechSynthesis.speak(utterance);
     },
     // eslint-disable-next-line
@@ -102,6 +104,18 @@ function TokenCallDefault() {
 
     setIsSpeaking(true);
 
+    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
+      services[queue[currentIndex].service - 1].name
+    } ${queue[currentIndex].position}, por favor dirija-se á ${
+      locations[queue[currentIndex].location - 1].name
+    }, ${queue[currentIndex].table}`;
+
+    await speakText(textToSpeak);
+
+    await updateText();
+  };
+
+  const updateText = async () => {
     setdisplayToken(
       `${services[queue[currentIndex].service - 1].name} ${
         queue[currentIndex].position
@@ -124,14 +138,6 @@ function TokenCallDefault() {
 
     setDisplayName(queue[currentIndex].requested_by);
 
-    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
-      services[queue[currentIndex].service - 1].name
-    } ${queue[currentIndex].position}, por favor dirija-se á ${
-      locations[queue[currentIndex].location - 1].name
-    }, ${queue[currentIndex].table}`;
-
-    speakText(textToSpeak);
-
     if (lastsTokens.length >= 6) {
       setLastsTokens((prevTokens) => prevTokens.slice(1));
     }
@@ -142,6 +148,7 @@ function TokenCallDefault() {
         value: `${services[queue[currentIndex].service - 1].name} ${
           queue[currentIndex].position
         }`,
+        location: `${locations[queue[currentIndex].location - 1].name}`,
       },
       ...prevTokens,
     ]);
@@ -188,6 +195,13 @@ function TokenCallDefault() {
     });
   };
 
+  const playAndSpeak = async () => {
+    if (queue.length > 0) {
+      await playAudio();
+    }
+    await speakQueue();
+  };
+
   useEffect(() => {
     handleServices();
     handleLocations();
@@ -196,7 +210,7 @@ function TokenCallDefault() {
   }, []); //Handle Video List, Locations, Services
 
   useEffect(() => {
-    speakQueue();
+    playAndSpeak();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
 
@@ -245,6 +259,7 @@ function TokenCallDefault() {
         </div>
         <Clock />
       </div>
+
       <div className="flex flex-col w-6/12 h-full items-end">
         <Menu className="absolute mt-4 mr-4 z-50 opacity-20 hover:opacity-100" />
         <Table
@@ -253,7 +268,14 @@ function TokenCallDefault() {
           className="w-full h-[50%] transition-all"
         >
           <TableHeader>
-            <TableColumn>Últimas Senhas</TableColumn>
+            <TableColumn>
+              <ReplayIcon className="mr-1 mb-1" />
+              Últimas Senhas
+            </TableColumn>
+            <TableColumn>
+              <LocationOnIcon className="mr-1 mb-1" />
+              Local
+            </TableColumn>
           </TableHeader>
           <TableBody
             items={lastsTokens}
@@ -261,7 +283,8 @@ function TokenCallDefault() {
           >
             {(item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.value}</TableCell>
+                <TableCell className="font-bold">{item.value}</TableCell>
+                <TableCell className="font-bold">{item.location}</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -23,6 +23,10 @@ import api from "../../services/api";
 import Clock from "./components/clock";
 import Menu from "./components/menu";
 
+//Icons
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ReplayIcon from "@mui/icons-material/Replay";
+
 function TokenCallAlternative() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
@@ -69,8 +73,6 @@ function TokenCallAlternative() {
         }
       });
 
-      await playAudio();
-
       speechSynthesis.speak(utterance);
     },
     // eslint-disable-next-line
@@ -102,6 +104,18 @@ function TokenCallAlternative() {
 
     setIsSpeaking(true);
 
+    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
+      services[queue[currentIndex].service - 1].name
+    } ${queue[currentIndex].position}, por favor dirija-se á ${
+      locations[queue[currentIndex].location - 1].name
+    }, ${queue[currentIndex].table}`;
+
+    await speakText(textToSpeak);
+
+    await updateText();
+  };
+
+  const updateText = async () => {
     setdisplayToken(
       `${services[queue[currentIndex].service - 1].name} ${
         queue[currentIndex].position
@@ -124,14 +138,6 @@ function TokenCallAlternative() {
 
     setDisplayName(queue[currentIndex].requested_by);
 
-    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
-      services[queue[currentIndex].service - 1].name
-    } ${queue[currentIndex].position}, por favor dirija-se á ${
-      locations[queue[currentIndex].location - 1].name
-    }, ${queue[currentIndex].table}`;
-
-    speakText(textToSpeak);
-
     if (lastsTokens.length >= 6) {
       setLastsTokens((prevTokens) => prevTokens.slice(1));
     }
@@ -142,6 +148,7 @@ function TokenCallAlternative() {
         value: `${services[queue[currentIndex].service - 1].name} ${
           queue[currentIndex].position
         }`,
+        location: `${locations[queue[currentIndex].location - 1].name}`,
       },
       ...prevTokens,
     ]);
@@ -188,6 +195,13 @@ function TokenCallAlternative() {
     });
   };
 
+  const playAndSpeak = async () => {
+    if (queue.length > 0) {
+      await playAudio();
+    }
+    await speakQueue();
+  };
+
   useEffect(() => {
     handleServices();
     handleLocations();
@@ -196,7 +210,7 @@ function TokenCallAlternative() {
   }, []); //Handle Video List, Locations, Services
 
   useEffect(() => {
-    speakQueue();
+    playAndSpeak();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
 
@@ -253,7 +267,14 @@ function TokenCallAlternative() {
             className="w-full h-full"
           >
             <TableHeader>
-              <TableColumn>Últimas Senhas</TableColumn>
+              <TableColumn>
+                <ReplayIcon className="mr-1 mb-1" />
+                Últimas Senhas
+              </TableColumn>
+              <TableColumn>
+                <LocationOnIcon className="mr-1 mb-1" />
+                Local
+              </TableColumn>
             </TableHeader>
             <TableBody
               items={lastsTokens}
@@ -261,7 +282,8 @@ function TokenCallAlternative() {
             >
               {(item) => (
                 <TableRow key={item.id}>
-                  <TableCell>{item.value}</TableCell>
+                  <TableCell className="font-bold">{item.value}</TableCell>
+                  <TableCell className="font-bold">{item.location}</TableCell>
                 </TableRow>
               )}
             </TableBody>

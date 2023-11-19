@@ -54,15 +54,21 @@ export default function Menu({ ...props }) {
           >
             Alterar Tema
           </DropdownItem>
-          <DropdownItem key="default" startContent={<DashboardIcon />}>
-            <Link color="foreground" href="/tokenCall/default">
-              Layout Padrão
-            </Link>
+          <DropdownItem
+            key="default"
+            startContent={<DashboardIcon />}
+            as={Link}
+            href="/tokenCall/default"
+          >
+            Layout Padrão
           </DropdownItem>
-          <DropdownItem key="alternative" startContent={<ViewComfyIcon />}>
-            <Link color="foreground" href="/tokenCall/alternative">
-              Layout Alternativo
-            </Link>
+          <DropdownItem
+            key="alternative"
+            startContent={<ViewComfyIcon />}
+            as={Link}
+            href="/tokenCall/alternative"
+          >
+            Layout Alternativo
           </DropdownItem>
         </DropdownSection>
         <DropdownSection>
