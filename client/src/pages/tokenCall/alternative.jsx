@@ -3,9 +3,6 @@ import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
 //React
 import React, { useCallback, useEffect, useState, useRef } from "react";
 
-//Components
-import Container from "../../components/container";
-
 //NextUI
 import {
   Table,
@@ -22,7 +19,11 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Services
 import api from "../../services/api";
 
-function TokenCall() {
+//Components
+import Clock from "./components/clock";
+import Menu from "./components/menu";
+
+function TokenCallAlternative() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
 
@@ -107,9 +108,20 @@ function TokenCall() {
       }`
     );
     setDisplayLocation(
-      "Dirija-se á " + locations[queue[currentIndex].location - 1].name
+      <p className="text-4xl text-center ">
+        <span>Dirija-se á </span>
+        <span className="text-blue-700 animate-pulse">
+          {locations[queue[currentIndex].location - 1].name}
+        </span>
+      </p>
     );
-    setDisplayTable(queue[currentIndex].table);
+
+    if (queue[currentIndex].table) {
+      setDisplayTable(" - " + queue[currentIndex].table + " - ");
+    } else {
+      setDisplayTable("");
+    }
+
     setDisplayName(queue[currentIndex].requested_by);
 
     const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
@@ -120,7 +132,7 @@ function TokenCall() {
 
     speakText(textToSpeak);
 
-    if (lastsTokens.length >= 5) {
+    if (lastsTokens.length >= 6) {
       setLastsTokens((prevTokens) => prevTokens.slice(1));
     }
 
@@ -216,37 +228,45 @@ function TokenCall() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <Container className="justify-between">
-      <section className="flex border-1 w-11/12 h-[40%] justify-center items-center">
-        <p className="text-6xl text-red-700">{displayToken}</p>
-        <p className="text-3xl text-blue-700">
-          {displayLocation} {displayTable}
-        </p>
-        <p className="text-3xl text-blue-700">{displayName}</p>
-      </section>
+    <div className="flex flex-col justify-around p-1 gap-3 w-screen h-screen bg-containerBackground transition-all delay-0 overflow-auto">
+      <div className="flex justify-around w-full h-3/6 gap-1 font-mono">
+        <Menu className="absolute mt-2 ml-[95%] z-50 opacity-20 hover:opacity-100" />
+        <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
+          <section className="flex flex-col items-center">
+            <p className="text-6xl text-center text-red-700">{displayToken}</p>
+          </section>
+          <section className="flex flex-col items-center">
+            <p className="text-6xl text-center text-blue-700">{displayName}</p>
+            {displayLocation}
+            <p className="text-2xl text-center">{displayTable}</p>
+          </section>
+        </div>
+      </div>
 
-      <div className="flex w-screen h-[60%] justify-around">
-        <Table
-          isStriped
-          aria-label="Lista das últimas senhas que foram chamadas"
-          className="w-5/12 h-full transition-all"
-        >
-          <TableHeader>
-            <TableColumn>Últimas Senhas</TableColumn>
-          </TableHeader>
-          <TableBody
-            items={lastsTokens}
-            emptyContent={"Nenhuma ficha foi chamada ainda..."}
+      <div className="flex flex-row w-full h-[60%] justify-around items-center gap-2">
+        <div className="flex flex-col w-[50%] h-full">
+          <Table
+            aria-label="Lista das últimas senhas que foram chamadas"
+            isStriped
+            className="w-full h-full"
           >
-            {(item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.value}</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-
-        <div className="flex items-center justify-center w-6/12 h-full border-1 bg-black">
+            <TableHeader>
+              <TableColumn>Últimas Senhas</TableColumn>
+            </TableHeader>
+            <TableBody
+              items={lastsTokens}
+              emptyContent={"Nenhuma ficha foi chamada ainda..."}
+            >
+              {(item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.value}</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <Clock />
+        </div>
+        <div className="flex items-center justify-center w-6/12 h-full bg-black rounded-lg">
           {videoLoaded === true ? (
             <video
               ref={videoRef}
@@ -254,17 +274,16 @@ function TokenCall() {
               controls
               autoPlay
               muted
-              className="w-full h-full"
+              className="w-full h-full overflow-hidden rounded-lg"
             />
           ) : (
             <p>Carregando...</p>
           )}
         </div>
       </div>
-
       <audio id="notification" src={NotificationAudio}></audio>
-    </Container>
+    </div>
   );
 }
 
-export default TokenCall;
+export default TokenCallAlternative;

@@ -276,7 +276,7 @@ function TokensList() {
   const count = (x) => {
     const numbers = [];
     for (let i = 1; i <= x; i++) {
-      numbers.push({ value: `MESA ${i}` });
+      numbers.push({ value: `GUICHÊ ${i}` });
     }
     setLocationTable(numbers);
   };

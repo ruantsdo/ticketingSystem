@@ -15,6 +15,27 @@ module.exports = {
         info: "#008EDB",
         infoSecondary: "#A946A0",
       },
+      keyframes: {
+        "pulsate-bck": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(0.95)" },
+        },
+        "shadow-drop-center": {
+          "0%, 100%": {
+            "-webkit-box-shadow": "0 0 0 0 rgba(0, 0, 0, 0)",
+            "box-shadow": "0 0 0 0 rgba(0, 0, 0, 0)",
+          },
+          "50%": {
+            "-webkit-box-shadow": "0 0 20px 0px rgba(0, 0, 0, 0.8)",
+            "box-shadow": "0 0 20px 0px rgba(0, 0, 0, 0.8)",
+          },
+        },
+      },
+      animation: {
+        "text-pulse": "pulsate-bck 2s ease-in-out infinite both",
+        "shadow-drop-center":
+          "3s cubic-bezier(0.250, 0.460, 0.450, 0.940) infinite both",
+      },
     },
   },
   darkMode: "class",

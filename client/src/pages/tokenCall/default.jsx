@@ -19,7 +19,11 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Services
 import api from "../../services/api";
 
-function TokenCall() {
+//Components
+import Clock from "./components/clock";
+import Menu from "./components/menu";
+
+function TokenCallDefault() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
 
@@ -104,9 +108,20 @@ function TokenCall() {
       }`
     );
     setDisplayLocation(
-      "Dirija-se á " + locations[queue[currentIndex].location - 1].name
+      <p className="text-4xl text-center ">
+        <span>Dirija-se á </span>
+        <span className="text-blue-700 animate-pulse">
+          {locations[queue[currentIndex].location - 1].name}
+        </span>
+      </p>
     );
-    setDisplayTable(queue[currentIndex].table);
+
+    if (queue[currentIndex].table) {
+      setDisplayTable(" - " + queue[currentIndex].table + " - ");
+    } else {
+      setDisplayTable("");
+    }
+
     setDisplayName(queue[currentIndex].requested_by);
 
     const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
@@ -117,7 +132,7 @@ function TokenCall() {
 
     speakText(textToSpeak);
 
-    if (lastsTokens.length >= 5) {
+    if (lastsTokens.length >= 6) {
       setLastsTokens((prevTokens) => prevTokens.slice(1));
     }
 
@@ -213,20 +228,27 @@ function TokenCall() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <div className="flex flex-row p-3 gap-3 w-screen h-screen bg-containerBackground justify-evenly transition-all delay-0 overflow-auto">
-      <div className="flex flex-col border-1 w-6/12 h-full justify-around items-center">
-        <p className="text-6xl text-red-700 underline">SENHA</p>
-        <p className="text-5xl text-center text-red-700">{displayToken}</p>
-        <p className="text-3xl text-center text-blue-700">{displayName}</p>
-        <p className="text-5xl text-center ">{displayLocation}</p>
-        <p className="text-4xl text-center ">{displayTable}</p>
+    <div className="flex flex-row p-1 gap-3 w-screen h-screen bg-containerBackground justify-evenly transition-all delay-0 overflow-auto">
+      <div className="flex flex-col justify-around w-6/12 h-full gap-1 font-mono">
+        <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
+          <section className="flex flex-col items-center">
+            <p className="text-5xl underline">SENHA</p>
+            <p className="text-6xl text-center text-red-700">{displayToken}</p>
+          </section>
+          <section className="flex flex-col items-center">
+            <p className="text-5xl text-center text-blue-700">{displayName}</p>
+            {displayLocation}
+            <p className="text-4xl text-center">{displayTable}</p>
+          </section>
+        </div>
+        <Clock />
       </div>
-
-      <div className="flex flex-col w-6/12 h-5/12 items-end">
+      <div className="flex flex-col w-6/12 h-full items-end">
+        <Menu className="absolute mt-4 mr-4 z-50 opacity-20 hover:opacity-100" />
         <Table
           aria-label="Lista das últimas senhas que foram chamadas"
           isStriped
-          className="w-full h-full transition-all"
+          className="w-full h-[50%] transition-all"
         >
           <TableHeader>
             <TableColumn>Últimas Senhas</TableColumn>
@@ -243,7 +265,7 @@ function TokenCall() {
           </TableBody>
         </Table>
 
-        <div className="flex items-center justify-center w-full h-[50%] bg-black">
+        <div className="flex items-center justify-center w-full h-[50%] bg-black rounded-lg">
           {videoLoaded === true ? (
             <video
               ref={videoRef}
@@ -251,7 +273,7 @@ function TokenCall() {
               controls
               autoPlay
               muted
-              className="w-full h-full"
+              className="w-[99.9%] h-[99.9%]"
             />
           ) : (
             <p>Carregando...</p>
@@ -263,4 +285,4 @@ function TokenCall() {
   );
 }
 
-export default TokenCall;
+export default TokenCallDefault;

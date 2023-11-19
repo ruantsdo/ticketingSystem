@@ -25,9 +25,14 @@ const menuItems = [
     address: "/tokensList",
   },
   {
-    name: "Tela de chamada",
+    name: "Tela de chamada (Padrão)",
     color: "foreground",
-    address: "/tokenCall",
+    address: "/tokenCall/default",
+  },
+  {
+    name: "Tela de chamada (Alternativo)",
+    color: "foreground",
+    address: "/tokenCall/alternative",
   },
 ];
 
