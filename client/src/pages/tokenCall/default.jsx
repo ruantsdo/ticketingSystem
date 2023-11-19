@@ -233,7 +233,9 @@ function TokenCallDefault() {
         <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
           <section className="flex flex-col items-center">
             <p className="text-5xl underline">SENHA</p>
-            <p className="text-6xl text-center text-red-700">{displayToken}</p>
+            <p className="text-6xl text-center text-red-700 animate-pulse">
+              {displayToken}
+            </p>
           </section>
           <section className="flex flex-col items-center">
             <p className="text-5xl text-center text-blue-700">{displayName}</p>

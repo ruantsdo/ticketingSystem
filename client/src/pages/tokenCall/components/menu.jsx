@@ -4,9 +4,6 @@ import React, { useContext } from "react";
 //Contexts
 import AuthContext from "../../../contexts/auth";
 
-//RouterDom
-import { redirect } from "react-router-dom";
-
 //NextUi
 import {
   Dropdown,
@@ -15,6 +12,7 @@ import {
   DropdownItem,
   Button,
   DropdownSection,
+  Link,
 } from "@nextui-org/react";
 import { useTheme } from "next-themes";
 
@@ -56,21 +54,15 @@ export default function Menu({ ...props }) {
           >
             Alterar Tema
           </DropdownItem>
-          <DropdownItem
-            key="default"
-            startContent={<DashboardIcon />}
-            onPress={() => {
-              redirect("/tokenCall/default");
-            }}
-          >
-            Layout Padrão
+          <DropdownItem key="default" startContent={<DashboardIcon />}>
+            <Link color="foreground" href="/tokenCall/default">
+              Layout Padrão
+            </Link>
           </DropdownItem>
-          <DropdownItem
-            key="alternative"
-            startContent={<ViewComfyIcon />}
-            onPress={() => redirect("/tokenCall/alternative")}
-          >
-            Layout Alternativo
+          <DropdownItem key="alternative" startContent={<ViewComfyIcon />}>
+            <Link color="foreground" href="/tokenCall/alternative">
+              Layout Alternativo
+            </Link>
           </DropdownItem>
         </DropdownSection>
         <DropdownSection>
