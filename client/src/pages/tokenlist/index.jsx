@@ -312,15 +312,15 @@ function TokensList() {
 
   return (
     <FullContainer>
-      <div className="flex flex-col w-11/12">
-        <div className="flex gap-3 justify-end">
+      <div className="flex flex-col w-full sm:w-[95%]">
+        <div className="flex flex-col gap-2 justify-end sm:flex-row">
           <Select
             isRequired
             size="sm"
             items={locations}
             label="Qual local você está no momento?"
             placeholder="Indique seu local"
-            className="max-w-xs shadow-md mb-1"
+            className="w-full sm:max-w-xs shadow-md mb-1"
             variant="faded"
             value={currentLocation}
             onSelectionChange={(key) => {
@@ -337,7 +337,7 @@ function TokensList() {
             items={locationTable}
             label="Em qual mesa você está?"
             placeholder="Indique sua mesa"
-            className="max-w-xs shadow-md mb-1"
+            className="w-full sm:max-w-xs shadow-md mb-1"
             variant="faded"
             value={currentTable}
             onSelectionChange={(key) => {
@@ -376,7 +376,9 @@ function TokensList() {
           <TableHeader>
             <TableColumn className="w-1/12">FICHA Nº</TableColumn>
             <TableColumn>SERVIÇO</TableColumn>
-            <TableColumn>SOLICITADO POR</TableColumn>
+            <TableColumn className="hidden sm:flex sm:items-center">
+              SOLICITADO POR
+            </TableColumn>
             <TableColumn className="w-2/12">STATUS</TableColumn>
           </TableHeader>
           <TableBody
@@ -404,7 +406,7 @@ function TokensList() {
               >
                 <TableCell>{item.position}</TableCell>
                 <TableCell>{services[item.service - 1].name}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {item.requested_by !== ""
                     ? item.requested_by
                     : "Nome não fornecido"}

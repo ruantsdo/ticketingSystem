@@ -34,7 +34,11 @@ import { toast } from "react-toastify";
 function QueueRegistration() {
   const { socket } = useWebSocket();
   const { currentUser } = useContext(AuthContext);
+
   const [services, setServices] = useState([]);
+
+  const [priority, setPriority] = useState(0);
+  const [selectedService, setSelectedService] = useState("");
 
   useEffect(() => {
     handleServices();
@@ -42,29 +46,40 @@ function QueueRegistration() {
 
   const formik = useFormik({
     initialValues: {
-      priority: false,
-      services: "",
       requested_by: "",
     },
     onSubmit: async (values) => {
       try {
-        await api.post("/token/registration", {
-          priority: values.priority,
-          services: values.service,
-          created: currentUser.name,
-          requested_by: values.requested_by,
-        });
-        toast.success("Ficha cadastrada!");
-        emitNewTokenSignal();
+        await api
+          .post("/token/registration", {
+            priority: priority,
+            services: selectedService,
+            created: currentUser.name,
+            requested_by: values.requested_by,
+          })
+          .then((response) => {
+            notify(response.data);
+          });
       } catch (err) {
         toast.error(
-          "Houve um problema ao cadastrar sua ficha! Tente novamente mais tarde!"
+          "Houve um problema ao cadastrar a nova ficha! Tente novamente em alguns instantes!"
         );
         console.log(err);
       }
     },
-    validate: (values) => {},
   });
+
+  const notify = (response) => {
+    if (response === "success") {
+      toast.success("Ficha registrada!");
+      emitNewTokenSignal();
+      formik.resetForm();
+    } else if (response === "failed") {
+      toast.info(
+        "Falha ao registrar nova ficha! Tente novamente em alguns instantes!"
+      );
+    }
+  };
 
   const handleServices = async () => {
     try {
@@ -93,16 +108,18 @@ function QueueRegistration() {
               <Select
                 isRequired
                 label="É prioridade?"
-                defaultSelectedKeys={"0"}
+                defaultSelectedKeys="0"
                 className="w-full"
                 name="priority"
-                onChange={formik.handleChange}
-                value={formik.values.priority}
+                selectedKeys={priority}
+                onSelectionChange={(values) => {
+                  setPriority(values.currentKey);
+                }}
               >
-                <SelectItem key="1" value={true}>
+                <SelectItem key={1} value={true}>
                   SIM
                 </SelectItem>
-                <SelectItem key="0" value={false}>
+                <SelectItem key={0} value={false}>
                   NÃO
                 </SelectItem>
               </Select>
@@ -113,8 +130,10 @@ function QueueRegistration() {
                 placeholder="Selecione um serviço"
                 className="w-full"
                 name="service"
-                onChange={formik.handleChange}
-                value={formik.values.service}
+                selectedKeys={selectedService}
+                onSelectionChange={(values) => {
+                  setSelectedService(values.currentKey);
+                }}
               >
                 {(service) => (
                   <SelectItem key={service.id} value={service.id}>
@@ -126,7 +145,7 @@ function QueueRegistration() {
                 isRequired
                 type="text"
                 label="Solicitado por"
-                placeholder="Informe o nome da pessoa que está solicitanto esse serviço."
+                placeholder="Nome de quem está solicitando atendimento."
                 className="w-full"
                 name="requested_by"
                 onChange={formik.handleChange}

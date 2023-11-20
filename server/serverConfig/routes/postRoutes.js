@@ -109,9 +109,9 @@ router.post("/token/registration", async (req, res) => {
       service,
     ]);
 
-    res.send({ msg: "Ficha cadastrada com sucesso!" });
+    res.send("success");
   } catch (err) {
-    res.send({ msg: "Falha no cadastramento da ficha!" });
+    res.send("failed");
   }
 });
 
@@ -162,9 +162,9 @@ router.post("/queue/registration", async (req, res) => {
         req.body.location,
       ]
     );
-    res.send({ msg: "Ficha cadastrada com sucesso!" });
+    res.send("success");
   } catch (err) {
-    res.status(500).send({ msg: "Falha no cadastramento da ficha!" });
+    res.send("failed");
   }
 });
 

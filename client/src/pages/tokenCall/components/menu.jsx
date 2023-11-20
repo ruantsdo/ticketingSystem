@@ -24,13 +24,14 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ViewComfyIcon from "@mui/icons-material/ViewComfy";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import HomeIcon from "@mui/icons-material/Home";
 
 //Toast
 import { toast } from "react-toastify";
 
 export default function Menu({ ...props }) {
   const { theme, setTheme } = useTheme();
-  const { setCurrentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
 
   const logout = () => {
     toast.warn("Você escolheu sair!");
@@ -46,7 +47,20 @@ export default function Menu({ ...props }) {
         </Button>
       </DropdownTrigger>
       <DropdownMenu variant="faded" aria-label="Dropdown menu with icons">
-        <DropdownSection>
+        {currentUser.permission_level > 1 ? (
+          <DropdownSection>
+            <DropdownItem
+              key="home"
+              startContent={<HomeIcon />}
+              as={Link}
+              href="/home"
+              showDivider
+            >
+              Ir para a Home
+            </DropdownItem>
+          </DropdownSection>
+        ) : null}
+        <DropdownSection showDivider>
           <DropdownItem
             key="theme"
             onPress={() => setTheme(theme === "light" ? "dark" : "light")}

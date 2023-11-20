@@ -133,7 +133,7 @@ function NewUserRegister() {
       formik.resetForm();
     } else {
       toast.error(
-        "Houve um problema ao cadastrar o novo usuário! Tente novamente mais tarde!"
+        "Houve um problema ao cadastrar o novo usuário! Em instantes!"
       );
     }
   };
