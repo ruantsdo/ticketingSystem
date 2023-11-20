@@ -32,6 +32,31 @@ router.post("/login", (req, res) => {
   );
 });
 
+router.post("/user/check", (req, res) => {
+  db.query(
+    "SELECT * FROM users WHERE cpf = ?",
+    [req.body.cpf],
+    (error, response) => {
+      if (error) {
+        res.send(error);
+        return;
+      }
+
+      if (response.length > 0) {
+        const isValid = req.body.password === response[0].password;
+
+        if (isValid) {
+          res.send("valid");
+        } else {
+          res.send("expired");
+        }
+      } else {
+        res.send("invalid");
+      }
+    }
+  );
+});
+
 router.post("/user/registration", async (req, res) => {
   db.query(
     //Checks if the user already exists

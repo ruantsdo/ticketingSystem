@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/home" index element={<Home />} />
-          <Route path="/newUser" index element={<NewUserPage />} />
+          <Route path="/newUser" element={<NewUserPage />} />
           <Route path="/queueRegistration" element={<QueueRegistration />} />
           <Route path="/tokensList" element={<TokensList />} />
           <Route path="/tokenCall/default" element={<TokenCallDefault />} />
