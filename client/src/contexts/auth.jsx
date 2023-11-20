@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyCredentials = async (currentUser) => {
-    console.log("Chamou o verify");
     setIsLoading(true);
 
     if (currentUser) {
