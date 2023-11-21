@@ -299,7 +299,6 @@ function TokenCallAlternative() {
               src={currentVideo}
               controls
               autoPlay
-              muted
               className="w-full h-full overflow-hidden rounded-lg"
             />
           ) : (

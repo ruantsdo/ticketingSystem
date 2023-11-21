@@ -299,7 +299,6 @@ function TokenCallDefault() {
               src={currentVideo}
               controls
               autoPlay
-              muted
               className="w-[99.9%] h-[99.9%]"
             />
           ) : (

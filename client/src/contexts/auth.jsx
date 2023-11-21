@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }) => {
           password: currentUser.password,
         });
 
-        console.log(response.data);
         validation(response.data, currentUser);
       } catch (error) {
         console.log(error);
@@ -54,6 +53,7 @@ export const AuthProvider = ({ children }) => {
     } else if (response === "valid") {
       setCurrentUser(currentUser);
     }
+
     setIsLoading(false);
   };
 
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       if (!lastDay) {
         const startDate = new Date();
         localStorage.setItem("lastDay", JSON.stringify(startDate));
-        verifyCredentials();
+        verifyCredentials(currentUser);
       } else {
         if (isDatePassed(lastDay)) {
           //A day has passed since the last check

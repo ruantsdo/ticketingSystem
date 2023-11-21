@@ -48,8 +48,13 @@ function LoginPage() {
           .then((response) => {
             if (response.data.length > 0) {
               const currentUser = response.data[0];
-              setCurrentUser(response.data[0]);
+
+              const startDate = new Date();
+              localStorage.setItem("lastDay", JSON.stringify(startDate));
+
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+              setCurrentUser(response.data[0]);
             } else {
               toast.warn("Verifique suas crendenciais e tente novamente!");
             }
