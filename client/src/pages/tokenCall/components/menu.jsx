@@ -10,7 +10,6 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Button,
   DropdownSection,
   Link,
 } from "@nextui-org/react";
@@ -18,6 +17,7 @@ import { useTheme } from "next-themes";
 
 //Components
 import ThemeSwitcher from "../../../components/themeSwitch";
+import Button from "../../../components/button";
 
 //Icons
 import SettingsIcon from "@mui/icons-material/Settings";

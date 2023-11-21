@@ -3,10 +3,10 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import Button from "../../components/button";
 
 //NextUI
 import {
-  Button,
   Divider,
   Table,
   TableHeader,
@@ -51,6 +51,7 @@ function TokensList() {
   const { currentUser } = useContext(AuthContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [inService, setInService] = useState(false);
+  const [isLocationOpen, setLocationIsOpen] = useState(false);
 
   const [page, setPage] = useState(1);
 
@@ -316,6 +317,7 @@ function TokensList() {
         <div className="flex flex-col gap-2 justify-end sm:flex-row">
           <Select
             isRequired
+            isOpen={isLocationOpen}
             size="sm"
             items={locations}
             label="Qual local você está no momento?"
@@ -327,6 +329,9 @@ function TokensList() {
               countTables(parseInt(key.currentKey));
               setCurrentLocation(parseInt(key.currentKey));
             }}
+            onOpenChange={(open) =>
+              open !== isLocationOpen && setLocationIsOpen(open)
+            }
           >
             {locations.map((item) => (
               <SelectItem key={item.id}>{item.name}</SelectItem>
@@ -402,7 +407,7 @@ function TokensList() {
             {(item) => (
               <TableRow
                 key={item.id}
-                className="hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md"
+                className="border-0.5 hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.position}</TableCell>
                 <TableCell>{services[item.service - 1].name}</TableCell>
@@ -415,46 +420,46 @@ function TokensList() {
                   {item.priority === 1 ? (
                     <Chip
                       radius="full"
-                      startContent={<AssistWalkerIcon size={18} />}
-                      className="bg-alert w-8 self-center mr-2"
+                      startContent={<AssistWalkerIcon />}
+                      className="bg-alert w-[1.9rem] self-center mr-1.5 "
                     />
                   ) : (
                     <Chip
                       radius="full"
-                      startContent={<PersonIcon size={18} />}
-                      className="bg-success w-8 self-center mr-2"
+                      startContent={<PersonIcon />}
+                      className="bg-success w-8 self-center mr-1.5"
                     />
                   )}
                   {item.status === "EM ESPERA" ? (
                     <Chip
                       radius="full"
-                      startContent={<HourglassBottomIcon size={18} />}
-                      className="bg-info w-8 self-center mr-2"
+                      startContent={<HourglassBottomIcon />}
+                      className="bg-info w-8 self-center mr-1.5"
                     />
                   ) : item.status === "EM ATENDIMENTO" ? (
                     <Chip
                       radius="full"
-                      startContent={<AirlineSeatReclineNormalIcon size={18} />}
-                      className="bg-info w-8 self-center mr-2"
+                      startContent={<AirlineSeatReclineNormalIcon />}
+                      className="bg-info w-8 self-center mr-1.5"
                     />
                   ) : item.status === "ADIADO" ? (
                     <div>
                       <Chip
                         radius="full"
-                        startContent={<HourglassBottomIcon size={18} />}
-                        className="bg-info w-8 self-center mr-2"
+                        startContent={<HourglassBottomIcon />}
+                        className="bg-info w-8 self-center mr-1.5"
                       />
                       <Chip
                         radius="full"
-                        startContent={<ReportIcon size={18} />}
-                        className="bg-failed w-8 self-center mr-2"
+                        startContent={<ReportIcon />}
+                        className="bg-failed w-8 self-center mr-1.5"
                       />
                     </div>
                   ) : item.status === "CONCLUIDO" ? (
                     <Chip
                       radius="full"
-                      startContent={<EmojiEmotionsIcon size={18} />}
-                      className="bg-success w-8 self-center mr-2"
+                      startContent={<EmojiEmotionsIcon />}
+                      className="bg-success w-8 self-center mr-1.5"
                     />
                   ) : null}
                 </TableCell>
@@ -647,6 +652,7 @@ function TokensList() {
                           toast.info(
                             "Você deve definir o seu local antes de fazer uma chamada..."
                           );
+                          setLocationIsOpen(!isLocationOpen);
                           onClose();
                         }
                       }}

@@ -112,7 +112,9 @@ function TokenCallDefault() {
 
     await speakText(textToSpeak);
 
-    await updateText();
+    setTimeout(async () => {
+      await updateText();
+    }, 1000);
   };
 
   const updateText = async () => {

@@ -4,9 +4,10 @@ import React, { useContext, useState } from "react";
 //Components
 import ThemeSwitcher from "../../components/themeSwitch";
 import Container from "../../components/container";
+import Button from "../../components/button";
 
 //NextUI
-import { Card, CardBody, Button, Input, Divider } from "@nextui-org/react";
+import { Card, CardBody, Input, Divider } from "@nextui-org/react";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";

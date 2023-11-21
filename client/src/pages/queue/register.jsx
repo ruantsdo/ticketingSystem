@@ -3,12 +3,12 @@ import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import FullContainer from "../../components/fullContainer";
+import Button from "../../components/button";
 
 //NextUI
 import {
   Card,
   CardBody,
-  Button,
   Divider,
   Select,
   SelectItem,
@@ -153,7 +153,7 @@ function QueueRegistration() {
               />
               <Divider className="bg-divider" />
               <Button
-                className="bg-success w-[40%]"
+                className="bg-success w-[40%] hover:scale-105 hover:shadow transition-all"
                 endContent={<LoginIcon />}
                 type="submit"
               >

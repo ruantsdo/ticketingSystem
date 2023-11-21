@@ -8,10 +8,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const allowedOrigins = [
+  `http://${process.env.CLIENT_IP}:${process.env.CLIENT_PORT}`,
+];
+
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
   cors: {
-    origin: `http://${process.env.CLIENT_IP}:${process.env.CLIENT_PORT}`,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
     allowEIO3: true,

@@ -26,6 +26,9 @@ import AuthContext from "../contexts/auth";
 //Toast
 import { toast } from "react-toastify";
 
+//Icons
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+
 export default function NavBar() {
   const { setCurrentUser } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,19 +62,32 @@ export default function NavBar() {
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+      <NavbarContent className="hidden sm:flex gap-3" justify="center">
         <NavbarItem>
-          <Link color="foreground" href="/queueRegistration">
-            Criar nova ficha
+          <Link
+            color="foreground"
+            href="/queueRegistration"
+            className="hover:underline"
+          >
+            Nova ficha
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link href="/newUser" color="foreground" aria-current="page">
+          <Link
+            href="/newUser"
+            color="foreground"
+            aria-current="page"
+            className="hover:underline"
+          >
             Novo usuário
           </Link>
         </NavbarItem>
         <NavbarItem>
-          <Link color="foreground" href="/tokensList">
+          <Link
+            color="foreground"
+            href="/tokensList"
+            className="hover:underline"
+          >
             Lista de Fichas
           </Link>
         </NavbarItem>
@@ -85,7 +101,7 @@ export default function NavBar() {
         {menuItems.map((item, index) => (
           <NavbarMenuItem
             key={`${item}-${index}`}
-            className="hover:cursor-pointer"
+            className="hover:cursor-pointer hover:scale-95 transition-all"
           >
             <Link
               color={item.color}
@@ -97,7 +113,11 @@ export default function NavBar() {
             </Link>
           </NavbarMenuItem>
         ))}
-        <Button onClick={() => logout()} className="bg-failed w-1/6">
+        <Button
+          onClick={() => logout()}
+          className="flex bg-failed w-1/6 rounded-md text-lg items-center justify-center hover:scale-105"
+          startContent={<ExitToAppIcon />}
+        >
           Sair
         </Button>
       </NavbarMenu>
