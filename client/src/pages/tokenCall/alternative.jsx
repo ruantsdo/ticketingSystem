@@ -45,7 +45,7 @@ function TokenCallAlternative() {
   const [displayLocation, setDisplayLocation] = useState("");
   const [displayTable, setDisplayTable] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  //const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [services, setServices] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -98,66 +98,71 @@ function TokenCallAlternative() {
   };
 
   const speakQueue = async () => {
-    if (isSpeaking || currentIndex >= queue.length) {
-      return;
+    if (currentIndex >= 0 && currentIndex < queue.length) {
+      const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
+        services[queue[currentIndex].service - 1].name
+      } ${queue[currentIndex].position}, por favor dirija-se á ${
+        locations[queue[currentIndex].location - 1].name
+      }, ${queue[currentIndex].table}`;
+
+      await speakText(textToSpeak);
+
+      setTimeout(async () => {
+        await updateText(currentIndex);
+      }, 1000);
+
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+    } else {
+      console.error("currentIndex is not a valid index in the queue array.");
     }
-
-    setIsSpeaking(true);
-
-    const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
-      services[queue[currentIndex].service - 1].name
-    } ${queue[currentIndex].position}, por favor dirija-se á ${
-      locations[queue[currentIndex].location - 1].name
-    }, ${queue[currentIndex].table}`;
-
-    await speakText(textToSpeak);
-
-    setTimeout(async () => {
-      await updateText();
-    }, 1000);
   };
 
-  const updateText = async () => {
-    setdisplayToken(
-      `${services[queue[currentIndex].service - 1].name} ${
-        queue[currentIndex].position
-      }`
-    );
-    setDisplayLocation(
-      <p className="text-4xl text-center ">
-        <span>Dirija-se á </span>
-        <span className="text-blue-700 animate-pulse">
-          {locations[queue[currentIndex].location - 1].name}
-        </span>
-      </p>
-    );
-
-    if (queue[currentIndex].table) {
-      setDisplayTable(" - " + queue[currentIndex].table + " - ");
-    } else {
-      setDisplayTable("");
-    }
-
-    setDisplayName(queue[currentIndex].requested_by);
-
-    if (lastsTokens.length >= 6) {
-      setLastsTokens((prevTokens) => prevTokens.slice(1));
-    }
-
-    setLastsTokens((prevTokens) => [
-      {
-        id: `${queue[currentIndex].id}`,
-        value: `${services[queue[currentIndex].service - 1].name} ${
+  const updateText = async (currentIndex) => {
+    if (currentIndex >= 0 && currentIndex < queue.length) {
+      setdisplayToken(
+        `${services[queue[currentIndex].service - 1].name} ${
           queue[currentIndex].position
-        }`,
-        location: `${locations[queue[currentIndex].location - 1].name}`,
-      },
-      ...prevTokens,
-    ]);
+        }`
+      );
+      setDisplayLocation(
+        <p className="text-4xl text-center ">
+          <span>Dirija-se á </span>
+          <span className="text-blue-700 text-5xl animate-pulse">
+            {locations[queue[currentIndex].location - 1].name}
+          </span>
+        </p>
+      );
 
-    setCurrentIndex((prevIndex) => prevIndex + 1);
+      if (queue[currentIndex].table) {
+        setDisplayTable(" - " + queue[currentIndex].table + " - ");
+      } else {
+        setDisplayTable("");
+      }
 
-    setIsSpeaking(false);
+      setDisplayName(queue[currentIndex].requested_by);
+
+      setLastsTokens((prevTokens) => {
+        const newToken = {
+          id: `${queue[currentIndex].token_id}`,
+          value: `${services[queue[currentIndex].service - 1].name} ${
+            queue[currentIndex].position
+          }`,
+          location: `${locations[queue[currentIndex].location - 1].name}`,
+        };
+
+        const prevTokensArray = Array.isArray(prevTokens) ? prevTokens : [];
+
+        const updatedTokens = [newToken, ...prevTokensArray];
+
+        if (updatedTokens.length > 5) {
+          updatedTokens.pop();
+        }
+
+        return updatedTokens;
+      });
+    } else {
+      console.error("currentIndex is not a valid index in the queue array.");
+    }
   };
 
   const onVideoEnd = (data) => {
@@ -201,7 +206,9 @@ function TokenCallAlternative() {
     if (queue.length > 0) {
       await playAudio();
     }
-    await speakQueue();
+    if (queue.length > 0) {
+      await speakQueue();
+    }
   };
 
   useEffect(() => {
@@ -249,14 +256,14 @@ function TokenCallAlternative() {
         <Menu className="absolute mt-2 ml-[95%] z-50 opacity-20 hover:opacity-100" />
         <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
           <section className="flex flex-col items-center">
-            <p className="text-6xl text-center text-red-700 animate-pulse">
+            <p className="text-9xl text-center text-red-700 animate-pulse">
               {displayToken}
             </p>
           </section>
           <section className="flex flex-col items-center">
             <p className="text-6xl text-center text-blue-700">{displayName}</p>
             {displayLocation}
-            <p className="text-2xl text-center">{displayTable}</p>
+            <p className="text-3xl text-center">{displayTable}</p>
           </section>
         </div>
       </div>
@@ -269,11 +276,11 @@ function TokenCallAlternative() {
             className="w-full h-full"
           >
             <TableHeader>
-              <TableColumn>
+              <TableColumn className="text-lg font-bold">
                 <ReplayIcon className="mr-1 mb-1" />
                 Últimas Senhas
               </TableColumn>
-              <TableColumn>
+              <TableColumn className="text-lg font-bold">
                 <LocationOnIcon className="mr-1 mb-1" />
                 Local
               </TableColumn>
@@ -284,8 +291,12 @@ function TokenCallAlternative() {
             >
               {(item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-bold">{item.value}</TableCell>
-                  <TableCell className="font-bold">{item.location}</TableCell>
+                  <TableCell className="text-lg font-bold">
+                    {item.value}
+                  </TableCell>
+                  <TableCell className="text-lg font-bold">
+                    {item.location}
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>

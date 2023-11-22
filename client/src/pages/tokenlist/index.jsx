@@ -587,30 +587,34 @@ function TokensList() {
                     <Button
                       className="bg-failed"
                       onPress={() => {
-                        removeFromQueue(tokens[itemKey]).then((response) => {
-                          if (response === "failed") {
-                            toast.error(
-                              "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
-                            );
-                          } else {
-                            updateToken("ADIADO", tokens[itemKey].id);
-                            toast.info("A ficha foi adiada!");
-                            setInService(false);
-                            localStorage.removeItem("currentSession");
-                            onClose();
-                          }
-                        });
+                        setTimeout(async () => {
+                          removeFromQueue(tokens[itemKey]).then((response) => {
+                            if (response === "failed") {
+                              toast.error(
+                                "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
+                              );
+                            } else {
+                              updateToken("ADIADO", tokens[itemKey].id);
+                              toast.info("A ficha foi adiada!");
+                              setInService(false);
+                              localStorage.removeItem("currentSession");
+                              onClose();
+                            }
+                          });
+                        }, 500);
                       }}
                     >
                       Adiar
                     </Button>
                     <Button
                       onPress={() => {
-                        closeToken(tokens[itemKey].id);
-                        setInService(false);
-                        localStorage.removeItem("currentSession");
-                        onClose();
-                        toast.success("O chamado foi concluído");
+                        setTimeout(async () => {
+                          closeToken(tokens[itemKey].id);
+                          setInService(false);
+                          localStorage.removeItem("currentSession");
+                          onClose();
+                          toast.success("O chamado foi concluído");
+                        }, 500);
                       }}
                       className="bg-success"
                     >
@@ -636,18 +640,20 @@ function TokensList() {
                       }
                       onPress={() => {
                         if (currentLocation) {
-                          updateToken("EM ATENDIMENTO", tokens[itemKey].id);
-                          insertOnQueue(tokens[itemKey]);
-                          emitSignalQueueUpdate(tokens[itemKey]);
-                          setInService(true);
-                          updateSessionContext(
-                            itemKey,
-                            true,
-                            tokens[itemKey].id
-                          );
-                          toast.success(
-                            "A ficha foi adicionada a fila de chamada..."
-                          );
+                          setTimeout(async () => {
+                            updateToken("EM ATENDIMENTO", tokens[itemKey].id);
+                            insertOnQueue(tokens[itemKey]);
+                            emitSignalQueueUpdate(tokens[itemKey]);
+                            setInService(true);
+                            updateSessionContext(
+                              itemKey,
+                              true,
+                              tokens[itemKey].id
+                            );
+                            toast.success(
+                              "A ficha foi adicionada a fila de chamada..."
+                            );
+                          }, 500);
                         } else {
                           toast.info(
                             "Você deve definir o seu local antes de fazer uma chamada..."
