@@ -44,6 +44,7 @@ import { useWebSocket } from "../../contexts/webSocket";
 
 //Toast
 import { toast } from "react-toastify";
+import Subtitle from "./components/subtitle";
 
 function TokensList() {
   const { socket } = useWebSocket();
@@ -381,10 +382,12 @@ function TokensList() {
           <TableHeader>
             <TableColumn className="w-1/12">FICHA Nº</TableColumn>
             <TableColumn>SERVIÇO</TableColumn>
-            <TableColumn className="hidden sm:flex sm:items-center">
+            <TableColumn className="hidden sm:flex sm:items-center h-11">
               SOLICITADO POR
             </TableColumn>
-            <TableColumn className="w-2/12">STATUS</TableColumn>
+            <TableColumn className="w-2/12">
+              <Subtitle />
+            </TableColumn>
           </TableHeader>
           <TableBody
             items={items}
