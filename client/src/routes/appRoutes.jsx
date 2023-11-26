@@ -11,6 +11,8 @@ import QueueRegistration from "../pages/queue/register";
 import TokensList from "../pages/tokenlist";
 import TokenCallDefault from "../pages/tokenCall/default";
 import TokenCallAlternative from "../pages/tokenCall/alternative";
+import ServicesRegister from "../pages/services";
+import LocationRegister from "../pages/locations";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";
@@ -29,6 +31,8 @@ const AppRoutes = () => {
             path="/tokenCall/alternative"
             element={<TokenCallAlternative />}
           />
+          <Route path="/service/register" element={<ServicesRegister />} />
+          <Route path="/location/register" element={<LocationRegister />} />
 
           <Route path="*" element={<Home />} />
         </Routes>

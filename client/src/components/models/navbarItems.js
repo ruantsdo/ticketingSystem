@@ -7,12 +7,12 @@ const menuItems = [
   {
     name: "Gerenciar serviços",
     color: "foreground",
-    address: "/newService",
+    address: "/service/register",
   },
   {
     name: "Gerenciar setores",
     color: "foreground",
-    address: "/newSector",
+    address: "/location/register",
   },
   {
     name: "Adicionar uma nova ficha",

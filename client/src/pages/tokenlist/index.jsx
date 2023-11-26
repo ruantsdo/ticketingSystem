@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 //Components
 import FullContainer from "../../components/fullContainer";
 import Button from "../../components/button";
+import Subtitle from "./components/subtitle";
 
 //NextUI
 import {
@@ -44,7 +45,6 @@ import { useWebSocket } from "../../contexts/webSocket";
 
 //Toast
 import { toast } from "react-toastify";
-import Subtitle from "./components/subtitle";
 
 function TokensList() {
   const { socket } = useWebSocket();
