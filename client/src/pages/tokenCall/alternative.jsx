@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableColumn,
+  Spinner,
 } from "@nextui-org/react";
 
 //Contexts
@@ -313,7 +314,7 @@ function TokenCallAlternative() {
               className="w-full h-full overflow-hidden rounded-lg"
             />
           ) : (
-            <p>Carregando...</p>
+            <Spinner size="sm" color="success" label="Carregando..." />
           )}
         </div>
       </div>
