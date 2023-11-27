@@ -159,6 +159,10 @@ io.on("connection", (socket) => {
     io.emit("queued_update", data);
   });
 
+  socket.on("new_location", () => {
+    io.emit("new_location");
+  });
+
   socket.on("disconnect", () => {
     console.log("Cliente desconectado");
   });

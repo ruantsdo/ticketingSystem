@@ -202,6 +202,30 @@ router.post("/queue/remove", async (req, res) => {
   }
 });
 
+router.post("/location/registration", async (req, res) => {
+  try {
+    await db.query(
+      "INSERT INTO locations (name, description, tables) VALUES (?,?,?)",
+      [req.body.name, req.body.description, req.body.tables]
+    );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/services/registration", async (req, res) => {
+  try {
+    await db.query(
+      "INSERT INTO services (name, description, `limit`) VALUES (?,?,?)",
+      [req.body.name, req.body.description, req.body.limit]
+    );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
 module.exports = router;
 
 async function insertSelectedServices(id, services) {

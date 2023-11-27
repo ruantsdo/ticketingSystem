@@ -1,5 +1,5 @@
 //React
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 //Services
 import api from "../../services/api";
@@ -18,18 +18,86 @@ import {
 import FullContainer from "../../components/fullContainer";
 import Button from "../../components/button";
 
+//Validation
+import { Formik, Form, useFormik } from "formik";
+
 //Contexts
-import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
 //Icons
 import DoneIcon from "@mui/icons-material/Done";
 
+//Toast
+import { toast } from "react-toastify";
+
 function LocationRegister() {
   const { socket } = useWebSocket();
-  const { currentUser } = useContext(AuthContext);
 
   const [locations, setLocations] = useState([]);
+  const [validName, setValidName] = useState(true);
+
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      description: "",
+      tables: 1,
+    },
+    onSubmit: async (values) => {
+      try {
+        if (checkLocationName(values.name)) {
+          return;
+        } else {
+          handleSubmit(values.name, values.description, values.tables);
+        }
+      } catch (err) {
+        toast.error(
+          "Houve um problema ao cadastrar o novo local! Tente novamente em alguns instantes!"
+        );
+        console.log(err);
+      }
+    },
+  });
+
+  const handleSubmit = async (name, description, tables) => {
+    await api
+      .post("/location/registration", {
+        name: name,
+        description: description,
+        tables: tables,
+      })
+      .then((response) => {
+        notify(response.data);
+      });
+  };
+
+  const notify = (response) => {
+    if (response === "success") {
+      toast.success("Local cadastrado!");
+      emitNewLocation();
+      formik.resetForm();
+      handleLocations();
+    } else if (response === "failed") {
+      toast.warn(
+        "Falha ao registrar o local! Tente novamente em alguns instantes!"
+      );
+    }
+  };
+
+  const checkLocationName = (name) => {
+    const validation = locations.some((location) => location.name === name);
+    if (validation) {
+      setValidName(false);
+      toast.info("Já existe um local com esse nome!");
+    } else {
+      setValidName(true);
+    }
+
+    return validation;
+  };
+
+  const emitNewLocation = () => {
+    socket.emit("new_location");
+  };
 
   useEffect(() => {
     handleLocations();
@@ -51,26 +119,55 @@ function LocationRegister() {
           <p className="text-3xl">Cadastro de locais</p>
         </CardHeader>
         <Divider className="bg-divider" />
-        <CardBody className="gap-2">
-          <Input isRequired type="text" label="Nome do local" />
-          <Input type="text" label="Descrição do local" maxLength={500} />
-          <Input
-            type="number"
-            label="Quantidade de mesas no local"
-            min={1}
-            defaultValue={1}
-          />
-        </CardBody>
-        <Divider className="bg-divider" />
-        <CardFooter className="flex items-center justify-center">
-          <Button
-            className="bg-success w-[50%] text-lg"
-            type="submit"
-            endContent={<DoneIcon />}
+
+        <Formik initialValues={formik.initialValues}>
+          <Form
+            onSubmit={formik.handleSubmit}
+            className="flex flex-col justify-center items-center w-full"
           >
-            Cadastrar
-          </Button>
-        </CardFooter>
+            <CardBody className="gap-2">
+              <Input
+                isRequired
+                isInvalid={!validName}
+                variant={validName ? "flat" : "bordered"}
+                type="text"
+                label="Nome do local"
+                name="name"
+                onChange={formik.handleChange}
+                onFocus={() => setValidName(true)}
+                value={formik.values.name}
+              />
+              <Input
+                type="text"
+                label="Descrição do local"
+                name="description"
+                maxLength={500}
+                onChange={formik.handleChange}
+                value={formik.values.description}
+              />
+              <Input
+                isRequired
+                type="number"
+                label="Quantidade de mesas no local"
+                name="tables"
+                min={1}
+                defaultValue={1}
+                onChange={formik.handleChange}
+                value={formik.values.tables}
+              />
+            </CardBody>
+            <Divider className="bg-divider" />
+            <CardFooter className="flex items-center justify-center">
+              <Button
+                className="bg-success w-[50%] text-lg"
+                type="submit"
+                endContent={<DoneIcon />}
+              >
+                Cadastrar
+              </Button>
+            </CardFooter>
+          </Form>
+        </Formik>
       </Card>
     </FullContainer>
   );

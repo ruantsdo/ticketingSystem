@@ -75,7 +75,7 @@ function QueueRegistration() {
       emitNewTokenSignal();
       formik.resetForm();
     } else if (response === "failed") {
-      toast.info(
+      toast.warn(
         "Falha ao registrar nova ficha! Tente novamente em alguns instantes!"
       );
     }
