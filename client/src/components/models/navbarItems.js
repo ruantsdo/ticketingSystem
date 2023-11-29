@@ -5,12 +5,27 @@ const menuItems = [
     address: "/newUser",
   },
   {
+    name: "Criar novo usuário",
+    color: "foreground",
+    address: "/newUser",
+  },
+  {
+    name: "Adicionar novo serviço",
+    color: "foreground",
+    address: "/service/register",
+  },
+  {
     name: "Gerenciar serviços",
     color: "foreground",
     address: "/service/register",
   },
   {
-    name: "Gerenciar setores",
+    name: "Adicionar novo local",
+    color: "foreground",
+    address: "/location/register",
+  },
+  {
+    name: "Gerenciar locais",
     color: "foreground",
     address: "/location/register",
   },

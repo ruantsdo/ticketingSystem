@@ -19,7 +19,8 @@ import {
 import { Formik, Form, useFormik } from "formik";
 
 //Icons
-import LoginIcon from "@mui/icons-material/Login";
+import AddTaskIcon from "@mui/icons-material/AddTask";
+import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
 
 //Services
 import api from "../../services/api";
@@ -39,6 +40,9 @@ function QueueRegistration() {
 
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
+
+  const [availability, setAvaliability] = useState(true);
+  const [remaining, setRemaining] = useState("");
 
   useEffect(() => {
     handleServices();
@@ -78,6 +82,30 @@ function QueueRegistration() {
       toast.warn(
         "Falha ao registrar nova ficha! Tente novamente em alguns instantes!"
       );
+    }
+  };
+
+  const checkAvailability = async (serviceId) => {
+    try {
+      const service = await api.get(`/services/query/${serviceId}`);
+      const token = await api.get(`/token/query/${serviceId}`);
+
+      if (service.data[0].limit === 0) {
+        setAvaliability(true);
+        setRemaining(<AllInclusiveIcon />);
+
+        return;
+      }
+
+      if (service.data[0].limit >= token.data.length && token.data.length > 0) {
+        setAvaliability(false);
+        setRemaining(`${token.data.length}/${service.data[0].limit}`);
+      } else {
+        setAvaliability(true);
+        setRemaining(`${token.data.length}/${service.data[0].limit}`);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -125,15 +153,19 @@ function QueueRegistration() {
               </Select>
               <Select
                 isRequired
+                variant={availability ? "flat" : "bordered"}
                 items={services}
                 label="Indique o serviço desejado"
                 placeholder="Selecione um serviço"
+                isInvalid={!availability}
                 className="w-full"
                 name="service"
                 selectedKeys={selectedService}
                 onSelectionChange={(values) => {
                   setSelectedService(values.currentKey);
+                  checkAvailability(values.currentKey);
                 }}
+                endContent={<span className="text-sm">{remaining}</span>}
               >
                 {(service) => (
                   <SelectItem key={service.id} value={service.id}>
@@ -154,7 +186,7 @@ function QueueRegistration() {
               <Divider className="bg-divider" />
               <Button
                 className="bg-success w-[40%] hover:scale-105 hover:shadow transition-all"
-                endContent={<LoginIcon />}
+                endContent={<AddTaskIcon />}
                 type="submit"
               >
                 Registrar

@@ -15,6 +15,20 @@ router.get("/token/query", async (req, res) => {
   }
 });
 
+router.get("/token/query/:id", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM tokens WHERE service = ?",
+      [req.params.id],
+      (err, result) => {
+        res.send(result);
+      }
+    );
+  } catch (err) {
+    res.send({ msg: "Falha da consulta dos tokens!" });
+  }
+});
+
 router.get("/location/query", async (req, res) => {
   try {
     await db.query("SELECT * FROM locations", (err, result) => {
@@ -30,6 +44,20 @@ router.get("/services/query", async (req, res) => {
     await db.query("SELECT * FROM services", (err, result) => {
       res.send(result);
     });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/services/query/:id", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM services WHERE id = ?",
+      [req.params.id],
+      (err, result) => {
+        res.send(result);
+      }
+    );
   } catch (error) {
     console.log(error);
   }
@@ -71,7 +99,6 @@ router.get("/queue", async (req, res) => {
       res.send(result);
     });
   } catch (error) {
-    console.error("Erro ao buscar dados do banco de dados:", error);
     res.status(500).json({ error: "Erro ao buscar dados do banco de dados" });
   }
 });
