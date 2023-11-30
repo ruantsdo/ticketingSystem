@@ -25,7 +25,7 @@ import { Formik, Form, useFormik } from "formik";
 import { useWebSocket } from "../../contexts/webSocket";
 
 //Icons
-import DoneIcon from "@mui/icons-material/Done";
+import AddTaskIcon from "@mui/icons-material/AddTask";
 
 //Toast
 import { toast } from "react-toastify";
@@ -161,7 +161,7 @@ function LocationRegister() {
               <Button
                 className="bg-success w-[50%] text-lg"
                 type="submit"
-                endContent={<DoneIcon />}
+                endContent={<AddTaskIcon />}
               >
                 Cadastrar
               </Button>

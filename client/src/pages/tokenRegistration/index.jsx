@@ -157,7 +157,9 @@ function QueueRegistration() {
                 items={services}
                 label="Indique o serviço desejado"
                 placeholder="Selecione um serviço"
-                isInvalid={!availability}
+                isInvalid={
+                  currentUser.permission_level > 2 ? false : !availability
+                }
                 className="w-full"
                 name="service"
                 selectedKeys={selectedService}
@@ -188,6 +190,9 @@ function QueueRegistration() {
                 className="bg-success w-[40%] hover:scale-105 hover:shadow transition-all"
                 endContent={<AddTaskIcon />}
                 type="submit"
+                isDisabled={
+                  currentUser.permission_level > 2 ? false : !availability
+                }
               >
                 Registrar
               </Button>
