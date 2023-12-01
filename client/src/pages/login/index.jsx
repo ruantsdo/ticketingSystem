@@ -5,9 +5,10 @@ import React, { useContext, useState } from "react";
 import ThemeSwitcher from "../../components/themeSwitch";
 import Container from "../../components/container";
 import Button from "../../components/button";
+import Card from "../../components/card";
 
 //NextUI
-import { Card, CardBody, Input, Divider } from "@nextui-org/react";
+import { Input, Divider } from "@nextui-org/react";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -70,58 +71,52 @@ function LoginPage() {
   return (
     <Container>
       <ThemeSwitcher className="absolute top-5 right-3" />
-      <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
-        <CardBody className="flex gap-3 justify-center items-center">
-          <p className="text-defaultTextColor text-3xl">Login</p>
-          <Divider className="bg-background" />
-          <Formik initialValues={formik.initialValues}>
-            <Form
-              onSubmit={formik.handleSubmit}
-              className="flex flex-col gap-3 justify-center items-center w-full"
-            >
-              <Input
-                isRequired
-                type="text"
-                label="CPF"
-                maxLength={11}
-                className="w-full"
-                name="cpf"
-                onChange={formik.handleChange}
-                value={formik.values.cpf}
-              />
-              <Input
-                isRequired
-                type={isVisible ? "text" : "password"}
-                label="Senha"
-                className="w-full"
-                name="password"
-                onChange={formik.handleChange}
-                value={formik.values.password}
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={toggleVisibility}
-                  >
-                    {isVisible ? (
-                      <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
-                    ) : (
-                      <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                    )}
-                  </button>
-                }
-              />
-              <Divider className="bg-background" />
-              <Button
-                className="bg-success w-[40%]"
-                endContent={<LoginIcon />}
-                type="submit"
-              >
-                Entrar
-              </Button>
-            </Form>
-          </Formik>
-        </CardBody>
+      <Card>
+        <p className="text-defaultTextColor text-3xl">Login</p>
+        <Divider className="bg-background" />
+        <Formik initialValues={formik.initialValues}>
+          <Form
+            onSubmit={formik.handleSubmit}
+            className="flex flex-col gap-3 justify-center items-center w-full"
+          >
+            <Input
+              isRequired
+              type="text"
+              label="CPF"
+              maxLength={11}
+              className="w-full"
+              name="cpf"
+              onChange={formik.handleChange}
+              value={formik.values.cpf}
+            />
+            <Input
+              isRequired
+              type={isVisible ? "text" : "password"}
+              label="Senha"
+              className="w-full"
+              name="password"
+              onChange={formik.handleChange}
+              value={formik.values.password}
+              endContent={
+                <button
+                  className="focus:outline-none self-center"
+                  type="button"
+                  onClick={toggleVisibility}
+                >
+                  {isVisible ? (
+                    <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
+                  ) : (
+                    <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
+                  )}
+                </button>
+              }
+            />
+            <Divider className="bg-background" />
+            <Button endContent={<LoginIcon />} type="submit" mode="success">
+              Entrar
+            </Button>
+          </Form>
+        </Formik>
       </Card>
     </Container>
   );

@@ -8,9 +8,35 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
+        //Backgrounds
+        background: "#fafafa",
+        cardBackground: "#e4e4e7",
+        navBarBackground: "#7286D3",
+        inputBackground: "#27272a",
+
+        darkBackground: "#27272a",
+        darkNavBarBackground: "#2B2D42",
+        darkInputBackground: "#d0d0d0",
+
+        //Text
+        textColor: "#000",
+        divider: "#000",
+
+        darkTextColor: "#fff",
+        darkDivider: "#fff",
+
+        //Info
+        success: "#4CB250",
+        failed: "#FF6254",
+
+        darkSuccess: "#2C931F",
+        darkFailed: "#CE1E1E",
+
+        //Universal
         alert: "#F5A524",
         info: "#008EDB",
         infoSecondary: "#A946A0",
@@ -38,46 +64,5 @@ module.exports = {
       },
     },
   },
-  darkMode: "class",
-  plugins: [
-    nextui({
-      prefix: "nextui",
-      addCommonColors: false,
-      defaultTheme: "light",
-      defaultExtendTheme: "light",
-      layout: {},
-      themes: {
-        light: {
-          layout: {},
-          colors: {
-            primary: "",
-            secondary: "",
-            background: "#fff",
-            containerBackground: "#d0d0d0",
-            navBarBackground: "#7286D3",
-            inputBackground: "#27272a",
-            success: "#4CB250",
-            failed: "#FF6254",
-            defaultTextColor: "#000",
-            divider: "#000",
-          },
-        },
-        dark: {
-          layout: {},
-          colors: {
-            primary: "",
-            secondary: "#27374D",
-            background: "#ffffff",
-            containerBackground: "#27272a",
-            navBarBackground: "#2B2D42",
-            inputBackground: "#d0d0d0",
-            success: "#2C931F",
-            failed: "#CE1E1E",
-            defaultTextColor: "#fff",
-            divider: "#fff",
-          },
-        },
-      },
-    }),
-  ],
+  plugins: [nextui()],
 };

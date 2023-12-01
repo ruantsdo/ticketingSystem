@@ -3,7 +3,7 @@ import Notification from "./notification";
 
 function Container({ children, ...props }) {
   const { className, ...restProps } = props;
-  const baseClasses = `flex flex-col pt-3 pb-3 w-full min-h-screen max-h-fit bg-containerBackground justify-center items-center transition-all delay-0 overflow-hidden`;
+  const baseClasses = `flex flex-col pt-3 pb-3 w-full min-h-screen max-h-fit bg-background dark:bg-darkBackground text-textColor dark:text-darkTextColor justify-center items-center transition-all delay-0 overflow-hidden`;
   const combinedClassName = className
     ? `${baseClasses} ${className}`
     : baseClasses;

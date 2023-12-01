@@ -45,7 +45,7 @@ export default function NavBar() {
       isBordered
       onMenuOpenChange={setIsMenuOpen}
       height={"3rem"}
-      className="w-full bg-navBarBackground"
+      className="w-full bg-navBarBackground dark:bg-darkNavBarBackground"
     >
       <NavbarContent>
         <NavbarMenuToggle
@@ -97,7 +97,7 @@ export default function NavBar() {
           <ThemeSwitcher />
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className="w-screen bg-containerBackground opacity-90">
+      <NavbarMenu className="w-screen bg-background dark:darkBackground opacity-90">
         {menuItems.map((item, index) => (
           <NavbarMenuItem
             key={`${item}-${index}`}
@@ -115,7 +115,7 @@ export default function NavBar() {
         ))}
         <Button
           onClick={() => logout()}
-          className="flex bg-failed w-1/6 rounded-md text-lg items-center justify-center hover:scale-105"
+          className="flex bg-failed dark:bg-darkFailed w-1/6 rounded-md text-lg items-center justify-center hover:scale-105"
           startContent={<ExitToAppIcon />}
         >
           Sair

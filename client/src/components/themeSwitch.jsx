@@ -1,18 +1,31 @@
 //React
-import React from "react";
 import { useEffect, useState } from "react";
 
 //NextUi
 import { Switch } from "@nextui-org/react";
-import { useTheme } from "next-themes";
 
 //Icons
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 export default function ThemeSwitcher({ ...props }) {
+  const currentTheme = JSON.parse(localStorage.getItem("currentTheme"));
+  if (!currentTheme) {
+    localStorage.setItem("currentTheme", JSON.stringify("light"));
+  }
+
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const [theme, setTheme] = useState(currentTheme);
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("currentTheme", JSON.stringify("dark"));
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("currentTheme", JSON.stringify("light"));
+    }
+  }, [theme]);
 
   useEffect(() => {
     setMounted(true);
@@ -27,7 +40,7 @@ export default function ThemeSwitcher({ ...props }) {
       color="warning"
       startContent={<LightModeIcon fontSize="sm" />}
       endContent={<DarkModeIcon fontSize="sm" />}
-      onValueChange={() => setTheme(theme === "light" ? "dark" : "light")}
+      onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={props.className}
     />
   );
