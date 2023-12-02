@@ -5,8 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
-import TokenCallDefault from "../pages/tokenCall/default";
-import TokenCallAlternative from "../pages/tokenCall/alternative";
+import { TokenCallDefault, TokenCallAlternative } from "./routes";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";

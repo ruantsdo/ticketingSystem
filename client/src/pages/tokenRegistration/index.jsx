@@ -1,19 +1,18 @@
 //React
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 
 //Components
-import FullContainer from "../../components/fullContainer";
-import Button from "../../components/button";
+import {
+  Input,
+  Card,
+  Divider,
+  FullContainer,
+  Button,
+  Select,
+} from "../../components";
 
 //NextUI
-import {
-  Card,
-  CardBody,
-  Divider,
-  Select,
-  SelectItem,
-  Input,
-} from "@nextui-org/react";
+import { SelectItem } from "@nextui-org/react";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -124,81 +123,76 @@ function QueueRegistration() {
 
   return (
     <FullContainer>
-      <Card isBlurred className="bg-background sm:w-[50%] w-[95%]" shadow="md">
-        <CardBody className="flex gap-3 justify-center items-center">
-          <p className="text-defaultTextColor text-3xl">Cadastro de ficha</p>
-          <Divider className="bg-divider" />
-          <Formik initialValues={formik.initialValues}>
-            <Form
-              onSubmit={formik.handleSubmit}
-              className="flex flex-col gap-3 justify-center items-center w-full"
+      <Card>
+        <p className="text-3xl">Cadastro de ficha</p>
+        <Divider />
+        <Formik initialValues={formik.initialValues}>
+          <Form
+            onSubmit={formik.handleSubmit}
+            className="flex flex-col justify-center items-center w-full gap-2"
+          >
+            <Select
+              isRequired
+              label="É prioridade?"
+              defaultSelectedKeys="0"
+              name="priority"
+              selectedKeys={priority}
+              onSelectionChange={(values) => {
+                setPriority(values.currentKey);
+              }}
             >
-              <Select
-                isRequired
-                label="É prioridade?"
-                defaultSelectedKeys="0"
-                className="w-full"
-                name="priority"
-                selectedKeys={priority}
-                onSelectionChange={(values) => {
-                  setPriority(values.currentKey);
-                }}
-              >
-                <SelectItem key={1} value={true}>
-                  SIM
+              <SelectItem key={1} value={true}>
+                SIM
+              </SelectItem>
+              <SelectItem key={0} value={false}>
+                NÃO
+              </SelectItem>
+            </Select>
+            <Select
+              isRequired
+              variant={availability ? "flat" : "bordered"}
+              items={services}
+              label="Indique o serviço desejado"
+              placeholder="Selecione um serviço"
+              isInvalid={
+                currentUser.permission_level > 2 ? false : !availability
+              }
+              name="service"
+              selectedKeys={selectedService}
+              onSelectionChange={(values) => {
+                setSelectedService(values.currentKey);
+                checkAvailability(values.currentKey);
+              }}
+              endContent={<span className="text-sm">{remaining}</span>}
+            >
+              {(service) => (
+                <SelectItem key={service.id} value={service.id}>
+                  {service.name}
                 </SelectItem>
-                <SelectItem key={0} value={false}>
-                  NÃO
-                </SelectItem>
-              </Select>
-              <Select
-                isRequired
-                variant={availability ? "flat" : "bordered"}
-                items={services}
-                label="Indique o serviço desejado"
-                placeholder="Selecione um serviço"
-                isInvalid={
-                  currentUser.permission_level > 2 ? false : !availability
-                }
-                className="w-full"
-                name="service"
-                selectedKeys={selectedService}
-                onSelectionChange={(values) => {
-                  setSelectedService(values.currentKey);
-                  checkAvailability(values.currentKey);
-                }}
-                endContent={<span className="text-sm">{remaining}</span>}
-              >
-                {(service) => (
-                  <SelectItem key={service.id} value={service.id}>
-                    {service.name}
-                  </SelectItem>
-                )}
-              </Select>
-              <Input
-                isRequired
-                type="text"
-                label="Solicitado por"
-                placeholder="Nome de quem está solicitando atendimento."
-                className="w-full"
-                name="requested_by"
-                onChange={formik.handleChange}
-                value={formik.values.requested_by}
-              />
-              <Divider className="bg-divider" />
-              <Button
-                className="bg-success w-[40%] hover:scale-105 hover:shadow transition-all"
-                endContent={<AddTaskIcon />}
-                type="submit"
-                isDisabled={
-                  currentUser.permission_level > 2 ? false : !availability
-                }
-              >
-                Registrar
-              </Button>
-            </Form>
-          </Formik>
-        </CardBody>
+              )}
+            </Select>
+            <Input
+              isRequired
+              type="text"
+              label="Solicitado por"
+              placeholder="Nome de quem está solicitando atendimento."
+              name="requested_by"
+              onChange={formik.handleChange}
+              value={formik.values.requested_by}
+            />
+            <Divider />
+            <Button
+              mode="success"
+              endContent={<AddTaskIcon />}
+              type="submit"
+              isDisabled={
+                currentUser.permission_level > 2 ? false : !availability
+              }
+            >
+              Registrar
+            </Button>
+          </Form>
+        </Formik>
       </Card>
     </FullContainer>
   );

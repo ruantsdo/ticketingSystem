@@ -1,7 +1,7 @@
 import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
 
 //React
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 //NextUI
 import {
@@ -252,9 +252,9 @@ function TokenCallDefault() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <div className="flex flex-row p-1 gap-3 w-screen h-screen bg-containerBackground justify-evenly transition-all delay-0 overflow-auto">
+    <div className="flex flex-row p-1 gap-3 w-screen h-screen bg-background dark:bg-darkBackground justify-evenly transition-all delay-0 overflow-auto">
       <div className="flex flex-col justify-around w-6/12 h-full gap-1 font-mono">
-        <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg items-center">
+        <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center">
           <p className="text-4xl underline">SENHA ATUAL</p>
           <section className="flex flex-col items-center">
             <p className="text-9xl text-center text-red-700 animate-pulse">

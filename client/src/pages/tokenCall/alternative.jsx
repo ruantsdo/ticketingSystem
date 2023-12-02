@@ -1,7 +1,7 @@
 import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
 
 //React
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 //NextUI
 import {
@@ -252,9 +252,9 @@ function TokenCallAlternative() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <div className="flex flex-col justify-around p-1 gap-3 w-screen h-screen bg-containerBackground transition-all delay-0 overflow-auto">
-      <div className="flex justify-around w-full h-3/6 gap-1 font-mono">
-        <Menu className="absolute mt-2 ml-[95%] z-50 opacity-20 hover:opacity-100" />
+    <div className="flex flex-col p-1 gap-1 w-screen h-screen bg-background dark:bg-darkBackground transition-all delay-0">
+      <div className="flex border-1 border-divider dark:darkDivider rounded justify-around w-full h-[40%] gap-1 font-mono">
+        <Menu className="absolute mt-3 ml-[93%] z-50 opacity-20 hover:opacity-100" />
         <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
           <section className="flex flex-col items-center">
             <p className="text-9xl text-center text-red-700 animate-pulse">
@@ -269,8 +269,8 @@ function TokenCallAlternative() {
         </div>
       </div>
 
-      <div className="flex flex-row w-full h-[60%] justify-around items-center gap-2">
-        <div className="flex flex-col w-[50%] h-full">
+      <div className="flex flex-row w-full h-[60%] gap-1">
+        <div className="flex flex-col w-[50%] h-full justify-around">
           <Table
             aria-label="Lista das últimas senhas que foram chamadas"
             isStriped
@@ -304,14 +304,14 @@ function TokenCallAlternative() {
           </Table>
           <Clock />
         </div>
-        <div className="flex items-center justify-center w-6/12 h-full bg-black rounded-lg">
+        <div className="flex items-center justify-center w-[50%] h-full bg-black rounded-lg">
           {videoLoaded === true ? (
             <video
               ref={videoRef}
               src={currentVideo}
               controls
               autoPlay
-              className="w-full h-full overflow-hidden rounded-lg"
+              className="w-[99.9%] h-[99.9%] rounded-lg"
             />
           ) : (
             <Spinner size="sm" color="success" label="Carregando..." />

@@ -16,7 +16,7 @@ function Card({ children, ...props }) {
       className={combinedClassName}
       {...restProps}
     >
-      <NextCardBody className="flex gap-3 justify-center items-center">
+      <NextCardBody className="flex gap-2 justify-center items-center">
         {children}
       </NextCardBody>
     </NextCard>

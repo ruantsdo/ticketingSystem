@@ -13,8 +13,8 @@ module.exports = {
     extend: {
       colors: {
         //Backgrounds
-        background: "#fafafa",
-        cardBackground: "#e4e4e7",
+        background: "#e4e4e7",
+        cardBackground: "#fafafa",
         navBarBackground: "#7286D3",
         inputBackground: "#27272a",
 

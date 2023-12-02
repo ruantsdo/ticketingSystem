@@ -1,5 +1,5 @@
 //React
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 //Icons
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -28,7 +28,7 @@ const Clock = () => {
   }, []);
 
   return (
-    <div className="flex flex-row justify-around items-center w-full h-[20%] border-1 rounded-lg text-4xl">
+    <div className="flex flex-row justify-around items-center w-full h-[20%] border-1 border-divider dark:darkDivider rounded-lg text-4xl">
       <p className="flex flex-row items-center gap-2">
         <CalendarMonthOutlinedIcon fontSize="large" />
         {date.toLocaleDateString()}

@@ -1,22 +1,11 @@
 //React
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 //Services
 import api from "../../services/api";
 
-//NextUi
-import {
-  Input,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Divider,
-} from "@nextui-org/react";
-
 //Components
-import FullContainer from "../../components/fullContainer";
-import Button from "../../components/button";
+import { FullContainer, Button, Card, Divider, Input } from "../../components";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -114,58 +103,47 @@ function LocationRegister() {
 
   return (
     <FullContainer>
-      <Card isBlurred className="sm:w-[50%] w-[95%] bg-background" shadow="md">
-        <CardHeader className="flex items-center justify-center">
-          <p className="text-3xl">Cadastro de locais</p>
-        </CardHeader>
-        <Divider className="bg-divider" />
-
+      <Card>
+        <p className="text-3xl">Cadastro de locais</p>
+        <Divider />
         <Formik initialValues={formik.initialValues}>
           <Form
             onSubmit={formik.handleSubmit}
-            className="flex flex-col justify-center items-center w-full"
+            className="flex flex-col justify-center items-center w-full gap-2"
           >
-            <CardBody className="gap-2">
-              <Input
-                isRequired
-                isInvalid={!validName}
-                variant={validName ? "flat" : "bordered"}
-                type="text"
-                label="Nome do local"
-                name="name"
-                onChange={formik.handleChange}
-                onFocus={() => setValidName(true)}
-                value={formik.values.name}
-              />
-              <Input
-                type="text"
-                label="Descrição do local"
-                name="description"
-                maxLength={500}
-                onChange={formik.handleChange}
-                value={formik.values.description}
-              />
-              <Input
-                isRequired
-                type="number"
-                label="Quantidade de mesas no local"
-                name="tables"
-                min={1}
-                defaultValue={1}
-                onChange={formik.handleChange}
-                value={formik.values.tables}
-              />
-            </CardBody>
-            <Divider className="bg-divider" />
-            <CardFooter className="flex items-center justify-center">
-              <Button
-                className="bg-success w-[50%] text-lg"
-                type="submit"
-                endContent={<AddTaskIcon />}
-              >
-                Cadastrar
-              </Button>
-            </CardFooter>
+            <Input
+              isRequired
+              isInvalid={!validName}
+              variant={validName ? "flat" : "bordered"}
+              type="text"
+              label="Nome do local"
+              name="name"
+              onChange={formik.handleChange}
+              onFocus={() => setValidName(true)}
+              value={formik.values.name}
+            />
+            <Input
+              type="text"
+              label="Descrição do local"
+              name="description"
+              maxLength={500}
+              onChange={formik.handleChange}
+              value={formik.values.description}
+            />
+            <Input
+              isRequired
+              type="number"
+              label="Quantidade de mesas no local"
+              name="tables"
+              min={1}
+              defaultValue={1}
+              onChange={formik.handleChange}
+              value={formik.values.tables}
+            />
+            <Divider />
+            <Button mode="success" type="submit" endContent={<AddTaskIcon />}>
+              Cadastrar
+            </Button>
           </Form>
         </Formik>
       </Card>

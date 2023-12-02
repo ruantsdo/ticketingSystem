@@ -1,14 +1,12 @@
 //React
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 
 //Components
-import FullContainer from "../../components/fullContainer";
-import Button from "../../components/button";
+import { Divider, FullContainer, Button, Select } from "../../components";
 import Subtitle from "./components/subtitle";
 
 //NextUI
 import {
-  Divider,
   Table,
   TableHeader,
   TableColumn,
@@ -23,7 +21,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Select,
   SelectItem,
   Spinner,
 } from "@nextui-org/react";
@@ -323,7 +320,7 @@ function TokensList() {
             items={locations}
             label="Qual local você está no momento?"
             placeholder="Indique seu local"
-            className="w-full sm:max-w-xs shadow-md mb-1"
+            className="mb-1 sm:max-w-xs border-none shadow-none"
             variant="faded"
             value={currentLocation}
             onSelectionChange={(key) => {
@@ -343,7 +340,7 @@ function TokensList() {
             items={locationTable}
             label="Em qual mesa você está?"
             placeholder="Indique sua mesa"
-            className="w-full sm:max-w-xs shadow-md mb-1"
+            className="mb-1 sm:max-w-xs border-none shadow-none"
             variant="faded"
             value={currentTable}
             onSelectionChange={(key) => {
@@ -410,7 +407,7 @@ function TokensList() {
             {(item) => (
               <TableRow
                 key={item.id}
-                className="border-0.5 hover:cursor-pointer hover:opacity-90 hover:border border-divider hover:shadow-md hover:scale-[101%] transition-all"
+                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.position}</TableCell>
                 <TableCell>{services[item.service - 1].name}</TableCell>
@@ -588,7 +585,7 @@ function TokensList() {
                 {inService ? (
                   <>
                     <Button
-                      className="bg-failed"
+                      mode="failed"
                       onPress={() => {
                         setTimeout(async () => {
                           removeFromQueue(tokens[itemKey]).then((response) => {
@@ -619,7 +616,7 @@ function TokensList() {
                           toast.success("O chamado foi concluído");
                         }, 500);
                       }}
-                      className="bg-success"
+                      mode="success"
                     >
                       Concluir
                     </Button>
@@ -627,10 +624,10 @@ function TokensList() {
                 ) : (
                   <>
                     <Button
-                      className="bg-failed"
                       onPress={() => {
                         onClose();
                       }}
+                      mode="failed"
                     >
                       Fechar
                     </Button>
@@ -665,7 +662,7 @@ function TokensList() {
                           onClose();
                         }
                       }}
-                      className="bg-success"
+                      mode="success"
                     >
                       Chamar
                     </Button>

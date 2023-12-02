@@ -1,11 +1,8 @@
 //React
-import React, { useContext } from "react";
+import { useContext } from "react";
 
 //Components
-import FullContainer from "../../components/fullContainer";
-
-//NextUI
-import {} from "@nextui-org/react";
+import { FullContainer } from "../../components/";
 
 //Contexts
 import AuthContext from "../../contexts/auth";

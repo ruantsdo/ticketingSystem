@@ -12,7 +12,7 @@ function Button({ children, ...props }) {
     if (props.mode === "success") {
       setBackground("bg-success dark:bg-darkSuccess");
     } else if (props.mode === "failed") {
-      setBackground("bg-falied dark:bg-darkFailed");
+      setBackground("bg-failed dark:bg-darkFailed");
     } else {
       setBackground("");
     }

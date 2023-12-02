@@ -1,12 +1,13 @@
-import React from "react";
-
+//Toast
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+//NextThemes
 import { useTheme } from "next-themes";
 
 export default function Notification() {
   const { theme } = useTheme();
+
   return (
     <ToastContainer
       position="top-right"

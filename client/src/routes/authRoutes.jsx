@@ -5,7 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
-import LoginPage from "../pages/login";
+import { LoginPage } from "./routes";
 
 const AuthRoutes = () => {
   return (

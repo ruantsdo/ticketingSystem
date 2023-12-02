@@ -1,14 +1,15 @@
 //React
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 
 //Components
-import ThemeSwitcher from "../../components/themeSwitch";
-import Container from "../../components/container";
-import Button from "../../components/button";
-import Card from "../../components/card";
-
-//NextUI
-import { Input, Divider } from "@nextui-org/react";
+import {
+  ThemeSwitcher,
+  Container,
+  Button,
+  Card,
+  Divider,
+  Input,
+} from "../../components";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -72,8 +73,8 @@ function LoginPage() {
     <Container>
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card>
-        <p className="text-defaultTextColor text-3xl">Login</p>
-        <Divider className="bg-background" />
+        <p className="text-3xl">Login</p>
+        <Divider />
         <Formik initialValues={formik.initialValues}>
           <Form
             onSubmit={formik.handleSubmit}
@@ -84,7 +85,6 @@ function LoginPage() {
               type="text"
               label="CPF"
               maxLength={11}
-              className="w-full"
               name="cpf"
               onChange={formik.handleChange}
               value={formik.values.cpf}
@@ -93,7 +93,6 @@ function LoginPage() {
               isRequired
               type={isVisible ? "text" : "password"}
               label="Senha"
-              className="w-full"
               name="password"
               onChange={formik.handleChange}
               value={formik.values.password}
@@ -111,7 +110,7 @@ function LoginPage() {
                 </button>
               }
             />
-            <Divider className="bg-background" />
+            <Divider />
             <Button endContent={<LoginIcon />} type="submit" mode="success">
               Entrar
             </Button>

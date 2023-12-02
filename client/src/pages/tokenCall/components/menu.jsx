@@ -1,5 +1,5 @@
 //React
-import React, { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 //Contexts
 import AuthContext from "../../../contexts/auth";
@@ -14,10 +14,9 @@ import {
   Link,
   Button,
 } from "@nextui-org/react";
-import { useTheme } from "next-themes";
 
 //Components
-import ThemeSwitcher from "../../../components/themeSwitch";
+import { ThemeSwitcher } from "../../../components/";
 
 //Icons
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -30,8 +29,23 @@ import HomeIcon from "@mui/icons-material/Home";
 import { toast } from "react-toastify";
 
 export default function Menu({ ...props }) {
-  const { theme, setTheme } = useTheme();
+  const currentTheme = JSON.parse(localStorage.getItem("currentTheme"));
+  if (!currentTheme) {
+    localStorage.setItem("currentTheme", JSON.stringify("light"));
+  }
+
+  const [theme, setTheme] = useState(currentTheme);
   const { currentUser, setCurrentUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("currentTheme", JSON.stringify("dark"));
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("currentTheme", JSON.stringify("light"));
+    }
+  }, [theme]);
 
   const logout = () => {
     toast.warn("Você escolheu sair!");

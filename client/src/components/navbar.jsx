@@ -1,5 +1,5 @@
 // React
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 
 //NextUi
 import {
@@ -97,7 +97,7 @@ export default function NavBar() {
           <ThemeSwitcher />
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className="w-screen bg-background dark:darkBackground opacity-90">
+      <NavbarMenu className="w-screen bg-background dark:bg-darkBackground opacity-80">
         {menuItems.map((item, index) => (
           <NavbarMenuItem
             key={`${item}-${index}`}

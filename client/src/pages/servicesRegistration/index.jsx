@@ -1,22 +1,11 @@
 //React
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 //Services
 import api from "../../services/api";
 
-//NextUi
-import {
-  Input,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Divider,
-} from "@nextui-org/react";
-
 //Components
-import FullContainer from "../../components/fullContainer";
-import Button from "../../components/button";
+import { Input, Card, Divider, FullContainer, Button } from "../../components";
 
 //Validation
 import { Formik, Form, useFormik } from "formik";
@@ -120,56 +109,47 @@ function ServicesRegister() {
 
   return (
     <FullContainer>
-      <Card isBlurred className="sm:w-[50%] w-[95%] bg-background" shadow="md">
-        <CardHeader className="flex items-center justify-center">
-          <p className="text-3xl">Cadastro de serviços</p>
-        </CardHeader>
-        <Divider className="bg-divider" />
+      <Card>
+        <p className="text-3xl">Cadastro de serviços</p>
+        <Divider />
         <Formik initialValues={formik.initialValues}>
           <Form
             onSubmit={formik.handleSubmit}
-            className="flex flex-col justify-center items-center w-full"
+            className="flex flex-col justify-center items-center w-full gap-2"
           >
-            <CardBody className="gap-2">
-              <Input
-                isRequired
-                isInvalid={!validName}
-                variant={validName ? "flat" : "bordered"}
-                type="text"
-                label="Título do serviço"
-                name="name"
-                onChange={formik.handleChange}
-                onFocus={() => setValidName(true)}
-                value={formik.values.name}
-              />
-              <Input
-                type="text"
-                label="Descrição do serviço"
-                maxLength={500}
-                name="description"
-                onChange={formik.handleChange}
-                value={formik.values.description}
-              />
-              <Input
-                type="number"
-                label="Limite diário para esse serviço"
-                description="Deixe em branco para infinito"
-                name="limit"
-                min={0}
-                onChange={formik.handleChange}
-                value={formik.values.limit}
-              />
-            </CardBody>
-            <Divider className="bg-divider" />
-            <CardFooter className="flex items-center justify-center">
-              <Button
-                className="bg-success w-[50%] text-lg"
-                type="submit"
-                endContent={<AddTaskIcon />}
-              >
-                Cadastrar
-              </Button>
-            </CardFooter>
+            <Input
+              isRequired
+              isInvalid={!validName}
+              variant={validName ? "flat" : "bordered"}
+              type="text"
+              label="Título do serviço"
+              name="name"
+              onChange={formik.handleChange}
+              onFocus={() => setValidName(true)}
+              value={formik.values.name}
+            />
+            <Input
+              type="text"
+              label="Descrição do serviço"
+              maxLength={500}
+              name="description"
+              onChange={formik.handleChange}
+              value={formik.values.description}
+            />
+            <Input
+              type="number"
+              label="Limite diário"
+              placeholder="Deixe em branco para infinito"
+              name="limit"
+              min={0}
+              onChange={formik.handleChange}
+              value={formik.values.limit}
+            />
+            <Divider />
+
+            <Button mode="success" type="submit" endContent={<AddTaskIcon />}>
+              Cadastrar
+            </Button>
           </Form>
         </Formik>
       </Card>
