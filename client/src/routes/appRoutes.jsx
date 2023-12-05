@@ -14,6 +14,7 @@ import {
   TokenCallAlternative,
   ServicesRegister,
   LocationRegister,
+  LocationManagement,
 } from "./routes";
 
 //Contexts
@@ -35,6 +36,7 @@ const AppRoutes = () => {
           />
           <Route path="/service/register" element={<ServicesRegister />} />
           <Route path="/location/register" element={<LocationRegister />} />
+          <Route path="/location/management" element={<LocationManagement />} />
 
           <Route path="*" element={<Home />} />
         </Routes>

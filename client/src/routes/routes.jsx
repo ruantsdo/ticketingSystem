@@ -7,6 +7,7 @@ import TokenCallAlternative from "../pages/tokenCall/alternative";
 import ServicesRegister from "../pages/servicesRegistration";
 import LocationRegister from "../pages/locationsRegistration";
 import LoginPage from "../pages/login";
+import LocationManagement from "../pages/locationsManagement";
 
 export {
   Home,
@@ -18,4 +19,5 @@ export {
   ServicesRegister,
   LocationRegister,
   LoginPage,
+  LocationManagement,
 };
