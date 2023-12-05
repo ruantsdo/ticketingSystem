@@ -1,6 +1,5 @@
 //Components
-import NavBar from "./navbar";
-import Container from "./container";
+import { NavBar, Container } from "../";
 
 function FullContainer({ children, ...props }) {
   return (

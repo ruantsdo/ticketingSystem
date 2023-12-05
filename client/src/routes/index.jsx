@@ -13,7 +13,7 @@ import AuthContext from "../contexts/auth";
 import { CircularProgress } from "@nextui-org/react";
 
 //Components
-import Container from "../components/container";
+import { Container } from "../components";
 
 const Router = () => {
   const { currentUser, isLoading } = useContext(AuthContext);

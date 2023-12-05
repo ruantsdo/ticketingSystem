@@ -1,5 +1,5 @@
 //Components
-import Notification from "./notification";
+import { Notification } from "../";
 
 function Container({ children, ...props }) {
   const { className, ...restProps } = props;

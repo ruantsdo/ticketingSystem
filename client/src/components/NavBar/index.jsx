@@ -15,13 +15,13 @@ import {
 } from "@nextui-org/react";
 
 //Components
-import ThemeSwitcher from "../components/themeSwitch";
+import { ThemeSwitcher } from "../";
 
 //Models
-import menuItems from "./models/navbarItems";
+import menuItems from "./models/items";
 
 //Contexts
-import AuthContext from "../contexts/auth";
+import AuthContext from "../../contexts/auth";
 
 //Toast
 import { toast } from "react-toastify";
