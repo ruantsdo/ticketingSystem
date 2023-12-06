@@ -202,11 +202,43 @@ router.post("/queue/remove", async (req, res) => {
   }
 });
 
+router.post("/location/remove", async (req, res) => {
+  try {
+    await db.query("DELETE FROM locations WHERE id = ?", [req.body.id]);
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
 router.post("/location/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO locations (name, description, tables) VALUES (?,?,?)",
-      [req.body.name, req.body.description, req.body.tables]
+      "INSERT INTO locations (name, description, tables, created_by) VALUES (?,?,?,?)",
+      [
+        req.body.name,
+        req.body.description,
+        req.body.tables,
+        req.body.created_by,
+      ]
+    );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/location/update", async (req, res) => {
+  try {
+    await db.query(
+      "UPDATE locations SET name = ?, description = ?, tables = ?, created_by = ? WHERE id = ?",
+      [
+        req.body.name,
+        req.body.description,
+        req.body.tables,
+        req.body.created_by,
+        req.body.id,
+      ]
     );
     res.send("success");
   } catch (err) {

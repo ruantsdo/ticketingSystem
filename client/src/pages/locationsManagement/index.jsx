@@ -1,8 +1,14 @@
 //React
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 
 //Components
-import { Divider, FullContainer, Button } from "../../components";
+import {
+  Divider,
+  FullContainer,
+  Button,
+  Notification,
+  Input,
+} from "../../components";
 
 //NextUI
 import {
@@ -19,13 +25,15 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  SelectItem,
   Spinner,
 } from "@nextui-org/react";
 
 //Icons
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+
+//Contexts
+import AuthContext from "../../contexts/auth";
 
 //Services
 import api from "../../services/api";
@@ -35,6 +43,7 @@ import { toast } from "react-toastify";
 
 function LocationManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { currentUser } = useContext(AuthContext);
 
   const [locations, setLocations] = useState([]);
   const [page, setPage] = useState(1);
@@ -70,12 +79,46 @@ function LocationManagement() {
     }
   };
 
+  const removeLocation = async (id) => {
+    try {
+      await api
+        .post("/location/remove", {
+          id: id,
+        })
+        .then((response) => {
+          if (response.data === "success") {
+            toast.success("O local foi removido!");
+            handleLocations();
+          } else if (response.data === "failed") {
+            toast.error("Falha ao remover local!");
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateLocation = async (id, name, description, tables) => {
+    try {
+      await api.post("/location/update", {
+        id: id,
+        name: name,
+        description: description,
+        tables: tables,
+        created_by: currentUser.name,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     handleLocations();
   }, []);
 
   return (
     <FullContainer>
+      <Notification />
       <Table
         aria-label="Lista de locais"
         onRowAction={(key) => {
@@ -136,7 +179,8 @@ function LocationManagement() {
                       mode="success"
                       className="w-5 rounded-full scale-80"
                       onPress={() => {
-                        alert("Editar");
+                        findIndexById(item.id);
+                        onOpen();
                       }}
                     >
                       <EditIcon fontSize="small" />
@@ -146,7 +190,7 @@ function LocationManagement() {
                       mode="failed"
                       className="w-5 rounded-full scale-80"
                       onPress={() => {
-                        alert("Deletar");
+                        removeLocation(item.id);
                       }}
                     >
                       <DeleteForeverIcon fontSize="small" />
@@ -164,21 +208,33 @@ function LocationManagement() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
-                Dados da local
+                Dados do local
                 <section className="flex gap-3 justify-center items-center"></section>
               </ModalHeader>
               <Divider />
               <ModalBody>
-                <p>ID: {locations[itemKey].id}</p>
-                <p>Nome: {locations[itemKey].name}</p>
-                <p>Descrição: {locations[itemKey].description}</p>
+                <Input
+                  isReadOnly
+                  label="NOME"
+                  defaultValue={locations[itemKey].name}
+                />
+                <Input
+                  isReadOnly
+                  label="DESCRIÇÃO"
+                  defaultValue={locations[itemKey].description}
+                />
+                <Input
+                  isReadOnly
+                  label="QUANTIDADE DE MESAS"
+                  defaultValue={locations[itemKey].tables}
+                />
               </ModalBody>
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
-                    onClose();
+                    removeLocation(locations[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
                 >

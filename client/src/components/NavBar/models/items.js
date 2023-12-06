@@ -27,7 +27,7 @@ const menuItems = [
   {
     name: "Gerenciar locais",
     color: "foreground",
-    address: "/location/register",
+    address: "/location/management",
   },
   {
     name: "Adicionar uma nova ficha",
