@@ -71,6 +71,7 @@ function LocationManagement() {
       // eslint-disable-next-line
       if (locations[i].id == key) {
         setItemKey(i);
+        updateStates(i);
         return;
       }
     }
@@ -90,6 +91,23 @@ function LocationManagement() {
       setLocations(response.data);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const checkLocalName = async (id) => {
+    const duplicateLocation = locations.filter(
+      (local) => local.name === currentLocationName
+    );
+
+    if (duplicateLocation.length > 0) {
+      const checkId = locations.some((local) => local.id !== id);
+      if (checkId) {
+        toast.info("Já existe um local com esse nome!");
+      } else {
+        await updateLocation(id);
+      }
+    } else {
+      await updateLocation(id);
     }
   };
 
@@ -137,9 +155,9 @@ function LocationManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentLocationName(locations[id - 1].name);
-    setCurrentLocationDesc(locations[id - 1].description);
-    setCurrentLocationTables(locations[id - 1].tables);
+    setCurrentLocationName(locations[id].name);
+    setCurrentLocationDesc(locations[id].description);
+    setCurrentLocationTables(locations[id].tables);
   };
 
   const clearStates = () => {
@@ -161,7 +179,6 @@ function LocationManagement() {
         aria-label="Lista de locais"
         onRowAction={(key) => {
           findIndexById(key);
-          updateStates(key);
           onOpen();
         }}
         isStriped
@@ -287,6 +304,7 @@ function LocationManagement() {
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
+                    onClose();
                     removeLocation(locations[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
@@ -307,7 +325,7 @@ function LocationManagement() {
                     mode="success"
                     className="w-10"
                     onPress={() => {
-                      updateLocation(locations[itemKey].id).then(onClose());
+                      checkLocalName(locations[itemKey].id).then(onClose());
                     }}
                   >
                     Salvar

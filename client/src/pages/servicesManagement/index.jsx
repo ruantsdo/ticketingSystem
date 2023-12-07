@@ -71,6 +71,7 @@ function ServicesManagement() {
       // eslint-disable-next-line
       if (services[i].id == key) {
         setItemKey(i);
+        updateStates(i);
         return;
       }
     }
@@ -84,11 +85,18 @@ function ServicesManagement() {
     }
   };
 
-  const checkServiceName = async (name, id) => {
-    const validation = services.some((service) => service.name === name);
+  const checkServiceName = async (id) => {
+    const duplicateServices = services.filter(
+      (service) => service.name === currentServiceName
+    );
 
-    if (validation && services[itemKey].name === name) {
-      toast.info("Já existe um serviço com esse nome!");
+    if (duplicateServices.length > 0) {
+      const checkId = services.some((service) => service.id !== id);
+      if (checkId) {
+        toast.info("Já existe um serviço com esse nome!");
+      } else {
+        await updateService(id);
+      }
     } else {
       await updateService(id);
     }
@@ -147,9 +155,9 @@ function ServicesManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentServiceName(services[id - 1].name);
-    setCurrentServiceDesc(services[id - 1].description);
-    setCurrentServiceLimit(services[id - 1].limit);
+    setCurrentServiceName(services[id].name);
+    setCurrentServiceDesc(services[id].description);
+    setCurrentServiceLimit(services[id].limit);
   };
 
   const clearStates = () => {
@@ -171,7 +179,6 @@ function ServicesManagement() {
         aria-label="Lista de serviços"
         onRowAction={(key) => {
           findIndexById(key);
-          updateStates(key);
           onOpen();
         }}
         isStriped
@@ -209,7 +216,7 @@ function ServicesManagement() {
                   color="success"
                   label="Ainda não há serviços cadastrados..."
                 />
-                Atualize a página para buscar por atualizações...
+                Atualize a página para buscar por atualizações
               </div>
             )
           }
@@ -287,7 +294,7 @@ function ServicesManagement() {
                 <Input
                   isReadOnly={!isAdmin}
                   type="number"
-                  label="LIMITE DIÁRIO"
+                  label="LIMITE DIÁRIO (0 = Infinito)"
                   defaultValue={services[itemKey].limit}
                   onChange={(e) => setCurrentServiceLimit(e.target.value)}
                 />
@@ -297,6 +304,7 @@ function ServicesManagement() {
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
+                    onClose();
                     removeService(services[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
@@ -317,10 +325,7 @@ function ServicesManagement() {
                     mode="success"
                     className="w-10"
                     onPress={() => {
-                      checkServiceName(
-                        services[itemKey].name,
-                        services[itemKey].id
-                      ).then(onClose());
+                      checkServiceName(services[itemKey].id).then(onClose());
                     }}
                   >
                     Salvar
