@@ -41,35 +41,35 @@ import api from "../../services/api";
 //Toast
 import { toast } from "react-toastify";
 
-function LocationManagement() {
+function ServicesManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
 
-  const [currentLocationName, setCurrentLocationName] = useState("");
-  const [currentLocationDesc, setCurrentLocationDesc] = useState("");
-  const [currentLocationTables, setCurrentLocationTables] = useState("");
+  const [currentServiceName, setCurrentServiceName] = useState("");
+  const [currentServiceDesc, setCurrentServiceDesc] = useState("");
+  const [currentServiceLimit, setCurrentServiceLimit] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const [locations, setLocations] = useState([]);
+  const [services, setServices] = useState([]);
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
 
   const rowsPerPage = 5;
 
-  const pages = Math.ceil(locations.length / rowsPerPage);
+  const pages = Math.ceil(services.length / rowsPerPage);
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return locations.slice(start, end);
-  }, [page, locations]);
+    return services.slice(start, end);
+  }, [page, services]);
 
   const findIndexById = (key) => {
-    for (let i = 0; i < locations.length; i++) {
+    for (let i = 0; i < services.length; i++) {
       // eslint-disable-next-line
-      if (locations[i].id == key) {
+      if (services[i].id == key) {
         setItemKey(i);
         return;
       }
@@ -84,27 +84,37 @@ function LocationManagement() {
     }
   };
 
-  const handleLocations = async () => {
-    try {
-      const response = await api.get("/location/query");
-      setLocations(response.data);
-    } catch (error) {
-      console.error(error);
+  const checkServiceName = async (name, id) => {
+    const validation = services.some((service) => service.name === name);
+
+    if (validation && services[itemKey].name === name) {
+      toast.info("Já existe um serviço com esse nome!");
+    } else {
+      await updateService(id);
     }
   };
 
-  const removeLocation = async (id) => {
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  const removeService = async (id) => {
     try {
       await api
-        .post("/location/remove", {
+        .post("/service/remove", {
           id: id,
         })
         .then((response) => {
           if (response.data === "success") {
-            toast.success("O local foi removido!");
-            handleLocations();
+            toast.success("O serviço foi removido!");
+            handleServices();
           } else if (response.data === "failed") {
-            toast.error("Falha ao remover local!");
+            toast.error("Falha ao remover serviço!");
           }
         });
     } catch (error) {
@@ -112,24 +122,24 @@ function LocationManagement() {
     }
   };
 
-  const updateLocation = async (id) => {
+  const updateService = async (id) => {
     try {
       await api
-        .post("/location/update", {
+        .post("/service/update", {
           id: id,
-          name: currentLocationName,
-          description: currentLocationDesc,
-          tables: currentLocationTables,
+          name: currentServiceName,
+          desc: currentServiceDesc,
+          limit: currentServiceLimit,
           created_by: currentUser.name,
         })
         .then((response) => {
           if (response.data === "success") {
-            toast.success("Local atualizado!");
+            toast.success("Serviço atualizado!");
           } else if (response.data === "failed") {
-            toast.error("Falha ao atualizar o local!");
+            toast.error("Falha ao atualizar o serviço!");
           }
 
-          handleLocations();
+          handleServices();
         });
     } catch (error) {
       console.error(error);
@@ -137,19 +147,19 @@ function LocationManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentLocationName(locations[id - 1].name);
-    setCurrentLocationDesc(locations[id - 1].description);
-    setCurrentLocationTables(locations[id - 1].tables);
+    setCurrentServiceName(services[id - 1].name);
+    setCurrentServiceDesc(services[id - 1].description);
+    setCurrentServiceLimit(services[id - 1].limit);
   };
 
   const clearStates = () => {
-    setCurrentLocationName("");
-    setCurrentLocationDesc("");
-    setCurrentLocationTables("");
+    setCurrentServiceName("");
+    setCurrentServiceDesc("");
+    setCurrentServiceLimit("");
   };
 
   useEffect(() => {
-    handleLocations();
+    handleServices();
     checkLevel();
     // eslint-disable-next-line
   }, []);
@@ -158,7 +168,7 @@ function LocationManagement() {
     <FullContainer>
       <Notification />
       <Table
-        aria-label="Lista de locais"
+        aria-label="Lista de serviços"
         onRowAction={(key) => {
           findIndexById(key);
           updateStates(key);
@@ -184,20 +194,20 @@ function LocationManagement() {
       >
         <TableHeader>
           <TableColumn className="w-1/12">ID</TableColumn>
-          <TableColumn>LOCAL</TableColumn>
+          <TableColumn>SERVIÇO</TableColumn>
           <TableColumn>AÇÕES</TableColumn>
         </TableHeader>
         <TableBody
           items={items}
           emptyContent={
-            locations.length > 0 ? (
+            services.length > 0 ? (
               <Spinner size="lg" label="Carregando..." color="primary" />
             ) : (
               <div className="flex flex-col text-sm">
                 <Spinner
                   size="sm"
                   color="success"
-                  label="Ainda não há locais cadastrados..."
+                  label="Ainda não há serviços cadastrados..."
                 />
                 Atualize a página para buscar por atualizações...
               </div>
@@ -230,7 +240,7 @@ function LocationManagement() {
                       mode="failed"
                       className="w-5 rounded-full scale-80"
                       onPress={() => {
-                        removeLocation(item.id);
+                        removeService(item.id);
                       }}
                     >
                       <DeleteForeverIcon fontSize="small" />
@@ -254,9 +264,9 @@ function LocationManagement() {
             <>
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
-                  <h1>Dados do local </h1>
+                  <h1>Dados do serviço </h1>
                   <h6>
-                    Esse local foi criado por: {locations[itemKey].created_by}
+                    Esse serviço foi criado por: {services[itemKey].created_by}
                   </h6>
                 </section>
               </ModalHeader>
@@ -265,21 +275,21 @@ function LocationManagement() {
                 <Input
                   isReadOnly={!isAdmin}
                   label="NOME"
-                  defaultValue={locations[itemKey].name}
-                  onChange={(e) => setCurrentLocationName(e.target.value)}
+                  defaultValue={services[itemKey].name}
+                  onChange={(e) => setCurrentServiceName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   label="DESCRIÇÃO"
-                  defaultValue={locations[itemKey].description}
-                  onChange={(e) => setCurrentLocationDesc(e.target.value)}
+                  defaultValue={services[itemKey].description}
+                  onChange={(e) => setCurrentServiceDesc(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   type="number"
-                  label="QUANTIDADE DE MESAS"
-                  defaultValue={locations[itemKey].tables}
-                  onChange={(e) => setCurrentLocationTables(e.target.value)}
+                  label="LIMITE DIÁRIO"
+                  defaultValue={services[itemKey].limit}
+                  onChange={(e) => setCurrentServiceLimit(e.target.value)}
                 />
               </ModalBody>
               <Divider />
@@ -287,7 +297,7 @@ function LocationManagement() {
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
-                    removeLocation(locations[itemKey].id);
+                    removeService(services[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
                 >
@@ -307,7 +317,10 @@ function LocationManagement() {
                     mode="success"
                     className="w-10"
                     onPress={() => {
-                      updateLocation(locations[itemKey].id).then(onClose());
+                      checkServiceName(
+                        services[itemKey].name,
+                        services[itemKey].id
+                      ).then(onClose());
                     }}
                   >
                     Salvar
@@ -322,4 +335,4 @@ function LocationManagement() {
   );
 }
 
-export default LocationManagement;
+export default ServicesManagement;

@@ -1,5 +1,5 @@
 //React
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
 //Services
 import api from "../../services/api";
@@ -11,6 +11,7 @@ import { Input, Card, Divider, FullContainer, Button } from "../../components";
 import { Formik, Form, useFormik } from "formik";
 
 //Contexts
+import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
 //Icons
@@ -21,6 +22,7 @@ import { toast } from "react-toastify";
 
 function ServicesRegister() {
   const { socket } = useWebSocket();
+  const { currentUser } = useContext(AuthContext);
 
   const [services, setServices] = useState([]);
   const [validName, setValidName] = useState(true);
@@ -33,7 +35,7 @@ function ServicesRegister() {
     },
     onSubmit: async (values) => {
       try {
-        if (checkLocationName(values.name)) {
+        if (checkServiceName(values.name)) {
           return;
         } else {
           if (values.limit) {
@@ -63,15 +65,18 @@ function ServicesRegister() {
     try {
       const response = await api.get("/services/query");
       setServices(response.data);
-    } catch (error) {}
+    } catch (error) {
+      toast.error("Falha ao consultar os serviços!");
+    }
   };
 
   const handleSubmit = async (name, description, limit) => {
     await api
-      .post("/services/registration", {
+      .post("/service/registration", {
         name: name,
         description: description,
         limit: limit,
+        created_by: currentUser.name,
       })
       .then((response) => {
         notify(response.data);
@@ -91,7 +96,7 @@ function ServicesRegister() {
     }
   };
 
-  const checkLocationName = (name) => {
+  const checkServiceName = (name) => {
     const validation = services.some((service) => service.name === name);
     if (validation) {
       setValidName(false);

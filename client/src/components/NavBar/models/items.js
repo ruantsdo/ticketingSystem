@@ -17,7 +17,7 @@ const menuItems = [
   {
     name: "Gerenciar serviços",
     color: "foreground",
-    address: "/service/register",
+    address: "/service/management",
   },
   {
     name: "Adicionar novo local",

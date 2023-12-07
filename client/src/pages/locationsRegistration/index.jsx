@@ -1,5 +1,5 @@
 //React
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
 //Services
 import api from "../../services/api";
@@ -12,6 +12,7 @@ import { Formik, Form, useFormik } from "formik";
 
 //Contexts
 import { useWebSocket } from "../../contexts/webSocket";
+import AuthContext from "../../contexts/auth";
 
 //Icons
 import AddTaskIcon from "@mui/icons-material/AddTask";
@@ -21,6 +22,7 @@ import { toast } from "react-toastify";
 
 function LocationRegister() {
   const { socket } = useWebSocket();
+  const { currentUser } = useContext(AuthContext);
 
   const [locations, setLocations] = useState([]);
   const [validName, setValidName] = useState(true);
@@ -53,6 +55,7 @@ function LocationRegister() {
         name: name,
         description: description,
         tables: tables,
+        created_by: currentUser.name,
       })
       .then((response) => {
         notify(response.data);

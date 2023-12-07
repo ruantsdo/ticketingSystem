@@ -202,15 +202,6 @@ router.post("/queue/remove", async (req, res) => {
   }
 });
 
-router.post("/location/remove", async (req, res) => {
-  try {
-    await db.query("DELETE FROM locations WHERE id = ?", [req.body.id]);
-    res.send("success");
-  } catch (err) {
-    res.send("failed");
-  }
-});
-
 router.post("/location/registration", async (req, res) => {
   try {
     await db.query(
@@ -222,6 +213,15 @@ router.post("/location/registration", async (req, res) => {
         req.body.created_by,
       ]
     );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/location/remove", async (req, res) => {
+  try {
+    await db.query("DELETE FROM locations WHERE id = ?", [req.body.id]);
     res.send("success");
   } catch (err) {
     res.send("failed");
@@ -246,11 +246,38 @@ router.post("/location/update", async (req, res) => {
   }
 });
 
-router.post("/services/registration", async (req, res) => {
+router.post("/service/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO services (name, description, `limit`) VALUES (?,?,?)",
-      [req.body.name, req.body.description, req.body.limit]
+      "INSERT INTO services (name, description, `limit`, created_by) VALUES (?,?,?,?)",
+      [req.body.name, req.body.description, req.body.limit, req.body.created_by]
+    );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/service/remove", async (req, res) => {
+  try {
+    await db.query("DELETE FROM services WHERE id = ?", [req.body.id]);
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/service/update", async (req, res) => {
+  try {
+    await db.query(
+      "UPDATE services SET name = ?, description = ?, `limit` = ?, created_by = ? WHERE id = ?",
+      [
+        req.body.name,
+        req.body.desc,
+        req.body.limit,
+        req.body.created_by,
+        req.body.id,
+      ]
     );
     res.send("success");
   } catch (err) {

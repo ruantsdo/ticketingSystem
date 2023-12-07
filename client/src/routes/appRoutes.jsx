@@ -13,6 +13,7 @@ import {
   TokenCallDefault,
   TokenCallAlternative,
   ServicesRegister,
+  ServicesManagement,
   LocationRegister,
   LocationManagement,
 } from "./routes";
@@ -35,6 +36,7 @@ const AppRoutes = () => {
             element={<TokenCallAlternative />}
           />
           <Route path="/service/register" element={<ServicesRegister />} />
+          <Route path="/service/management" element={<ServicesManagement />} />
           <Route path="/location/register" element={<LocationRegister />} />
           <Route path="/location/management" element={<LocationManagement />} />
 
