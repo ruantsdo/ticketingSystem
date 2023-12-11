@@ -72,6 +72,7 @@ function NewUserRegister() {
               services: selectedServices,
               permissionLevel: selectedPermission,
               password: values.password,
+              created_by: currentUser.name,
             })
             .then((response) => {
               notify(response.data);

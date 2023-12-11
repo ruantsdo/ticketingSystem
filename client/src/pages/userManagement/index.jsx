@@ -1,0 +1,387 @@
+//React
+import { useState, useEffect, useMemo, useContext } from "react";
+
+//Components
+import {
+  Divider,
+  FullContainer,
+  Button,
+  Notification,
+  Input,
+} from "../../components";
+
+//NextUI
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Pagination,
+  useDisclosure,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Spinner,
+} from "@nextui-org/react";
+
+//Icons
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+
+//Contexts
+import AuthContext from "../../contexts/auth";
+
+//Services
+import api from "../../services/api";
+
+//Toast
+import { toast } from "react-toastify";
+
+function UserManagement() {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { currentUser } = useContext(AuthContext);
+
+  const [currentUserName, setCurrentUserName] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [currentUserCPF, setCurrentUserCPF] = useState("");
+  const [currentUserLevel, setCurrentUserLevel] = useState("");
+  const [currentUserPassword, setCurrentUserPassword] = useState("");
+
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const [users, setUsers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [itemKey, setItemKey] = useState();
+
+  const rowsPerPage = 5;
+
+  const pages = Math.ceil(users.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return users.slice(start, end);
+  }, [page, users]);
+
+  const findIndexById = (key) => {
+    for (let i = 0; i < users.length; i++) {
+      // eslint-disable-next-line
+      if (users[i].id == key) {
+        setItemKey(i);
+        updateStates(i);
+        return;
+      }
+    }
+  };
+
+  const checkLevel = () => {
+    if (currentUser.permission_level > 3) {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  };
+
+  const handleUserServices = async () => {
+    try {
+      const response = await api.get(`/user_services/query/${currentUser.id}`);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleUsers = async () => {
+    if (currentUser.permission_level > 3) {
+      try {
+        const response = await api.get("/users/query/full");
+        setUsers(response.data);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      const userServices = await handleUserServices();
+      try {
+        const response = await api.post("/users/query/", {
+          ids: userServices,
+        });
+        defineFilteredUsers(response.data, userServices);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const defineFilteredUsers = (data, userServices) => {
+    if (!isAdmin) {
+      const users = data.filter((user) => {
+        return userServices.some(
+          (userService) => userService.service_id === user.service
+        );
+      });
+
+      users.sort((a, b) => {
+        const statusA = a.status.toUpperCase();
+        const statusB = b.status.toUpperCase();
+
+        if (statusA === "ATIVO" && statusB !== "ATIVO") {
+          return 1;
+        } else if (statusA !== "ATIVO" && statusB === "ATIVO") {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
+      setUsers(users);
+    }
+  };
+
+  const checkUserCpf = async (id) => {
+    const duplicateUsers = users.filter((user) => user.cpf === currentUserCPF);
+
+    if (duplicateUsers.length > 0) {
+      const checkId = users.some((user) => user.id !== id);
+      if (checkId) {
+        toast.info("Já existe um usuário com esse CPF!");
+      } else {
+        await updateUser(id);
+      }
+    } else {
+      await updateUser(id);
+    }
+  }; //REFAZER
+
+  const removeUser = async (id) => {
+    // try {
+    //   await api
+    //     .post("/location/remove", {
+    //       id: id,
+    //     })
+    //     .then((response) => {
+    //       if (response.data === "success") {
+    //         toast.success("O local foi removido!");
+    //         handleLocations();
+    //       } else if (response.data === "failed") {
+    //         toast.error("Falha ao remover local!");
+    //       }
+    //     });
+    // } catch (error) {
+    //   console.error(error);
+    // }
+  }; //Refazer
+
+  const updateUser = async (id) => {
+    // try {
+    //   await api
+    //     .post("/location/update", {
+    //       id: id,
+    //       name: currentLocationName,
+    //       description: currentLocationDesc,
+    //       tables: currentLocationTables,
+    //       created_by: currentUser.name,
+    //     })
+    //     .then((response) => {
+    //       if (response.data === "success") {
+    //         toast.success("Local atualizado!");
+    //       } else if (response.data === "failed") {
+    //         toast.error("Falha ao atualizar o local!");
+    //       }
+    //       handleLocations();
+    //     });
+    // } catch (error) {
+    //   console.error(error);
+    // }
+  }; //Refazer
+
+  const updateStates = (id) => {
+    setCurrentUserName(users[id].name);
+    setCurrentUserEmail(users[id].email);
+    setCurrentUserCPF(users[id].cpf);
+  };
+
+  const clearStates = () => {
+    setCurrentUserName("");
+    setCurrentUserEmail("");
+    setCurrentUserCPF("");
+  };
+
+  useEffect(() => {
+    checkLevel();
+    handleUsers();
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <FullContainer>
+      <Notification />
+      <Table
+        aria-label="Lista de usuários"
+        onRowAction={(key) => {
+          findIndexById(key);
+          onOpen();
+        }}
+        isStriped
+        bottomContent={
+          <div className="flex w-full justify-center">
+            <Pagination
+              isCompact
+              showControls
+              color="success"
+              page={page}
+              total={pages}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+        }
+        classNames={{
+          wrapper: "min-h-[222px]",
+        }}
+        className="sm:w-[80%]"
+      >
+        <TableHeader>
+          <TableColumn className="w-1/12">ID</TableColumn>
+          <TableColumn>USUÁRIO</TableColumn>
+          <TableColumn>AÇÕES</TableColumn>
+        </TableHeader>
+        <TableBody
+          items={items}
+          emptyContent={
+            users.length > 0 ? (
+              <Spinner size="lg" label="Carregando..." color="primary" />
+            ) : (
+              <div className="flex flex-col text-sm">
+                <Spinner
+                  size="sm"
+                  color="success"
+                  label="Ainda não há usuários dísponiveis..."
+                />
+                Atualize a página para buscar por atualizações...
+              </div>
+            )
+          }
+        >
+          {(item) => (
+            <TableRow
+              key={item.id}
+              className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
+            >
+              <TableCell>{item.id}</TableCell>
+              <TableCell>{item.name}</TableCell>
+              <TableCell className="w-1/12">
+                {
+                  <div className="flex flex-row w-full h-7 items-center justify-around">
+                    <Button
+                      isIconOnly
+                      mode="success"
+                      className="w-5 rounded-full scale-80"
+                      onPress={() => {
+                        findIndexById(item.id);
+                        onOpen();
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      mode="failed"
+                      className="w-5 rounded-full scale-80"
+                      onPress={() => {
+                        removeUser(item.id);
+                      }}
+                    >
+                      <DeleteForeverIcon fontSize="small" />
+                    </Button>
+                  </div>
+                }
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onClose={() => clearStates()}
+        backdrop="opaque"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
+                <section className="flex flex-col gap-1 justify-center items-center">
+                  <h1>Dados do local </h1>
+                  <h6>
+                    Esse local foi criado por: {users[itemKey].created_by}
+                  </h6>
+                </section>
+              </ModalHeader>
+              <Divider />
+              <ModalBody>
+                <Input
+                  isReadOnly={!isAdmin}
+                  label="NOME"
+                  defaultValue={users[itemKey].name}
+                  onChange={(e) => setCurrentUserName(e.target.value)}
+                />
+                <Input
+                  isReadOnly={!isAdmin}
+                  label="EMAIL"
+                  defaultValue={users[itemKey].email}
+                  onChange={(e) => setCurrentUserEmail(e.target.value)}
+                />
+                <Input
+                  isReadOnly={!isAdmin}
+                  label="CPF"
+                  defaultValue={users[itemKey].cpf}
+                  onChange={(e) => setCurrentUserCPF(e.target.value)}
+                />
+              </ModalBody>
+              <Divider />
+              <ModalFooter className="flex justify-between align-middle">
+                <Button
+                  className="bg-transparent text-failed w-15"
+                  onPress={() => {
+                    onClose();
+                    removeUser(users[itemKey].id);
+                  }}
+                  startContent={<DeleteForeverIcon />}
+                >
+                  DELETAR
+                </Button>
+                <div className="flex flex-row items-center justify-end w-full gap-3">
+                  <Button
+                    mode="failed"
+                    className="w-10"
+                    onPress={() => {
+                      onClose();
+                    }}
+                  >
+                    Fechar
+                  </Button>
+                  <Button
+                    mode="success"
+                    className="w-10"
+                    onPress={() => {
+                      checkUserCpf(users[itemKey].id).then(onClose());
+                    }}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </FullContainer>
+  );
+}
+
+export default UserManagement;

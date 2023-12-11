@@ -76,7 +76,7 @@ router.post("/user/registration", async (req, res) => {
 
         try {
           await db.query(
-            "INSERT INTO users (name, password, cpf, email, permission_level, created_at) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
             [
               req.body.name,
               hash,
@@ -84,6 +84,7 @@ router.post("/user/registration", async (req, res) => {
               emailValue,
               req.body.permissionLevel,
               getTime(),
+              req.body.created_by,
             ]
           );
         } catch (error) {

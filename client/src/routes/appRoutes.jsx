@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
   Home,
   NewUserPage,
+  UserManagement,
   QueueRegistration,
   TokensList,
   TokenCallDefault,
@@ -28,6 +29,7 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/home" index element={<Home />} />
           <Route path="/newUser" element={<NewUserPage />} />
+          <Route path="/user/management" element={<UserManagement />} />
           <Route path="/queueRegistration" element={<QueueRegistration />} />
           <Route path="/tokensList" element={<TokensList />} />
           <Route path="/tokenCall/default" element={<TokenCallDefault />} />
@@ -39,7 +41,7 @@ const AppRoutes = () => {
           <Route path="/service/management" element={<ServicesManagement />} />
           <Route path="/location/register" element={<LocationRegister />} />
           <Route path="/location/management" element={<LocationManagement />} />
-
+          UserManagement
           <Route path="*" element={<Home />} />
         </Routes>
       </BrowserRouter>

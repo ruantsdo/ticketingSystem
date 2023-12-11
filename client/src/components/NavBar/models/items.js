@@ -2,7 +2,7 @@ const menuItems = [
   {
     name: "Gerenciar usuários",
     color: "foreground",
-    address: "/newUser",
+    address: "/user/management",
   },
   {
     name: "Criar novo usuário",

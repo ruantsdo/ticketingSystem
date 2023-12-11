@@ -1,5 +1,6 @@
 import Home from "../pages/home";
 import NewUserPage from "../pages/userRegistration";
+import UserManagement from "../pages/userManagement";
 import QueueRegistration from "../pages/tokenRegistration";
 import TokensList from "../pages/tokenList";
 import TokenCallDefault from "../pages/tokenCall/default";
@@ -13,6 +14,7 @@ import LocationManagement from "../pages/locationsManagement";
 export {
   Home,
   NewUserPage,
+  UserManagement,
   QueueRegistration,
   TokensList,
   TokenCallDefault,
