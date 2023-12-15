@@ -81,7 +81,7 @@ function UserManagement() {
   };
 
   const checkLevel = () => {
-    if (currentUser.permission_level > 3) {
+    if (currentUser.permission_level > 2) {
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
@@ -361,21 +361,39 @@ function UserManagement() {
               <ModalBody>
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="NOME"
                   defaultValue={users[itemKey].name}
                   onChange={(e) => setCurrentUserName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="EMAIL"
                   defaultValue={users[itemKey].email}
                   onChange={(e) => setCurrentUserEmail(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
                   label="CPF"
                   defaultValue={users[itemKey].cpf}
                   onChange={(e) => setCurrentUserCPF(e.target.value)}
+                />
+                <Input
+                  isReadOnly={!isAdmin}
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  type="password"
+                  label="SENHA (Deixe em branco para manter a atual)"
+                  onChange={(e) => setCurrentUserPassword(e.target.value)}
                 />
               </ModalBody>
               <Divider />
