@@ -53,6 +53,7 @@ function UserManagement() {
 
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const [usersList, setUsersList] = useState([]);
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
@@ -108,55 +109,39 @@ function UserManagement() {
   const handleUsersList = async () => {
     try {
       const response = await api.get("/users/query/full");
-      return response.data;
+      setUsersList(response.data);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const handleUsers = async () => {
-    const usersList = await handleUsersList();
-
+  const filterUsers = async () => {
     if (currentUser.permission_level > 3) {
       setUsers(usersList);
     } else {
       const currentUserServices = await handleCurrentUserServices();
       const userServices = await handleUsersServices();
       try {
-        const response = await api.post("/users/query/", {
-          currentUserServices: currentUserServices,
-          currentUser: currentUser.id,
-          usersServices: userServices,
+        const filteredUsers = userServices.filter((user) => {
+          return currentUserServices.some((service) => {
+            return user.service_id === service.service_id;
+          });
         });
-        defineFilteredUsers(response.data, userServices);
+
+        const uniqueUserIds = [
+          ...new Set(filteredUsers.map((user) => user.user_id)),
+        ];
+
+        const filteredUsersList = usersList.filter((user) => {
+          return uniqueUserIds.some((uniqueUser) => {
+            return user.id === uniqueUser;
+          });
+        });
+
+        setUsers(filteredUsersList);
       } catch (error) {
         console.log(error);
       }
-    }
-  };
-
-  const defineFilteredUsers = (data, userServices) => {
-    if (!isAdmin) {
-      const users = data.filter((user) => {
-        return userServices.some(
-          (userService) => userService.service_id === user.service
-        );
-      });
-
-      users.sort((a, b) => {
-        const statusA = a.status.toUpperCase();
-        const statusB = b.status.toUpperCase();
-
-        if (statusA === "ATIVO" && statusB !== "ATIVO") {
-          return 1;
-        } else if (statusA !== "ATIVO" && statusB === "ATIVO") {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
-
-      setUsers(users);
     }
   };
 
@@ -230,10 +215,16 @@ function UserManagement() {
   };
 
   useEffect(() => {
+    handleUsersList();
     checkLevel();
-    handleUsers();
+    filterUsers();
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    filterUsers();
+    // eslint-disable-next-line
+  }, [usersList]);
 
   return (
     <FullContainer>
