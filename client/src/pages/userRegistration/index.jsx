@@ -157,13 +157,6 @@ function NewUserRegister() {
               value={formik.values.name}
             />
             <Input
-              type="email"
-              label="Email"
-              name="email"
-              onChange={formik.handleChange}
-              value={formik.values.email}
-            />
-            <Input
               isRequired
               type="text"
               label="CPF"

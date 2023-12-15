@@ -112,6 +112,32 @@ router.post("/user/registration", async (req, res) => {
   );
 });
 
+router.post("/users/update", async (req, res) => {
+  const { id, name, email, cpf, level, created_by, password } = req.body;
+
+  try {
+    await db.query(
+      "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, created_at = ?, created_by = ? WHERE id = ?",
+      [name, email, cpf, level, password, getTime(), created_by, id]
+    );
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+router.post("/users/remove", async (req, res) => {
+  try {
+    await db.query("DELETE FROM user_services WHERE user_id = ?", [
+      req.body.id,
+    ]);
+    await db.query("DELETE FROM users WHERE id = ?", [req.body.id]);
+    res.send("success");
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
 router.post("/token/registration", async (req, res) => {
   try {
     const service = req.body.services;

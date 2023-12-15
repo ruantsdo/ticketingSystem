@@ -73,22 +73,6 @@ router.get("/user_services/query/full", async (req, res) => {
   }
 });
 
-router.get("/users/query/full", async (req, res) => {
-  try {
-    await db.query("SELECT * FROM users", (err, result) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send("Erro interno do servidor");
-      } else {
-        res.send(result);
-      }
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Erro interno do servidor");
-  }
-});
-
 router.get("/user_services/query/:id", async (req, res) => {
   try {
     await db.query(
@@ -103,6 +87,22 @@ router.get("/user_services/query/:id", async (req, res) => {
         }
       }
     );
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Erro interno do servidor");
+  }
+});
+
+router.get("/users/query/full", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM users", (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Erro interno do servidor");
+      } else {
+        res.send(result);
+      }
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send("Erro interno do servidor");

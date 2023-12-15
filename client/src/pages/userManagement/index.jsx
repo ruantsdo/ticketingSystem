@@ -146,78 +146,106 @@ function UserManagement() {
   };
 
   const checkUserCpf = async (id) => {
-    const duplicateUsers = users.filter((user) => user.cpf === currentUserCPF);
+    const duplicateUsers = usersList.filter(
+      (user) => user.cpf === currentUserCPF
+    );
 
     if (duplicateUsers.length > 0) {
-      const checkId = users.some((user) => user.id !== id);
+      const checkId = duplicateUsers.some((user) => user.id !== id);
       if (checkId) {
         toast.info("Já existe um usuário com esse CPF!");
       } else {
-        await updateUser(id);
+        await checkUserEmail(id);
       }
     } else {
-      await updateUser(id);
+      await checkUserEmail(id);
     }
-  }; //REFAZER
+  };
+
+  const checkUserEmail = async (id) => {
+    if (currentUserEmail === "") {
+      await updateUser(id);
+    } else {
+      const duplicateUsers = users.filter(
+        (user) => user.email === currentUserEmail
+      );
+
+      if (duplicateUsers.length > 0) {
+        const checkId = duplicateUsers.some((user) => user.id !== id);
+        if (checkId) {
+          toast.info("Já existe um usuário com esse Email!");
+        } else {
+          await updateUser(id);
+        }
+      } else {
+        await updateUser(id);
+      }
+    }
+  };
 
   const removeUser = async (id) => {
-    // try {
-    //   await api
-    //     .post("/location/remove", {
-    //       id: id,
-    //     })
-    //     .then((response) => {
-    //       if (response.data === "success") {
-    //         toast.success("O local foi removido!");
-    //         handleLocations();
-    //       } else if (response.data === "failed") {
-    //         toast.error("Falha ao remover local!");
-    //       }
-    //     });
-    // } catch (error) {
-    //   console.error(error);
-    // }
-  }; //Refazer
+    try {
+      await api
+        .post("/users/remove", {
+          id: id,
+        })
+        .then((response) => {
+          if (response.data === "success") {
+            toast.success("O usuário foi removido!");
+            handleUsersList();
+          } else if (response.data === "failed") {
+            toast.error("Falha ao remover usuário!");
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const updateUser = async (id) => {
-    // try {
-    //   await api
-    //     .post("/location/update", {
-    //       id: id,
-    //       name: currentLocationName,
-    //       description: currentLocationDesc,
-    //       tables: currentLocationTables,
-    //       created_by: currentUser.name,
-    //     })
-    //     .then((response) => {
-    //       if (response.data === "success") {
-    //         toast.success("Local atualizado!");
-    //       } else if (response.data === "failed") {
-    //         toast.error("Falha ao atualizar o local!");
-    //       }
-    //       handleLocations();
-    //     });
-    // } catch (error) {
-    //   console.error(error);
-    // }
-  }; //Refazer
+    try {
+      await api
+        .post("/users/update", {
+          id: id,
+          name: currentUserName,
+          email: currentUserEmail,
+          cpf: currentUserCPF,
+          level: currentUserLevel,
+          created_by: currentUser.name,
+          password: currentUserPassword,
+        })
+        .then((response) => {
+          if (response.data === "success") {
+            toast.success("Usuário atualizado!");
+          } else if (response.data === "failed") {
+            toast.error("Falha ao atualizar usuário!");
+          }
+          handleUsersList();
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const updateStates = (id) => {
     setCurrentUserName(users[id].name);
     setCurrentUserEmail(users[id].email);
     setCurrentUserCPF(users[id].cpf);
+    setCurrentUserLevel(users[id].permission_level);
+    setCurrentUserPassword(users[id].password);
   };
 
   const clearStates = () => {
     setCurrentUserName("");
     setCurrentUserEmail("");
     setCurrentUserCPF("");
+    setCurrentUserLevel("");
+    setCurrentUserPassword("");
   };
 
   useEffect(() => {
     handleUsersList();
     checkLevel();
-    filterUsers();
     // eslint-disable-next-line
   }, []);
 
@@ -325,10 +353,8 @@ function UserManagement() {
             <>
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
-                  <h1>Dados do local </h1>
-                  <h6>
-                    Esse local foi criado por: {users[itemKey].created_by}
-                  </h6>
+                  <h1>Dados do usuário </h1>
+                  <h6>Criado por: {users[itemKey].created_by}</h6>
                 </section>
               </ModalHeader>
               <Divider />
