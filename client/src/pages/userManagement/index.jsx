@@ -87,7 +87,7 @@ function UserManagement() {
     }
   };
 
-  const handleUserServices = async () => {
+  const handleCurrentUserServices = async () => {
     try {
       const response = await api.get(`/user_services/query/${currentUser.id}`);
       return response.data;
@@ -96,19 +96,37 @@ function UserManagement() {
     }
   };
 
+  const handleUsersServices = async () => {
+    try {
+      const response = await api.get("/user_services/query/full");
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleUsersList = async () => {
+    try {
+      const response = await api.get("/users/query/full");
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleUsers = async () => {
+    const usersList = await handleUsersList();
+
     if (currentUser.permission_level > 3) {
-      try {
-        const response = await api.get("/users/query/full");
-        setUsers(response.data);
-      } catch (error) {
-        console.log(error);
-      }
+      setUsers(usersList);
     } else {
-      const userServices = await handleUserServices();
+      const currentUserServices = await handleCurrentUserServices();
+      const userServices = await handleUsersServices();
       try {
         const response = await api.post("/users/query/", {
-          ids: userServices,
+          currentUserServices: currentUserServices,
+          currentUser: currentUser.id,
+          usersServices: userServices,
         });
         defineFilteredUsers(response.data, userServices);
       } catch (error) {

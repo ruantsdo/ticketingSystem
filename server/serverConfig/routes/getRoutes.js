@@ -63,58 +63,67 @@ router.get("/services/query/:id", async (req, res) => {
   }
 });
 
-router.post("/users/query/", async (req, res) => {
+router.get("/user_services/query/full", async (req, res) => {
   try {
-    const { ids } = req.body;
+    await db.query("SELECT * FROM user_services", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).send("IDs inválidos");
-    }
+router.post("/users/query/", async (req, res) => {
+  const { currentUserServices, currentUser, usersServices } = req.body;
+  let usersList;
 
-    const userServicesQuery = `SELECT user_id FROM user_services WHERE service_id IN (${ids
-      .map(() => "?")
-      .join(", ")})`;
+  if (
+    !currentUserServices ||
+    !Array.isArray(currentUserServices) ||
+    currentUserServices.length === 0
+  ) {
+    return res.status(400).send("IDs inválidos");
+  }
 
-    await db.query(userServicesQuery, ids, async (err, userServicesResult) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Erro interno do servidor");
-      }
-
-      const userIds = userServicesResult.map((row) => row.user_id);
-
-      if (userIds.length === 0) {
-        return res.send([]);
-      }
-
-      const usersQuery = `SELECT * FROM users WHERE id IN (${userIds
-        .map(() => "?")
-        .join(", ")})`;
-
-      await db.query(usersQuery, userIds, (usersErr, usersResult) => {
-        if (usersErr) {
-          console.error(usersErr);
-          return res.status(500).send("Erro interno do servidor");
-        }
-
-        res.send(usersResult);
+  try {
+    // Lógica de filtragem
+    const filteredUsers = usersServices.filter((user) => {
+      return currentUserServices.some((service) => {
+        return (
+          user.service_id === service.service_id && user.user_id === currentUser
+        );
       });
     });
+
+    // Extrai user_id único do resultado filtrado
+    const uniqueUserIds = [
+      ...new Set(filteredUsers.map((user) => user.user_id)),
+    ];
+
+    console.log("Resultado da filtragem (user_id único):");
+    console.log(uniqueUserIds);
+
+    //res.status(200).json(uniqueUserIds);
   } catch (error) {
     console.log(error);
     res.status(500).send("Erro interno do servidor");
   }
-});
 
-router.get("/users/query/full", async (req, res) => {
+  // console.log(currentUserServices);
+  // console.log(currentUser);
+  // console.log(usersServices);
+
   await db.query("SELECT * from users", (err, result) => {
     if (err) {
       console.error(err);
       res.status(500).send("Erro interno do servidor");
     } else {
-      res.send(result);
+      //console.log(result);
+      usersList = JSON.stringify(result.data);
     }
   });
+
+  console.log(usersList);
 });
 
 router.get("/user_services/query/:id", async (req, res) => {
