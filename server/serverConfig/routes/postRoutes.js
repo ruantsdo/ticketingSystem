@@ -240,12 +240,13 @@ router.post("/queue/remove", async (req, res) => {
 router.post("/location/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO locations (name, description, tables, created_by) VALUES (?,?,?,?)",
+      "INSERT INTO locations (name, description, tables, created_by, created_at) VALUES (?,?,?,?,?)",
       [
         req.body.name,
         req.body.description,
         req.body.tables,
         req.body.created_by,
+        getTime(),
       ]
     );
     res.send("success");
@@ -266,12 +267,13 @@ router.post("/location/remove", async (req, res) => {
 router.post("/location/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE locations SET name = ?, description = ?, tables = ?, created_by = ? WHERE id = ?",
+      "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ? WHERE id = ?",
       [
         req.body.name,
         req.body.description,
         req.body.tables,
-        req.body.created_by,
+        req.body.updated_by,
+        getTime(),
         req.body.id,
       ]
     );
@@ -284,8 +286,14 @@ router.post("/location/update", async (req, res) => {
 router.post("/service/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO services (name, description, `limit`, created_by) VALUES (?,?,?,?)",
-      [req.body.name, req.body.description, req.body.limit, req.body.created_by]
+      "INSERT INTO services (name, description, `limit`, created_by, created_at) VALUES (?,?,?,?,?)",
+      [
+        req.body.name,
+        req.body.description,
+        req.body.limit,
+        req.body.created_by,
+        getTime(),
+      ]
     );
     res.send("success");
   } catch (err) {
@@ -305,12 +313,13 @@ router.post("/service/remove", async (req, res) => {
 router.post("/service/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE services SET name = ?, description = ?, `limit` = ?, created_by = ? WHERE id = ?",
+      "UPDATE services SET name = ?, description = ?, `limit` = ?, updated_by = ?, updated_at = ? WHERE id = ?",
       [
         req.body.name,
         req.body.desc,
         req.body.limit,
-        req.body.created_by,
+        req.body.updated_by,
+        getTime(),
         req.body.id,
       ]
     );

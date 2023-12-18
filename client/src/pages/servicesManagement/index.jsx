@@ -45,9 +45,9 @@ function ServicesManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
 
-  const [currentServiceName, setCurrentServiceName] = useState("");
-  const [currentServiceDesc, setCurrentServiceDesc] = useState("");
-  const [currentServiceLimit, setCurrentServiceLimit] = useState("");
+  const [currentTargetName, setCurrentTargetName] = useState("");
+  const [currentTargetDesc, setCurrentTargetDesc] = useState("");
+  const [currentTargetLimit, setCurrentTargetLimit] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -87,7 +87,7 @@ function ServicesManagement() {
 
   const checkServiceName = async (id) => {
     const duplicateServices = services.filter(
-      (service) => service.name === currentServiceName
+      (service) => service.name === currentTargetName
     );
 
     if (duplicateServices.length > 0) {
@@ -135,10 +135,10 @@ function ServicesManagement() {
       await api
         .post("/service/update", {
           id: id,
-          name: currentServiceName,
-          desc: currentServiceDesc,
-          limit: currentServiceLimit,
-          created_by: currentUser.name,
+          name: currentTargetName,
+          desc: currentTargetDesc,
+          limit: currentTargetLimit,
+          updated_by: currentUser.name,
         })
         .then((response) => {
           if (response.data === "success") {
@@ -155,15 +155,15 @@ function ServicesManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentServiceName(services[id].name);
-    setCurrentServiceDesc(services[id].description);
-    setCurrentServiceLimit(services[id].limit);
+    setCurrentTargetName(services[id].name);
+    setCurrentTargetDesc(services[id].description);
+    setCurrentTargetLimit(services[id].limit);
   };
 
   const clearStates = () => {
-    setCurrentServiceName("");
-    setCurrentServiceDesc("");
-    setCurrentServiceLimit("");
+    setCurrentTargetName("");
+    setCurrentTargetDesc("");
+    setCurrentTargetLimit("");
   };
 
   useEffect(() => {
@@ -272,9 +272,14 @@ function ServicesManagement() {
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
                   <h1>Dados do serviço </h1>
-                  <h6>
-                    Esse serviço foi criado por: {services[itemKey].created_by}
-                  </h6>
+                  {services[itemKey].updated_by ? (
+                    <h6>
+                      Atualizado por: {services[itemKey].updated_by} em{" "}
+                      {services[itemKey].updated_at}
+                    </h6>
+                  ) : (
+                    <h6>Este serviço ainda não foi atualizado</h6>
+                  )}
                 </section>
               </ModalHeader>
               <Divider />
@@ -283,20 +288,20 @@ function ServicesManagement() {
                   isReadOnly={!isAdmin}
                   label="NOME"
                   defaultValue={services[itemKey].name}
-                  onChange={(e) => setCurrentServiceName(e.target.value)}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   label="DESCRIÇÃO"
                   defaultValue={services[itemKey].description}
-                  onChange={(e) => setCurrentServiceDesc(e.target.value)}
+                  onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   type="number"
                   label="LIMITE DIÁRIO (0 = Infinito)"
                   defaultValue={services[itemKey].limit}
-                  onChange={(e) => setCurrentServiceLimit(e.target.value)}
+                  onChange={(e) => setCurrentTargetLimit(e.target.value)}
                 />
               </ModalBody>
               <Divider />

@@ -45,9 +45,9 @@ function LocationManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
 
-  const [currentLocationName, setCurrentLocationName] = useState("");
-  const [currentLocationDesc, setCurrentLocationDesc] = useState("");
-  const [currentLocationTables, setCurrentLocationTables] = useState("");
+  const [currentTargetName, setCurrentTargetName] = useState("");
+  const [currentTargetDesc, setCurrentTargetDesc] = useState("");
+  const [currentTargetTables, setCurrentTargetTables] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -96,7 +96,7 @@ function LocationManagement() {
 
   const checkLocalName = async (id) => {
     const duplicateLocation = locations.filter(
-      (local) => local.name === currentLocationName
+      (local) => local.name === currentTargetName
     );
 
     if (duplicateLocation.length > 0) {
@@ -135,10 +135,10 @@ function LocationManagement() {
       await api
         .post("/location/update", {
           id: id,
-          name: currentLocationName,
-          description: currentLocationDesc,
-          tables: currentLocationTables,
-          created_by: currentUser.name,
+          name: currentTargetName,
+          description: currentTargetDesc,
+          tables: currentTargetTables,
+          updated_by: currentUser.name,
         })
         .then((response) => {
           if (response.data === "success") {
@@ -155,15 +155,15 @@ function LocationManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentLocationName(locations[id].name);
-    setCurrentLocationDesc(locations[id].description);
-    setCurrentLocationTables(locations[id].tables);
+    setCurrentTargetName(locations[id].name);
+    setCurrentTargetDesc(locations[id].description);
+    setCurrentTargetTables(locations[id].tables);
   };
 
   const clearStates = () => {
-    setCurrentLocationName("");
-    setCurrentLocationDesc("");
-    setCurrentLocationTables("");
+    setCurrentTargetName("");
+    setCurrentTargetDesc("");
+    setCurrentTargetTables("");
   };
 
   useEffect(() => {
@@ -272,9 +272,14 @@ function LocationManagement() {
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
                   <h1>Dados do local </h1>
-                  <h6>
-                    Esse local foi criado por: {locations[itemKey].created_by}
-                  </h6>
+                  {locations[itemKey].updated_by ? (
+                    <h6>
+                      Atualizado por: {locations[itemKey].updated_by} em{" "}
+                      {locations[itemKey].updated_at}
+                    </h6>
+                  ) : (
+                    <h6>Este local ainda não foi atualizado</h6>
+                  )}
                 </section>
               </ModalHeader>
               <Divider />
@@ -283,20 +288,20 @@ function LocationManagement() {
                   isReadOnly={!isAdmin}
                   label="NOME"
                   defaultValue={locations[itemKey].name}
-                  onChange={(e) => setCurrentLocationName(e.target.value)}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   label="DESCRIÇÃO"
                   defaultValue={locations[itemKey].description}
-                  onChange={(e) => setCurrentLocationDesc(e.target.value)}
+                  onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
                   type="number"
                   label="QUANTIDADE DE MESAS"
                   defaultValue={locations[itemKey].tables}
-                  onChange={(e) => setCurrentLocationTables(e.target.value)}
+                  onChange={(e) => setCurrentTargetTables(e.target.value)}
                 />
               </ModalBody>
               <Divider />

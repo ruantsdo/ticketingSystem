@@ -45,12 +45,12 @@ function UserManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
 
-  const [currentUserName, setCurrentUserName] = useState("");
-  const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [currentUserCPF, setCurrentUserCPF] = useState("");
-  const [currentUserLevel, setCurrentUserLevel] = useState("");
-  const [currentUserPassword, setCurrentUserPassword] = useState("");
-  const [currentUserNewPassword, setCurrentUserNewPassword] = useState("");
+  const [currentTargetName, setCurrentTargetName] = useState("");
+  const [currentTargetEmail, setCurrentTargetEmail] = useState("");
+  const [currentTargetCPF, setCurrentTargetCPF] = useState("");
+  const [currentTargetLevel, setCurrentTargetLevel] = useState("");
+  const [currentTargetPassword, setCurrentTargetPassword] = useState("");
+  const [currentTargetNewPassword, setCurrentTargetNewPassword] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -120,11 +120,11 @@ function UserManagement() {
     if (currentUser.permission_level > 3) {
       setUsers(usersList);
     } else {
-      const currentUserServices = await handleCurrentUserServices();
+      const currentTargetServices = await handleCurrentUserServices();
       const userServices = await handleUsersServices();
       try {
         const filteredUsers = userServices.filter((user) => {
-          return currentUserServices.some((service) => {
+          return currentTargetServices.some((service) => {
             return user.service_id === service.service_id;
           });
         });
@@ -148,7 +148,7 @@ function UserManagement() {
 
   const checkUserCpf = async (id) => {
     const duplicateUsers = usersList.filter(
-      (user) => user.cpf === currentUserCPF
+      (user) => user.cpf === currentTargetCPF
     );
 
     if (duplicateUsers.length > 0) {
@@ -164,11 +164,11 @@ function UserManagement() {
   };
 
   const checkUserEmail = async (id) => {
-    if (currentUserEmail === "") {
+    if (currentTargetEmail === "") {
       await updateUser(id);
     } else {
       const duplicateUsers = users.filter(
-        (user) => user.email === currentUserEmail
+        (user) => user.email === currentTargetEmail
       );
 
       if (duplicateUsers.length > 0) {
@@ -206,7 +206,7 @@ function UserManagement() {
   const updateUser = async (id) => {
     let passwordChanged;
 
-    if (currentUserNewPassword === "") {
+    if (currentTargetNewPassword === "") {
       passwordChanged = false;
     } else {
       passwordChanged = true;
@@ -216,12 +216,12 @@ function UserManagement() {
       await api
         .post("/users/update", {
           id: id,
-          name: currentUserName,
-          email: currentUserEmail,
-          cpf: currentUserCPF,
-          level: currentUserLevel,
+          name: currentTargetName,
+          email: currentTargetEmail,
+          cpf: currentTargetCPF,
+          level: currentTargetLevel,
           updated_by: currentUser.name,
-          password: currentUserPassword,
+          password: currentTargetPassword,
           passwordChanged: passwordChanged,
         })
         .then((response) => {
@@ -238,20 +238,20 @@ function UserManagement() {
   };
 
   const updateStates = (id) => {
-    setCurrentUserName(users[id].name);
-    setCurrentUserEmail(users[id].email);
-    setCurrentUserCPF(users[id].cpf);
-    setCurrentUserLevel(users[id].permission_level);
-    setCurrentUserPassword(users[id].password);
+    setCurrentTargetName(users[id].name);
+    setCurrentTargetEmail(users[id].email);
+    setCurrentTargetCPF(users[id].cpf);
+    setCurrentTargetLevel(users[id].permission_level);
+    setCurrentTargetPassword(users[id].password);
   };
 
   const clearStates = () => {
-    setCurrentUserName("");
-    setCurrentUserEmail("");
-    setCurrentUserCPF("");
-    setCurrentUserLevel("");
-    setCurrentUserPassword("");
-    setCurrentUserNewPassword("");
+    setCurrentTargetName("");
+    setCurrentTargetEmail("");
+    setCurrentTargetCPF("");
+    setCurrentTargetLevel("");
+    setCurrentTargetPassword("");
+    setCurrentTargetNewPassword("");
   };
 
   useEffect(() => {
@@ -364,7 +364,7 @@ function UserManagement() {
             <>
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
-                  <h1>Dados do usuário </h1>
+                  <h1>Dados do usuário</h1>
                   <h6>
                     Criado por: {users[itemKey].created_by} em{" "}
                     {users[itemKey].created_at}
@@ -380,7 +380,6 @@ function UserManagement() {
                 </section>
               </ModalHeader>
               <Divider />
-
               <ModalBody>
                 <Input
                   isReadOnly={!isAdmin}
@@ -389,7 +388,7 @@ function UserManagement() {
                   className="border-none"
                   label="NOME"
                   defaultValue={users[itemKey].name}
-                  onChange={(e) => setCurrentUserName(e.target.value)}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
@@ -398,7 +397,7 @@ function UserManagement() {
                   className="border-none"
                   label="EMAIL"
                   defaultValue={users[itemKey].email}
-                  onChange={(e) => setCurrentUserEmail(e.target.value)}
+                  onChange={(e) => setCurrentTargetEmail(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
@@ -407,7 +406,7 @@ function UserManagement() {
                   size="sm"
                   label="CPF"
                   defaultValue={users[itemKey].cpf}
-                  onChange={(e) => setCurrentUserCPF(e.target.value)}
+                  onChange={(e) => setCurrentTargetCPF(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
@@ -416,7 +415,7 @@ function UserManagement() {
                   size="sm"
                   type="password"
                   label="SENHA (Deixe em branco para manter a atual)"
-                  onChange={(e) => setCurrentUserNewPassword(e.target.value)}
+                  onChange={(e) => setCurrentTargetNewPassword(e.target.value)}
                 />
               </ModalBody>
 
