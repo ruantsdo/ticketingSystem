@@ -286,18 +286,27 @@ function ServicesManagement() {
               <ModalBody>
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="NOME"
                   defaultValue={services[itemKey].name}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="DESCRIÇÃO"
                   defaultValue={services[itemKey].description}
                   onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   type="number"
                   label="LIMITE DIÁRIO (0 = Infinito)"
                   defaultValue={services[itemKey].limit}

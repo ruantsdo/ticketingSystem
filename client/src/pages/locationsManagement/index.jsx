@@ -286,19 +286,29 @@ function LocationManagement() {
               <ModalBody>
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="NOME"
                   defaultValue={locations[itemKey].name}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   label="DESCRIÇÃO"
                   defaultValue={locations[itemKey].description}
                   onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
                 <Input
                   isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
                   type="number"
+                  min={1}
                   label="QUANTIDADE DE MESAS"
                   defaultValue={locations[itemKey].tables}
                   onChange={(e) => setCurrentTargetTables(e.target.value)}
