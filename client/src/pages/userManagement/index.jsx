@@ -50,6 +50,7 @@ function UserManagement() {
   const [currentUserCPF, setCurrentUserCPF] = useState("");
   const [currentUserLevel, setCurrentUserLevel] = useState("");
   const [currentUserPassword, setCurrentUserPassword] = useState("");
+  const [currentUserNewPassword, setCurrentUserNewPassword] = useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -203,6 +204,14 @@ function UserManagement() {
   };
 
   const updateUser = async (id) => {
+    let passwordChanged;
+
+    if (currentUserNewPassword === "") {
+      passwordChanged = false;
+    } else {
+      passwordChanged = true;
+    }
+
     try {
       await api
         .post("/users/update", {
@@ -211,8 +220,9 @@ function UserManagement() {
           email: currentUserEmail,
           cpf: currentUserCPF,
           level: currentUserLevel,
-          created_by: currentUser.name,
+          updated_by: currentUser.name,
           password: currentUserPassword,
+          passwordChanged: passwordChanged,
         })
         .then((response) => {
           if (response.data === "success") {
@@ -241,6 +251,7 @@ function UserManagement() {
     setCurrentUserCPF("");
     setCurrentUserLevel("");
     setCurrentUserPassword("");
+    setCurrentUserNewPassword("");
   };
 
   useEffect(() => {
@@ -393,7 +404,7 @@ function UserManagement() {
                   size="sm"
                   type="password"
                   label="SENHA (Deixe em branco para manter a atual)"
-                  onChange={(e) => setCurrentUserPassword(e.target.value)}
+                  onChange={(e) => setCurrentUserNewPassword(e.target.value)}
                 />
               </ModalBody>
               <Divider />

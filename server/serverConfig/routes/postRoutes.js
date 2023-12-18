@@ -113,12 +113,20 @@ router.post("/user/registration", async (req, res) => {
 });
 
 router.post("/users/update", async (req, res) => {
-  const { id, name, email, cpf, level, created_by, password } = req.body;
+  const { id, name, email, cpf, level, updated_by, password, passwordChanged } =
+    req.body;
+  let hash;
+
+  if (passwordChanged === true) {
+    hash = await bcrypt.hash(password, saltRounds);
+  } else {
+    hash = password;
+  }
 
   try {
     await db.query(
-      "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, created_at = ?, created_by = ? WHERE id = ?",
-      [name, email, cpf, level, password, getTime(), created_by, id]
+      "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, updated_at = ?, updated_by = ? WHERE id = ?",
+      [name, email, cpf, level, hash, getTime(), updated_by, id]
     );
     res.send("success");
   } catch (err) {
