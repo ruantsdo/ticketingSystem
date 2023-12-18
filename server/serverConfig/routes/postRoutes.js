@@ -350,5 +350,7 @@ function getTime() {
     second: "2-digit",
   });
 
-  return formattedDate;
+  const date = formattedDate.replace(",", " às");
+
+  return date;
 }

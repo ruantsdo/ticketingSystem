@@ -365,10 +365,22 @@ function UserManagement() {
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 <section className="flex flex-col gap-1 justify-center items-center">
                   <h1>Dados do usuário </h1>
-                  <h6>Criado por: {users[itemKey].created_by}</h6>
+                  <h6>
+                    Criado por: {users[itemKey].created_by} em{" "}
+                    {users[itemKey].created_at}
+                  </h6>
+                  {users[itemKey].updated_by ? (
+                    <h6>
+                      Atualizado por: {users[itemKey].updated_by} em{" "}
+                      {users[itemKey].updated_at}
+                    </h6>
+                  ) : (
+                    <h6>Este usuário ainda não foi atualizado</h6>
+                  )}
                 </section>
               </ModalHeader>
               <Divider />
+
               <ModalBody>
                 <Input
                   isReadOnly={!isAdmin}
@@ -407,6 +419,7 @@ function UserManagement() {
                   onChange={(e) => setCurrentUserNewPassword(e.target.value)}
                 />
               </ModalBody>
+
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button
