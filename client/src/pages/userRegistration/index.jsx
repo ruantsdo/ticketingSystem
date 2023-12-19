@@ -170,7 +170,11 @@ function NewUserRegister() {
               selectionMode="multiple"
               items={services}
               label="Indique os serviços que este usuário prestará"
-              placeholder="Selecione pelo menos um serviço"
+              placeholder={
+                services.length > 0
+                  ? "Selecione pelo menos um serviço"
+                  : "Não há serviços cadastrados no momento..."
+              }
               name="service"
               selectedKeys={selectedServices}
               onSelectionChange={(values) => {

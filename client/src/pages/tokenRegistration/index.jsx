@@ -153,7 +153,11 @@ function QueueRegistration() {
               variant={availability ? "flat" : "bordered"}
               items={services}
               label="Indique o serviço desejado"
-              placeholder="Selecione um serviço"
+              placeholder={
+                services.length > 0
+                  ? "Selecione um serviço"
+                  : "Não há serviços cadastrados no momento"
+              }
               isInvalid={
                 currentUser.permission_level > 2 ? false : !availability
               }
