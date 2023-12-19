@@ -29,14 +29,18 @@ import { toast } from "react-toastify";
 //Icons
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
+//Router Dom
+import { redirect } from "react-router-dom";
+
 export default function NavBar() {
   const { setCurrentUser } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const logout = () => {
-    toast.warn("Você escolheu sair!");
     localStorage.clear();
     setCurrentUser(null);
+    redirect("/login");
+    toast.warn("Você escolheu sair!");
   };
 
   return (

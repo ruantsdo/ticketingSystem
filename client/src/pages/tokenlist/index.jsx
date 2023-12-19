@@ -552,32 +552,46 @@ function TokensList() {
               </ModalHeader>
               <Divider />
               <ModalBody>
-                <p>Número da ficha: {tokens[itemKey].position} </p>
-                <p>
-                  Serviço desejado: {services[tokens[itemKey].service - 1].name}
-                </p>
-                <p>Criada por: {tokens[itemKey].created_by}</p>
+                <div>
+                  <h5 className="font-bold">Número da ficha: </h5>
+                  <h6 className="indent-2">{tokens[itemKey].position}</h6>
+                </div>
+                <div>
+                  <h5 className="font-bold">Serviço desejado: </h5>
+                  <h6 className="indent-2">
+                    {services[tokens[itemKey].service - 1].name}
+                  </h6>
+                </div>
+                <div>
+                  <h5 className="font-bold">Criada por: </h5>
+                  <h6 className="indent-2">
+                    {tokens[itemKey].created_by} em {tokens[itemKey].created_at}
+                  </h6>
+                </div>
                 {tokens[itemKey].requested_by !== "" ? (
-                  <p>Solicitada por: {tokens[itemKey].requested_by}</p>
+                  <div>
+                    <h5 className="font-bold">Solicitada por: </h5>
+                    <h6 className="indent-2">{tokens[itemKey].requested_by}</h6>
+                  </div>
                 ) : (
                   <p>Solicitada por: NÃO FOI ESPECIFICADO</p>
                 )}
-
                 {tokens[itemKey].delayed_at !== null ? (
-                  <>
-                    <p>
-                      Adiada por: {tokens[itemKey].delayed_by} em{" "}
-                      {tokens[itemKey].delayed_at.replace(",", " às ")}
-                    </p>
-                  </>
+                  <div>
+                    <h5 className="font-bold">Adiada por: </h5>
+                    <h6 className="indent-2">
+                      {tokens[itemKey].delayed_by} em{" "}
+                      {tokens[itemKey].delayed_at}
+                    </h6>
+                  </div>
                 ) : null}
                 {tokens[itemKey].solved_at !== null ? (
-                  <>
-                    <p>
-                      Atendida por {tokens[itemKey].solved_by} em{" "}
-                      {tokens[itemKey].solved_at.replace(",", " às ")}
-                    </p>
-                  </>
+                  <div>
+                    <h5 className="font-bold">Atendida por: </h5>
+                    <h6 className="indent-2">
+                      {tokens[itemKey].solved_by} em {tokens[itemKey].solved_at}
+                    </h6>
+                  </div>
                 ) : null}
               </ModalBody>
               <Divider />

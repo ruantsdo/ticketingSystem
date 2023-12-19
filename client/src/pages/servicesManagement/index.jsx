@@ -118,7 +118,7 @@ function ServicesManagement() {
 
       if (data.length > 0) {
         toast.warn(
-          "Existem senhas vinculadas a esse serviço! Conclua as senhas para o serviço e tente novamente!"
+          "Existem senhas vinculadas a esse serviço! Remova as senhas para o serviço e tente novamente!"
         );
       } else {
         await removeService(id);
