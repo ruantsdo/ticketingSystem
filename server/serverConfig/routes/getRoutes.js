@@ -15,6 +15,20 @@ router.get("/token/query", async (req, res) => {
   }
 });
 
+router.get("/token/query/byId/:id", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM tokens WHERE id = ?]",
+      [req.params.id],
+      (err, result) => {
+        res.send(result);
+      }
+    );
+  } catch (err) {
+    res.send({ msg: "Falha da consulta dos tokens!" });
+  }
+});
+
 router.get("/token/query/:id", async (req, res) => {
   try {
     await db.query(

@@ -11,7 +11,6 @@ const AuthRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" index element={<LoginPage />} />
         <Route path="/login" index element={<LoginPage />} />
 
         <Route path="*" element={<LoginPage />} />

@@ -265,6 +265,29 @@ function TokensList() {
     }
   };
 
+  const handleDeleteToken = async (id) => {
+    try {
+      const response = await api.get(`/token/query/byId/${id}`);
+      const data = response.data;
+
+      if (data.status === "EM ATENDIMENTO") {
+        toast.error("Não é possível excluir essa senha no momento!");
+        toast.warn("Essa senha está em atendimento!");
+        return;
+      }
+
+      try {
+        await api.post(`/token/remove/byId/${id}`);
+        toast.success("A senha foi removida!");
+        emitSignalTokenUpdate();
+      } catch (error) {
+        console.log("Delete Token Error: " + error);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const countTables = (definedLocation) => {
     const location = locations.find(
       (location) => location.id === definedLocation
