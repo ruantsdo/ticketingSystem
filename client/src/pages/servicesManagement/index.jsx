@@ -111,6 +111,23 @@ function ServicesManagement() {
     }
   };
 
+  const handleDeleteService = async (id) => {
+    try {
+      const response = await api.get(`/token/query/${id}`);
+      const data = response.data;
+
+      if (data.length > 0) {
+        toast.warn(
+          "Existem senhas vinculadas a esse serviço! Conclua as senhas para o serviço e tente novamente!"
+        );
+      } else {
+        await removeService(id);
+      }
+    } catch (error) {
+      console.log("Delete service error: " + error);
+    }
+  };
+
   const removeService = async (id) => {
     try {
       await api
@@ -247,7 +264,7 @@ function ServicesManagement() {
                       mode="failed"
                       className="w-5 rounded-full scale-80"
                       onPress={() => {
-                        removeService(item.id);
+                        handleDeleteService(item.id);
                       }}
                     >
                       <DeleteForeverIcon fontSize="small" />
@@ -319,7 +336,7 @@ function ServicesManagement() {
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
                     onClose();
-                    removeService(services[itemKey].id);
+                    handleDeleteService(services[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
                 >

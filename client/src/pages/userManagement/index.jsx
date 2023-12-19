@@ -185,6 +185,11 @@ function UserManagement() {
   };
 
   const removeUser = async (id) => {
+    if (id === 1) {
+      toast.warn("Esse usuário não pode ser removido!");
+      return;
+    }
+
     try {
       await api
         .post("/users/remove", {
