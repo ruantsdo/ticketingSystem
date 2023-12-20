@@ -210,13 +210,9 @@ router.post("/token/close", async (req, res) => {
 
 router.post("/token/remove/byId/:id", async (req, res) => {
   try {
-    await db.query(
-      "DELETE FROM tokens WHERE id = ?]",
-      [req.params.id],
-      (err, result) => {
-        res.send(result);
-      }
-    );
+    await db.query("DELETE FROM queue WHERE token_id = ?", [req.params.id]);
+    await db.query("DELETE FROM tokens WHERE id = ?", [req.params.id]);
+    res.send("success");
   } catch (err) {
     res.send({ msg: "Falha da consulta dos tokens!" });
   }

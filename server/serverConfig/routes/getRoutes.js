@@ -18,7 +18,7 @@ router.get("/token/query", async (req, res) => {
 router.get("/token/query/byId/:id", async (req, res) => {
   try {
     await db.query(
-      "SELECT * FROM tokens WHERE id = ?]",
+      "SELECT * FROM tokens WHERE id = ?",
       [req.params.id],
       (err, result) => {
         res.send(result);

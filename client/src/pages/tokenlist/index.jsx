@@ -32,6 +32,7 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 //Services
 import api from "../../services/api";
@@ -270,16 +271,21 @@ function TokensList() {
       const response = await api.get(`/token/query/byId/${id}`);
       const data = response.data;
 
-      if (data.status === "EM ATENDIMENTO") {
-        toast.error("Não é possível excluir essa senha no momento!");
+      if (data[0].status === "EM ATENDIMENTO") {
         toast.warn("Essa senha está em atendimento!");
+        toast.error("Não é possível excluir essa senha no momento!");
         return;
       }
 
       try {
-        await api.post(`/token/remove/byId/${id}`);
-        toast.success("A senha foi removida!");
-        emitSignalTokenUpdate();
+        await api.post(`/token/remove/byId/${id}`).then((response) => {
+          if (response.data === "success") {
+            toast.success("A senha foi removida!");
+          } else {
+            toast.error("Houve um problema na remoção da senha!");
+          }
+          emitSignalTokenUpdate();
+        });
       } catch (error) {
         console.log("Delete Token Error: " + error);
       }
@@ -660,6 +666,19 @@ function TokensList() {
                   </>
                 ) : (
                   <>
+                    <Button
+                      isDisabled={
+                        currentUser.permission_level > 2 ? false : true
+                      }
+                      className="bg-transparent text-failed w-15"
+                      onPress={() => {
+                        handleDeleteToken(tokens[itemKey].id);
+                        onClose();
+                      }}
+                      startContent={<DeleteForeverIcon />}
+                    >
+                      DELETAR
+                    </Button>
                     <Button
                       onPress={() => {
                         onClose();
