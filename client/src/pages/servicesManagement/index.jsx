@@ -31,6 +31,7 @@ import {
 //Icons
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import AddIcon from "@mui/icons-material/Add";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -192,91 +193,101 @@ function ServicesManagement() {
   return (
     <FullContainer>
       <Notification />
-      <Table
-        aria-label="Lista de serviços"
-        onRowAction={(key) => {
-          findIndexById(key);
-          onOpen();
-        }}
-        isStriped
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              isCompact
-              showControls
-              color="success"
-              page={page}
-              total={pages}
-              onChange={(page) => setPage(page)}
-            />
-          </div>
-        }
-        classNames={{
-          wrapper: "min-h-[222px]",
-        }}
-        className="sm:w-[80%]"
-      >
-        <TableHeader>
-          <TableColumn className="w-1/12">ID</TableColumn>
-          <TableColumn>SERVIÇO</TableColumn>
-          <TableColumn>AÇÕES</TableColumn>
-        </TableHeader>
-        <TableBody
-          items={items}
-          emptyContent={
-            services.length > 0 ? (
-              <Spinner size="lg" label="Carregando..." color="primary" />
-            ) : (
-              <div className="flex flex-col text-sm">
-                <Spinner
-                  size="sm"
-                  color="success"
-                  label="Ainda não há serviços cadastrados..."
-                />
-                Atualize a página para buscar por atualizações
-              </div>
-            )
+      <div className="flex flex-col w-full sm:w-[95%]">
+        <div className="flex flex-col gap-2 justify-end sm:flex-row">
+          <Button
+            mode="success"
+            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
+            startContent={<AddIcon />}
+          >
+            Novo serviço
+          </Button>
+        </div>
+        <Table
+          aria-label="Lista de serviços"
+          onRowAction={(key) => {
+            findIndexById(key);
+            onOpen();
+          }}
+          isStriped
+          bottomContent={
+            <div className="flex w-full justify-center">
+              <Pagination
+                isCompact
+                showControls
+                color="success"
+                page={page}
+                total={pages}
+                onChange={(page) => setPage(page)}
+              />
+            </div>
           }
+          classNames={{
+            wrapper: "min-h-[222px]",
+          }}
+          className="w-full"
         >
-          {(item) => (
-            <TableRow
-              key={item.id}
-              className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
-            >
-              <TableCell>{item.id}</TableCell>
-              <TableCell>{item.name}</TableCell>
-              <TableCell className="w-1/12">
-                {
-                  <div className="flex flex-row w-full h-7 items-center justify-around">
-                    <Button
-                      isIconOnly
-                      mode="success"
-                      className="w-5 rounded-full scale-80"
-                      onPress={() => {
-                        findIndexById(item.id);
-                        onOpen();
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </Button>
-                    <Button
-                      isIconOnly
-                      mode="failed"
-                      className="w-5 rounded-full scale-80"
-                      onPress={() => {
-                        handleDeleteService(item.id);
-                      }}
-                    >
-                      <DeleteForeverIcon fontSize="small" />
-                    </Button>
-                  </div>
-                }
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
+          <TableHeader>
+            <TableColumn className="w-1/12">ID</TableColumn>
+            <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>AÇÕES</TableColumn>
+          </TableHeader>
+          <TableBody
+            items={items}
+            emptyContent={
+              services.length > 0 ? (
+                <Spinner size="lg" label="Carregando..." color="primary" />
+              ) : (
+                <div className="flex flex-col text-sm">
+                  <Spinner
+                    size="sm"
+                    color="success"
+                    label="Ainda não há serviços cadastrados..."
+                  />
+                  Atualize a página para buscar por atualizações
+                </div>
+              )
+            }
+          >
+            {(item) => (
+              <TableRow
+                key={item.id}
+                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
+              >
+                <TableCell>{item.id}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell className="w-1/12">
+                  {
+                    <div className="flex flex-row w-full h-7 items-center justify-around">
+                      <Button
+                        isIconOnly
+                        mode="success"
+                        className="w-5 rounded-full scale-80"
+                        onPress={() => {
+                          findIndexById(item.id);
+                          onOpen();
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        mode="failed"
+                        className="w-5 rounded-full scale-80"
+                        onPress={() => {
+                          handleDeleteService(item.id);
+                        }}
+                      >
+                        <DeleteForeverIcon fontSize="small" />
+                      </Button>
+                    </div>
+                  }
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
