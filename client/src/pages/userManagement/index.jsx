@@ -26,12 +26,15 @@ import {
   ModalBody,
   ModalFooter,
   Spinner,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 
 //Icons
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -44,6 +47,7 @@ import { toast } from "react-toastify";
 
 function UserManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [addUserIsOpen, setAddUserIsOpen] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
@@ -52,8 +56,15 @@ function UserManagement() {
   const [currentTargetLevel, setCurrentTargetLevel] = useState("");
   const [currentTargetPassword, setCurrentTargetPassword] = useState("");
   const [currentTargetNewPassword, setCurrentTargetNewPassword] = useState("");
+  const [currentTargetNewPasswordConfirm, setCurrentTargetNewPasswordConfirm] =
+    useState("");
 
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const [services, setServices] = useState();
+  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState();
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedPermission, setSelectedPermission] = useState();
 
   const [usersList, setUsersList] = useState([]);
   const [users, setUsers] = useState([]);
@@ -87,6 +98,87 @@ function UserManagement() {
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
+    }
+  };
+
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handlePermissionsLevels = async () => {
+    try {
+      const response = await api.get("/permissionsLevels");
+      defineFilteredPermissionLevels(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const defineFilteredPermissionLevels = (data) => {
+    let filteredPermissionLevels = [];
+
+    if (currentUser.permission_level === 3) {
+      filteredPermissionLevels.push({ id: data[1].id, name: data[1].name });
+    } else if (currentUser.permission_level === 4) {
+      filteredPermissionLevels = [
+        { id: data[1].id, name: data[1].name },
+        { id: data[2].id, name: data[2].name },
+      ];
+    } else if (currentUser.permission_level === 5) {
+      filteredPermissionLevels = data;
+    }
+
+    setFilteredPermissionLevels(filteredPermissionLevels);
+  };
+
+  const handleCreateNewUser = async () => {
+    if (
+      !currentTargetCPF ||
+      !currentTargetEmail ||
+      !currentTargetName ||
+      !currentTargetNewPassword ||
+      !selectedPermission ||
+      !selectedServices
+    ) {
+      toast.info("Todos os campos são obrigatórios");
+    } else {
+      if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
+        try {
+          await api
+            .post("/user/registration", {
+              name: currentTargetName,
+              email: currentTargetEmail,
+              cpf: currentTargetCPF,
+              services: selectedServices,
+              permissionLevel: selectedPermission,
+              password: currentTargetNewPassword,
+              created_by: currentUser.name,
+            })
+            .then((response) => {
+              if (response.data === "New user created") {
+                toast.success("Novo usuário cadastrado!");
+                clearStates();
+              } else if (response.data === "User already exists") {
+                toast.info("Já existe um cadastrado usuário com esse CPF!");
+              } else {
+                toast.error(
+                  "Houve um problema ao cadastrar o novo usuário! Em instantes!"
+                );
+                clearStates();
+                setAddUserIsOpen(false);
+              }
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      } else {
+        toast.info("As senhas devem ser iguais!");
+      }
     }
   };
 
@@ -252,15 +344,20 @@ function UserManagement() {
   };
 
   const clearStates = () => {
-    setCurrentTargetName("");
-    setCurrentTargetEmail("");
-    setCurrentTargetCPF("");
-    setCurrentTargetLevel("");
-    setCurrentTargetPassword("");
-    setCurrentTargetNewPassword("");
+    setCurrentTargetName(null);
+    setCurrentTargetEmail(null);
+    setCurrentTargetCPF(null);
+    setCurrentTargetLevel(null);
+    setCurrentTargetPassword(null);
+    setCurrentTargetNewPassword(null);
+    setCurrentTargetNewPasswordConfirm(null);
+    setSelectedServices([]);
+    setSelectedPermission(null);
   };
 
   useEffect(() => {
+    handleServices();
+    handlePermissionsLevels();
     handleUsersList();
     checkLevel();
     // eslint-disable-next-line
@@ -280,6 +377,7 @@ function UserManagement() {
             mode="success"
             className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
             startContent={<AddIcon />}
+            onPress={() => setAddUserIsOpen(true)}
           >
             Novo usuário
           </Button>
@@ -467,6 +565,146 @@ function UserManagement() {
                     Salvar
                   </Button>
                 </div>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={addUserIsOpen}
+        onOpenChange={() => setAddUserIsOpen(!addUserIsOpen)}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Adicionar novo usuário
+              </ModalHeader>
+              <Divider />
+              <ModalBody>
+                <Input
+                  isRequired
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="NOME"
+                  value={currentTargetName}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
+                />
+                <Input
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="EMAIL"
+                  value={currentTargetEmail}
+                  onChange={(e) => setCurrentTargetEmail(e.target.value)}
+                />
+                <Input
+                  isRequired
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  label="CPF"
+                  maxLength={11}
+                  value={currentTargetCPF}
+                  onChange={(e) => setCurrentTargetCPF(e.target.value)}
+                />
+                <Select
+                  isRequired
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  selectionMode="multiple"
+                  items={services}
+                  label="Indique os serviços que este usuário prestará"
+                  placeholder={
+                    services.length > 0
+                      ? "Selecione pelo menos um serviço"
+                      : "Não há serviços cadastrados no momento..."
+                  }
+                  name="service"
+                  selectedKeys={selectedServices}
+                  onSelectionChange={(values) => {
+                    setSelectedServices(Array.from(values));
+                  }}
+                >
+                  {(service) => (
+                    <SelectItem key={service.id} value={service.name}>
+                      {service.name}
+                    </SelectItem>
+                  )}
+                </Select>
+                <Select
+                  isRequired
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  items={filteredPermissionLevels}
+                  selectionMode="single"
+                  label="Nivel de permissão"
+                  placeholder="Indique nivel de permissão desta pessoa"
+                  name="permissionLevel"
+                  selectedKeys={selectedPermission}
+                  onSelectionChange={(values) => {
+                    setSelectedPermission(values.currentKey);
+                  }}
+                >
+                  {(filteredPermissionLevels) => (
+                    <SelectItem
+                      key={filteredPermissionLevels.id}
+                      value={filteredPermissionLevels.name}
+                    >
+                      {filteredPermissionLevels.name}
+                    </SelectItem>
+                  )}
+                </Select>
+                <Input
+                  isRequired
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  type="password"
+                  label="SENHA"
+                  value={currentTargetNewPassword}
+                  onChange={(e) => setCurrentTargetNewPassword(e.target.value)}
+                />
+                <Input
+                  isRequired
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  type="password"
+                  label="CONFIRME A SENHA"
+                  value={currentTargetNewPasswordConfirm}
+                  onChange={(e) =>
+                    setCurrentTargetNewPasswordConfirm(e.target.value)
+                  }
+                />
+              </ModalBody>
+              <Divider />
+              <ModalFooter>
+                <Button
+                  mode="failed"
+                  variant="light"
+                  onPress={() => {
+                    clearStates();
+                    setAddUserIsOpen(false);
+                    onClose();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  mode="success"
+                  type="submit"
+                  endContent={<HowToRegIcon />}
+                  onPress={async () => {
+                    await handleCreateNewUser();
+                  }}
+                >
+                  Cadastrar
+                </Button>
               </ModalFooter>
             </>
           )}
