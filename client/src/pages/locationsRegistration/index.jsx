@@ -72,6 +72,10 @@ function LocationRegister() {
       toast.warn(
         "Falha ao registrar o local! Tente novamente em alguns instantes!"
       );
+    } else if (response === "already exists") {
+      toast.info("Já existe um local com esse nome!");
+    } else {
+      toast.error("Erro interno no servidor!");
     }
   };
 

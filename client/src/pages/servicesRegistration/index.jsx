@@ -93,6 +93,10 @@ function ServicesRegister() {
       toast.warn(
         "Falha ao registrar o serviço! Tente novamente em alguns instantes!"
       );
+    } else if (response === "already exists") {
+      toast.info("Já existe um serviço com esse nome!");
+    } else {
+      toast.error("Erro interno no servidor!");
     }
   };
 
