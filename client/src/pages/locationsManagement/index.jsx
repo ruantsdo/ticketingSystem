@@ -32,6 +32,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
+import AddTaskIcon from "@mui/icons-material/AddTask";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -45,10 +46,11 @@ import { toast } from "react-toastify";
 function LocationManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
+  const [addLocationIsOpen, setAddLocationIsOpen] = useState(false);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
-  const [currentTargetTables, setCurrentTargetTables] = useState("");
+  const [currentTargetTables, setCurrentTargetTables] = useState(1);
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -182,6 +184,7 @@ function LocationManagement() {
             mode="success"
             className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
             startContent={<AddIcon />}
+            onPress={() => setAddLocationIsOpen(true)}
           >
             Novo local
           </Button>
@@ -271,6 +274,7 @@ function LocationManagement() {
           </TableBody>
         </Table>
       </div>
+
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -357,6 +361,77 @@ function LocationManagement() {
                     Salvar
                   </Button>
                 </div>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={addLocationIsOpen}
+        onOpenChange={() => {
+          setAddLocationIsOpen(!addLocationIsOpen);
+          clearStates();
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 text-center">
+                Adicionar novo local
+              </ModalHeader>
+              <Divider />
+              <ModalBody>
+                <Input
+                  isRequired
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="NOME"
+                  value={currentTargetName}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
+                />
+                <Input
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="DESCRIÇÃO"
+                  value={currentTargetDesc}
+                  onChange={(e) => setCurrentTargetDesc(e.target.value)}
+                />
+                <Input
+                  isRequired
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  label="QUANTIDADE DE MESAS NO LOCAL"
+                  type="number"
+                  min={1}
+                  defaultValue={currentTargetTables}
+                  value={currentTargetTables}
+                  onChange={(e) => setCurrentTargetTables(e.target.value)}
+                />
+              </ModalBody>
+              <Divider />
+              <ModalFooter>
+                <Button
+                  mode="failed"
+                  variant="light"
+                  onPress={() => {
+                    clearStates();
+                    onClose();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  mode="success"
+                  type="submit"
+                  endContent={<AddTaskIcon />}
+                  onPress={() => {}}
+                >
+                  Cadastrar
+                </Button>
               </ModalFooter>
             </>
           )}
