@@ -32,6 +32,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
+import AddTaskIcon from "@mui/icons-material/AddTask";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -45,6 +46,7 @@ import { toast } from "react-toastify";
 function ServicesManagement() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
+  const [addServiceIsOpen, setAddServiceIsOpen] = useState(false);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
@@ -172,6 +174,35 @@ function ServicesManagement() {
     }
   };
 
+  const handleCreateNewService = async () => {
+    if (!currentTargetName) {
+      toast.info("O nome é obrigatório!");
+      return;
+    }
+
+    await api
+      .post("/service/registration", {
+        name: currentTargetName,
+        description: currentTargetDesc,
+        limit: currentTargetLimit,
+        created_by: currentUser.name,
+      })
+      .then((response) => {
+        const resp = response.data;
+        if (resp === "success") {
+          toast.success("Serviço cadastrado!");
+          handleServices();
+        } else if (resp === "failed") {
+          toast.warn(
+            "Falha ao cadastrar o serviço. Tente novamente em alguns instantes!"
+          );
+        } else {
+          toast.error("Erro interno no servidor!");
+        }
+        setAddServiceIsOpen(false);
+      });
+  };
+
   const updateStates = (id) => {
     setCurrentTargetName(services[id].name);
     setCurrentTargetDesc(services[id].description);
@@ -199,6 +230,7 @@ function ServicesManagement() {
             mode="success"
             className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
             startContent={<AddIcon />}
+            onPress={() => setAddServiceIsOpen(true)}
           >
             Novo serviço
           </Button>
@@ -288,6 +320,7 @@ function ServicesManagement() {
           </TableBody>
         </Table>
       </div>
+
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -373,6 +406,74 @@ function ServicesManagement() {
                     Salvar
                   </Button>
                 </div>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={addServiceIsOpen}
+        onOpenChange={() => setAddServiceIsOpen(!addServiceIsOpen)}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 text-center">
+                Adicionar novo serviço
+              </ModalHeader>
+              <Divider />
+              <ModalBody>
+                <Input
+                  isRequired
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="NOME"
+                  value={currentTargetName}
+                  onChange={(e) => setCurrentTargetName(e.target.value)}
+                />
+                <Input
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  label="DESCRIÇÃO"
+                  value={currentTargetDesc}
+                  onChange={(e) => setCurrentTargetDesc(e.target.value)}
+                />
+                <Input
+                  variant="underlined"
+                  className="border-none"
+                  size="sm"
+                  label="LIMITE DIÁRIO"
+                  placeholder="Deixe em branco para infitino"
+                  type="number"
+                  value={currentTargetLimit}
+                  onChange={(e) => setCurrentTargetLimit(e.target.value)}
+                />
+              </ModalBody>
+              <Divider />
+              <ModalFooter>
+                <Button
+                  mode="failed"
+                  variant="light"
+                  onPress={() => {
+                    clearStates();
+                    onClose();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  mode="success"
+                  type="submit"
+                  endContent={<AddTaskIcon />}
+                  onPress={() => {
+                    handleCreateNewService();
+                  }}
+                >
+                  Cadastrar
+                </Button>
               </ModalFooter>
             </>
           )}
