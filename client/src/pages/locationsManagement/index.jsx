@@ -157,6 +157,40 @@ function LocationManagement() {
     }
   };
 
+  const handleAddNewLocation = async () => {
+    if (!currentTargetName || !currentTargetTables) {
+      toast.info("O nome e quantidade de mesas é obrigatório!");
+      return;
+    }
+
+    await api
+      .post("/location/registration", {
+        name: currentTargetName,
+        description: currentTargetDesc,
+        tables: currentTargetTables,
+        created_by: currentUser.name,
+      })
+      .then((response) => {
+        const resp = response.data;
+
+        if (resp === "success") {
+          toast.success("Local cadastrado!");
+          handleLocations();
+          setAddLocationIsOpen(false);
+        } else if (resp === "failed") {
+          toast.warn(
+            "Falha ao cadastrar novo local. Tente novamente em alguns instantes!"
+          );
+          setAddLocationIsOpen(false);
+        } else if (resp === "already exists") {
+          toast.info("Já existe um local com esse nome!");
+        } else {
+          toast.error("Falha interna no servidor. Tente novamete mais tarde!");
+          setAddLocationIsOpen(false);
+        }
+      });
+  };
+
   const updateStates = (id) => {
     setCurrentTargetName(locations[id].name);
     setCurrentTargetDesc(locations[id].description);
@@ -428,7 +462,9 @@ function LocationManagement() {
                   mode="success"
                   type="submit"
                   endContent={<AddTaskIcon />}
-                  onPress={() => {}}
+                  onPress={() => {
+                    handleAddNewLocation();
+                  }}
                 >
                   Cadastrar
                 </Button>

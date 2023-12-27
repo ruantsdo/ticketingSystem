@@ -250,16 +250,26 @@ router.post("/queue/remove", async (req, res) => {
 router.post("/location/registration", async (req, res) => {
   try {
     await db.query(
-      "INSERT INTO locations (name, description, tables, created_by, created_at) VALUES (?,?,?,?,?)",
-      [
-        req.body.name,
-        req.body.description,
-        req.body.tables,
-        req.body.created_by,
-        getTime(),
-      ]
+      "SELECT * FROM locations WHERE name = ?",
+      [req.body.name],
+      (err, result) => {
+        if (result.length > 0) {
+          res.send("already exists");
+        } else {
+          db.query(
+            "INSERT INTO locations (name, description, tables, created_by, created_at) VALUES (?,?,?,?,?)",
+            [
+              req.body.name,
+              req.body.description,
+              req.body.tables,
+              req.body.created_by,
+              getTime(),
+            ]
+          );
+          res.send("success");
+        }
+      }
     );
-    res.send("success");
   } catch (err) {
     res.send("failed");
   }
