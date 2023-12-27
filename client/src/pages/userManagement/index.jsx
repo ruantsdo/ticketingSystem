@@ -139,13 +139,12 @@ function UserManagement() {
   const handleCreateNewUser = async () => {
     if (
       !currentTargetCPF ||
-      !currentTargetEmail ||
       !currentTargetName ||
       !currentTargetNewPassword ||
       !selectedPermission ||
       !selectedServices
     ) {
-      toast.info("Todos os campos são obrigatórios");
+      toast.info(`Campos com * são obrigatórios!`);
     } else {
       if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
         try {
@@ -163,11 +162,13 @@ function UserManagement() {
               if (response.data === "New user created") {
                 toast.success("Novo usuário cadastrado!");
                 clearStates();
+                handleUsersList();
+                setAddUserIsOpen(false);
               } else if (response.data === "User already exists") {
                 toast.info("Já existe um cadastrado usuário com esse CPF!");
               } else {
                 toast.error(
-                  "Houve um problema ao cadastrar o novo usuário! Em instantes!"
+                  "Houve um problema ao cadastrar o novo usuário! Tente novamente em alguns instantes!"
                 );
                 clearStates();
                 setAddUserIsOpen(false);
@@ -467,6 +468,7 @@ function UserManagement() {
           </TableBody>
         </Table>
       </div>
+
       <Modal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -578,7 +580,7 @@ function UserManagement() {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
+              <ModalHeader className="flex flex-col gap-1 text-center">
                 Adicionar novo usuário
               </ModalHeader>
               <Divider />
@@ -699,8 +701,8 @@ function UserManagement() {
                   mode="success"
                   type="submit"
                   endContent={<HowToRegIcon />}
-                  onPress={async () => {
-                    await handleCreateNewUser();
+                  onPress={() => {
+                    handleCreateNewUser();
                   }}
                 >
                   Cadastrar
