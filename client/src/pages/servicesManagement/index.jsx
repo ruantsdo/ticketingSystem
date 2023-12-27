@@ -184,7 +184,7 @@ function ServicesManagement() {
       .post("/service/registration", {
         name: currentTargetName,
         description: currentTargetDesc,
-        limit: currentTargetLimit,
+        limit: currentTargetLimit ? currentTargetLimit : 0,
         created_by: currentUser.name,
       })
       .then((response) => {
@@ -192,14 +192,18 @@ function ServicesManagement() {
         if (resp === "success") {
           toast.success("Serviço cadastrado!");
           handleServices();
+          setAddServiceIsOpen(false);
         } else if (resp === "failed") {
           toast.warn(
             "Falha ao cadastrar o serviço. Tente novamente em alguns instantes!"
           );
+          setAddServiceIsOpen(false);
+        } else if (resp === "already exists") {
+          toast.info("Já existe um serviço com esse nome!");
         } else {
           toast.error("Erro interno no servidor!");
+          setAddServiceIsOpen(false);
         }
-        setAddServiceIsOpen(false);
       });
   };
 
@@ -414,7 +418,10 @@ function ServicesManagement() {
 
       <Modal
         isOpen={addServiceIsOpen}
-        onOpenChange={() => setAddServiceIsOpen(!addServiceIsOpen)}
+        onOpenChange={() => {
+          setAddServiceIsOpen(!addServiceIsOpen);
+          clearStates();
+        }}
       >
         <ModalContent>
           {(onClose) => (
