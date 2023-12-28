@@ -7,9 +7,6 @@ import api from "../services/api";
 //Toast
 import { toast } from "react-toastify";
 
-//Router Dom
-import { redirect } from "react-router-dom";
-
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
@@ -49,12 +46,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.clear();
       toast.info("Suas credenciais expiraram...");
       toast.warn("Você deve fazer login novamente...");
-      redirect("/login");
+      window.location.reload(true);
     } else if (response === "invalid") {
       localStorage.clear();
       toast.error("Parece que esse usuário não é mais válido...");
       toast.warn("Tente fazer login novamente...");
-      redirect("/login");
+      window.location.reload(true);
     } else if (response === "valid") {
       setCurrentUser(currentUser);
     }
@@ -94,7 +91,12 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, setCurrentUser, isLoading, setIsLoading }}
+      value={{
+        currentUser,
+        setCurrentUser,
+        isLoading,
+        setIsLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

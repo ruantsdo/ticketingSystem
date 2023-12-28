@@ -5,6 +5,7 @@ import React, { useContext } from "react";
 import AuthRoutes from "./authRoutes";
 import AppRoutes from "./appRoutes";
 import ScreenRoutes from "./screenRoutes";
+import UserRoutes from "./userRoutes";
 
 //Contexts
 import AuthContext from "../contexts/auth";
@@ -34,7 +35,12 @@ const Router = () => {
   if (currentUser) {
     if (currentUser.permission_level === 1) {
       return <ScreenRoutes />;
-    } else if (currentUser.permission_level > 1) {
+    } else if (
+      currentUser.permission_level === 2 ||
+      currentUser.permission_level === 3
+    ) {
+      return <UserRoutes />;
+    } else if (currentUser.permission_level >= 4) {
       return <AppRoutes />;
     }
   } else {

@@ -11,18 +11,12 @@ import {
   UserManagement,
   QueueRegistration,
   TokensList,
-  TokenCallDefault,
-  TokenCallAlternative,
-  ServicesRegister,
-  ServicesManagement,
-  LocationRegister,
-  LocationManagement,
 } from "./routes";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";
 
-const AppRoutes = () => {
+const UserRoutes = () => {
   return (
     <WebSocketProvider>
       <BrowserRouter>
@@ -32,15 +26,6 @@ const AppRoutes = () => {
           <Route path="/user/management" element={<UserManagement />} />
           <Route path="/queueRegistration" element={<QueueRegistration />} />
           <Route path="/tokensList" element={<TokensList />} />
-          <Route path="/tokenCall/default" element={<TokenCallDefault />} />
-          <Route
-            path="/tokenCall/alternative"
-            element={<TokenCallAlternative />}
-          />
-          <Route path="/service/register" element={<ServicesRegister />} />
-          <Route path="/service/management" element={<ServicesManagement />} />
-          <Route path="/location/register" element={<LocationRegister />} />
-          <Route path="/location/management" element={<LocationManagement />} />
 
           <Route path="*" element={<Home />} />
         </Routes>
@@ -49,4 +34,4 @@ const AppRoutes = () => {
   );
 };
 
-export default AppRoutes;
+export default UserRoutes;

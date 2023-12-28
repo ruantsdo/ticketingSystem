@@ -33,7 +33,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { redirect } from "react-router-dom";
 
 export default function NavBar() {
-  const { setCurrentUser } = useContext(AuthContext);
+  const { setCurrentUser, currentUser } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const logout = () => {
@@ -102,21 +102,25 @@ export default function NavBar() {
         </NavbarItem>
       </NavbarContent>
       <NavbarMenu className="w-screen bg-background dark:bg-darkBackground opacity-80">
-        {menuItems.map((item, index) => (
-          <NavbarMenuItem
-            key={`${item}-${index}`}
-            className="hover:cursor-pointer hover:scale-95 transition-all"
-          >
-            <Link
-              color={item.color}
-              href={item.address}
-              className="w-full"
-              size="lg"
+        {menuItems.map((item, index) =>
+          currentUser.permission_level >= item.level ? (
+            <NavbarMenuItem
+              key={`${item}-${index}`}
+              className="hover:cursor-pointer hover:scale-95 transition-all"
             >
-              {item.name}
-            </Link>
-          </NavbarMenuItem>
-        ))}
+              <Link
+                color={item.color}
+                href={item.address}
+                className="w-full"
+                size="lg"
+              >
+                {item.name}
+              </Link>
+            </NavbarMenuItem>
+          ) : (
+            <></>
+          )
+        )}
         <Button
           onClick={() => logout()}
           className="flex bg-failed dark:bg-darkFailed w-1/6 rounded-md text-lg items-center justify-center hover:scale-105"
