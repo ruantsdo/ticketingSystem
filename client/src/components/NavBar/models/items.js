@@ -51,13 +51,13 @@ const menuItems = [
     name: "Tela de chamada (Padrão)",
     color: "foreground",
     address: "/tokenCall/default",
-    level: 4,
+    level: 5,
   },
   {
     name: "Tela de chamada (Alternativo)",
     color: "foreground",
     address: "/tokenCall/alternative",
-    level: 4,
+    level: 5,
   },
 ];
 
