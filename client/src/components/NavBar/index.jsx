@@ -16,6 +16,8 @@ import {
 
 //Components
 import { ThemeSwitcher } from "../";
+import AdmShortcuts from "./components/admShortcuts";
+import UserShortcuts from "./components/userShortcuts";
 
 //Models
 import menuItems from "./models/items";
@@ -67,34 +69,11 @@ export default function NavBar() {
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex gap-3" justify="center">
-        <NavbarItem>
-          <Link
-            color="foreground"
-            href="/queueRegistration"
-            className="hover:underline"
-          >
-            Nova ficha
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link
-            href="/newUser"
-            color="foreground"
-            aria-current="page"
-            className="hover:underline"
-          >
-            Novo usuário
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link
-            color="foreground"
-            href="/tokensList"
-            className="hover:underline"
-          >
-            Lista de Fichas
-          </Link>
-        </NavbarItem>
+        {currentUser.permission_level > 3 ? (
+          <AdmShortcuts />
+        ) : (
+          <UserShortcuts />
+        )}
       </NavbarContent>
       <NavbarContent justify="end">
         <NavbarItem justify="end">
