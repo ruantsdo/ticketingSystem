@@ -303,11 +303,9 @@ function UserManagement() {
   };
 
   const updateUser = async (id) => {
-    let passwordChanged;
+    let passwordChanged = false;
 
-    if (currentTargetNewPassword === "") {
-      passwordChanged = false;
-    } else {
+    if (currentTargetNewPassword) {
       passwordChanged = true;
     }
 
@@ -320,7 +318,9 @@ function UserManagement() {
           cpf: currentTargetCPF,
           level: currentTargetLevel,
           updated_by: currentUser.name,
-          password: currentTargetPassword,
+          password: currentTargetNewPassword
+            ? currentTargetNewPassword
+            : currentTargetPassword,
           passwordChanged: passwordChanged,
         })
         .then((response) => {
@@ -531,7 +531,11 @@ function UserManagement() {
                   size="sm"
                   type="password"
                   label="SENHA (Deixe em branco para manter a atual)"
-                  onChange={(e) => setCurrentTargetNewPassword(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentTargetNewPassword(e.target.value);
+                    console.log(e.target.value);
+                    console.log(currentTargetNewPassword);
+                  }}
                 />
               </ModalBody>
 

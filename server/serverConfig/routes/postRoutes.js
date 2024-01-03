@@ -115,10 +115,11 @@ router.post("/user/registration", async (req, res) => {
 router.post("/users/update", async (req, res) => {
   const { id, name, email, cpf, level, updated_by, password, passwordChanged } =
     req.body;
+
   let hash;
 
-  if (passwordChanged === true) {
-    hash = await bcrypt.hash(password, saltRounds);
+  if (passwordChanged) {
+    hash = await await bcrypt.hash(password, saltRounds);
   } else {
     hash = password;
   }
