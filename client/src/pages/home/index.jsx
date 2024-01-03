@@ -2,7 +2,7 @@
 import { useContext } from "react";
 
 //Components
-import { Container, AdmShortcuts } from "./components";
+import { Container, AdmShortcuts, UserShortcuts } from "./components";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -19,10 +19,14 @@ function Home() {
         <div className="mb-4">
           <h3 className="text-2xl mb-2">Atalhos</h3>
           <div className="flex flex-row gap-2">
-            <AdmShortcuts />
+            {currentUser.permission_level > 3 ? (
+              <AdmShortcuts />
+            ) : (
+              <UserShortcuts />
+            )}
           </div>
         </div>
-        <div>Gráficos</div>
+        <div>Another Div</div>
       </div>
     </Container>
   );
