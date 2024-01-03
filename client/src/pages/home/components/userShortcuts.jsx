@@ -10,11 +10,11 @@ function UserShortcuts({ children }) {
     <>
       <ShortcutButton address="/queueRegistration">
         <PlaylistAddIcon fontSize="large" />
-        <text className="text-md font-bold">Criar nova senha</text>
+        <span className="text-md font-bold">Criar nova senha</span>
       </ShortcutButton>
       <ShortcutButton address="/tokensList">
         <FormatListBulletedIcon fontSize="large" />
-        <text className="text-md font-bold">Lista de senhas</text>
+        <span className="text-md font-bold">Lista de senhas</span>
       </ShortcutButton>
     </>
   );

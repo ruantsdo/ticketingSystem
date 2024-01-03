@@ -13,23 +13,23 @@ function AdmShortcuts({ children }) {
     <>
       <ShortcutButton address="/user/management">
         <ManageAccountsIcon fontSize="large" />
-        <text className="text-md font-bold">Gerenciar Usuários</text>
+        <span className="text-md font-bold">Gerenciar Usuários</span>
       </ShortcutButton>
       <ShortcutButton address="/service/management">
         <AddHomeWorkIcon fontSize="large" />
-        <text className="text-md font-bold">Gerenciar Serviços</text>
+        <span className="text-md font-bold">Gerenciar Serviços</span>
       </ShortcutButton>
       <ShortcutButton address="/location/management">
         <AddLocationIcon fontSize="large" />
-        <text className="text-md font-bold">Gerenciar Locais</text>
+        <span className="text-md font-bold">Gerenciar Locais</span>
       </ShortcutButton>
       <ShortcutButton address="/home">
         <AssessmentIcon fontSize="large" />
-        <text className="text-md font-bold">Relatórios</text>
+        <span className="text-md font-bold">Relatórios</span>
       </ShortcutButton>
       <ShortcutButton address="/queueRegistration">
         <FormatListBulletedIcon fontSize="large" />
-        <text className="text-md font-bold">Lista de senhas</text>
+        <span className="text-md font-bold">Lista de senhas</span>
       </ShortcutButton>
     </>
   );
