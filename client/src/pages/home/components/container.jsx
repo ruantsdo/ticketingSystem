@@ -1,14 +1,15 @@
 //Components
-import { NavBar } from "../../../components/";
+import { NavBar, Notification } from "../../../components/";
 
 function Container({ children }) {
   const defaultStyle = `flex flex-col w-full h-screen bg-background dark:bg-darkBackground
     text-textColor dark:text-darkTextColor transition-all overflow-hidden`;
   return (
-    <>
+    <div className={defaultStyle}>
       <NavBar />
-      <div className={defaultStyle}>{children}</div>
-    </>
+      <Notification />
+      <div>{children}</div>
+    </div>
   );
 }
 

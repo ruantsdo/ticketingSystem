@@ -80,7 +80,7 @@ export default function NavBar() {
           <ThemeSwitcher />
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className="w-screen bg-background dark:bg-darkBackground opacity-80">
+      <NavbarMenu className="w-screen sm:w-[40%] max-h-unit-8xl rounded-lg bg-background dark:bg-darkBackground">
         {menuItems.map((item, index) =>
           currentUser.permission_level >= item.level ? (
             <NavbarMenuItem
@@ -96,13 +96,11 @@ export default function NavBar() {
                 {item.name}
               </Link>
             </NavbarMenuItem>
-          ) : (
-            <></>
-          )
+          ) : null
         )}
         <Button
           onClick={() => logout()}
-          className="flex bg-failed dark:bg-darkFailed w-1/6 rounded-md text-lg items-center justify-center hover:scale-105"
+          className="flex bg-failed dark:bg-darkFailed w-2/6 rounded-md text-lg items-center justify-center hover:scale-105"
           startContent={<ExitToAppIcon />}
         >
           Sair
