@@ -177,7 +177,9 @@ function TokensList() {
     try {
       const response = await api.get(`/user_services/query/${currentUser.id}`);
       handleTokens(response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.log("Falha ao obter serviços do usuário!");
+    }
   };
 
   const handleTokens = async (userServices) => {
