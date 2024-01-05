@@ -1,6 +1,8 @@
 //React
 import { useContext, useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 //Components
 import {
   ThemeSwitcher,
@@ -30,6 +32,7 @@ import { toast } from "react-toastify";
 
 function LoginPage() {
   const { setCurrentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [isVisible, setIsVisible] = useState(false);
 
@@ -57,6 +60,12 @@ function LoginPage() {
               localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
               setCurrentUser(response.data[0]);
+
+              if (currentUser.permission_level === 1) {
+                navigate("/tokenCall/default");
+              } else {
+                navigate("/home");
+              }
             } else {
               toast.warn("Verifique suas crendenciais e tente novamente!");
             }
