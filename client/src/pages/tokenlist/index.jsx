@@ -160,7 +160,9 @@ function TokensList() {
     try {
       const response = await api.get("/services/query");
       setServices(response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.log("Erro ao obter lista de serviços: " + error);
+    }
   };
 
   const handleLocations = async () => {
