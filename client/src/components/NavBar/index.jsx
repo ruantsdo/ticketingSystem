@@ -80,7 +80,7 @@ export default function NavBar() {
           <ThemeSwitcher />
         </NavbarItem>
       </NavbarContent>
-      <NavbarMenu className="w-screen sm:w-[40%] max-h-unit-8xl rounded-lg bg-background dark:bg-darkBackground">
+      <NavbarMenu className="w-screen sm:w-[40%] max-h-unit-8xl rounded-br-lg bg-background dark:bg-darkBackground shadow-xl ring-white border-r-1 border-b-1 border-darkBackground dark:border-background">
         {menuItems.map((item, index) =>
           currentUser.permission_level >= item.level ? (
             <NavbarMenuItem
