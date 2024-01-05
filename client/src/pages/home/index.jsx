@@ -50,12 +50,21 @@ function Home() {
             name: service.name,
             Quantidade: 0,
             Atendidos: 0,
-            Limite: service.limit === 0 ? "Ilimitado" : service.limit,
+            Aguardando: 0,
+            Adiados: 0,
+            "Em atendimento": 0,
+            Disponibilidade: service.limit === 0 ? "Ilimitado" : service.limit,
           };
         }
 
         if (token.status === "CONCLUIDO") {
           serviceCount[service.name].Atendidos++;
+        } else if (token.status === "EM ATENDIMENTO") {
+          serviceCount[service.name]["Em atendimento"]++;
+        } else if (token.status === "ADIADO") {
+          serviceCount[service.name].Adiados++;
+        } else {
+          serviceCount[service.name].Aguardando++;
         }
 
         serviceCount[service.name].Quantidade++;
@@ -65,9 +74,9 @@ function Home() {
     const finalResult = Object.values(serviceCount).map((service) => ({
       ...service,
       Restante:
-        service.Limite === "Ilimitado"
+        service.Disponibilidade === "Ilimitado"
           ? "Ilimitado"
-          : service.Limite - service.Quantidade,
+          : service.Disponibilidade - service.Quantidade,
     }));
 
     setGraphData(finalResult);
@@ -100,7 +109,7 @@ function Home() {
           {loadingGraph ? (
             <CircularProgress label="Processando dados..." color="primary" />
           ) : (
-            <ResponsiveContainer width="50%" height={350}>
+            <ResponsiveContainer width="100%" height={350}>
               <BarChart
                 data={graphData}
                 margin={{
@@ -116,8 +125,11 @@ function Home() {
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="Quantidade" stackId="a" fill="#ffc658" />
-                <Bar dataKey="Restante" stackId="a" fill="#82ca9d" />
-                <Bar dataKey="Atendidos" fill="#8884d8" />
+                <Bar dataKey="Disponibilidade" stackId="a" fill="#82ca9d" />
+                <Bar dataKey="Atendidos" stackId="b" fill="#2C931F" />
+                <Bar dataKey="Aguardando" stackId="b" fill="#008EDB" />
+                <Bar dataKey="Adiados" stackId="b" fill="#FF6254" />
+                <Bar dataKey="Em atendimento" stackId="b" fill="#A946A0" />
               </BarChart>
             </ResponsiveContainer>
           )}
