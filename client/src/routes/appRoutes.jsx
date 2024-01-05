@@ -17,6 +17,7 @@ import {
   ServicesManagement,
   LocationRegister,
   LocationManagement,
+  RedirectPage,
 } from "./routes";
 
 //Contexts
@@ -42,7 +43,7 @@ const AppRoutes = () => {
           <Route path="/location/register" element={<LocationRegister />} />
           <Route path="/location/management" element={<LocationManagement />} />
 
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<RedirectPage />} />
         </Routes>
       </BrowserRouter>
     </WebSocketProvider>

@@ -5,7 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
-import { Home, QueueRegistration, TokensList } from "./routes";
+import { Home, QueueRegistration, TokensList, RedirectPage } from "./routes";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";
@@ -19,7 +19,7 @@ const UserRoutes = () => {
           <Route path="/queueRegistration" element={<QueueRegistration />} />
           <Route path="/tokensList" element={<TokensList />} />
 
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<RedirectPage />} />
         </Routes>
       </BrowserRouter>
     </WebSocketProvider>

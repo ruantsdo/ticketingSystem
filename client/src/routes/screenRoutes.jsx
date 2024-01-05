@@ -5,7 +5,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
-import { TokenCallDefault, TokenCallAlternative } from "./routes";
+import { TokenCallDefault, TokenCallAlternative, RedirectPage } from "./routes";
 
 //Contexts
 import { WebSocketProvider } from "../contexts/webSocket";
@@ -25,7 +25,7 @@ const ScreenRoutes = () => {
             element={<TokenCallAlternative />}
           />
 
-          <Route path="*" element={<TokenCallDefault />} />
+          <Route path="*" element={<RedirectPage />} />
         </Routes>
       </BrowserRouter>
     </WebSocketProvider>
