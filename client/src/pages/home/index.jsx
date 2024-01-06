@@ -73,7 +73,7 @@ function Home() {
 
     const finalResult = Object.values(serviceCount).map((service) => ({
       ...service,
-      Restante:
+      Disponibilidade:
         service.Disponibilidade === "Ilimitado"
           ? "Ilimitado"
           : service.Disponibilidade - service.Quantidade,
