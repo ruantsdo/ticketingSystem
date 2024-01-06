@@ -109,7 +109,11 @@ function Home() {
           {loadingGraph ? (
             <CircularProgress label="Processando dados..." color="primary" />
           ) : (
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer
+              width="100%"
+              height={350}
+              className="text-textColor"
+            >
               <BarChart
                 data={graphData}
                 margin={{
