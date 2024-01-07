@@ -18,6 +18,7 @@ import {
   LocationRegister,
   LocationManagement,
   RedirectPage,
+  Reports,
 } from "./routes";
 
 //Contexts
@@ -42,6 +43,7 @@ const AppRoutes = () => {
           <Route path="/service/management" element={<ServicesManagement />} />
           <Route path="/location/register" element={<LocationRegister />} />
           <Route path="/location/management" element={<LocationManagement />} />
+          <Route path="/reports" element={<Reports />} />
 
           <Route path="*" element={<RedirectPage />} />
         </Routes>

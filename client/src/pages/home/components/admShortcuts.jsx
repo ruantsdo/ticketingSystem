@@ -27,7 +27,7 @@ function AdmShortcuts({ children }) {
         <FormatListBulletedIcon fontSize="large" />
         <span className="text-md font-bold">Lista de senhas</span>
       </ShortcutButton>
-      <ShortcutButton address="/home">
+      <ShortcutButton address="/reports">
         <AssessmentIcon fontSize="large" />
         <span className="text-md font-bold">Relatórios</span>
       </ShortcutButton>

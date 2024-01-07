@@ -6,6 +6,8 @@ const fs = require("fs");
 const { exec } = require("child_process");
 const mysql = require("mysql2/promise");
 
+const prefix = "backup";
+
 const dbConfig = {
   host: process.env.DATABASE_HOST,
   user: process.env.DATABASE_USER,
@@ -25,7 +27,7 @@ cron.schedule("0 0 * * *", async () => {
 function backupAndResetTable() {
   const tableName = "tokens";
   const backupFolder = path.join(__dirname, "..", "Backups");
-  const backupFileName = `backup_${tableName}_${new Date().toISOString()}.sql`;
+  const backupFileName = `${prefix}_${tableName}_${new Date().toISOString()}.sql`;
   const sanitizedFileName = backupFileName.replace(/[^\w\s.-]/gi, "");
   const fullPath = path.join(backupFolder, sanitizedFileName);
 
@@ -77,7 +79,7 @@ async function createAndInsertMonthlyTable() {
     ];
 
     const formattedMonth = monthsInPortuguese[currentMonth];
-    const monthlyTableName = `backup_${formattedMonth}_de_${currentYear}`;
+    const monthlyTableName = `${prefix}_${formattedMonth}_de_${currentYear}`;
 
     const [tableExists] = await connection.execute(
       `SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?`,
@@ -122,4 +124,30 @@ async function createAndInsertMonthlyTable() {
   }
 }
 
-module.exports = { backupAndResetTable, createAndInsertMonthlyTable };
+async function getTables() {
+  const connection = await mysql.createConnection(dbConfig);
+
+  try {
+    const query = `SHOW TABLES LIKE '${prefix}%'`;
+    const [results] = await connection.execute(query);
+
+    const tables = results.map((row, index) => {
+      const tableName = Object.values(row)[0];
+      return { id: index + 1, name: tableName };
+    });
+
+    //console.log(`Tabelas com o prefixo '${prefix}':`, tables);
+
+    return tables;
+  } catch (error) {
+    console.error("Erro ao executar a consulta:", error);
+  } finally {
+    await connection.end();
+  }
+}
+
+module.exports = {
+  backupAndResetTable,
+  createAndInsertMonthlyTable,
+  getTables,
+};

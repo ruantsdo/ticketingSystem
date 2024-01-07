@@ -3,6 +3,12 @@ const router = express.Router();
 const db = require("../dbConnection");
 const fs = require("fs");
 
+const {
+  getTables,
+  createAndInsertMonthlyTable,
+  backupAndResetTable,
+} = require("../backups");
+
 const videosFolder = "./videos";
 
 router.get("/token/query", async (req, res) => {
@@ -171,6 +177,29 @@ router.get("/videoList", (req, res) => {
       return;
     }
     res.json({ videos: files });
+  });
+});
+
+router.get("/checkBackups", async (req, res) => {
+  const result = await getTables();
+
+  res.send(result);
+});
+
+router.get("/getBackupData/:table", async (req, res) => {
+  const tableName = req.params.table;
+
+  db.query("SELECT * FROM ??", [tableName], (err, result) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+
+    if (result.length > 0) {
+      res.send(result);
+    } else {
+      res.status(404).send("Tabela não encontrada");
+    }
   });
 });
 

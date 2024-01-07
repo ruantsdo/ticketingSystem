@@ -79,7 +79,7 @@ function LoginPage() {
   });
 
   return (
-    <Container>
+    <Container className="h-screen">
       <ThemeSwitcher className="absolute top-5 right-3" />
       <Card>
         <p className="text-3xl">Login</p>

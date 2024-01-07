@@ -11,6 +11,7 @@ import LocationRegister from "../pages/locationsRegistration";
 import LoginPage from "../pages/login";
 import LocationManagement from "../pages/locationsManagement";
 import RedirectPage from "../pages/redirect";
+import Reports from "../pages/reports";
 
 export {
   Home,
@@ -26,4 +27,5 @@ export {
   LoginPage,
   LocationManagement,
   RedirectPage,
+  Reports,
 };

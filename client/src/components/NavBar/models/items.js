@@ -48,6 +48,12 @@ const menuItems = [
     level: 2,
   },
   {
+    name: "Relatórios",
+    color: "foreground",
+    address: "/reports",
+    level: 5,
+  },
+  {
     name: "Tela de chamada (Padrão)",
     color: "foreground",
     address: "/tokenCall/default",

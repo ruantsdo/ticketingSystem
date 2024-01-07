@@ -14,7 +14,7 @@ function RedirectPage() {
   const { currentUser } = useContext(AuthContext);
 
   return (
-    <Container>
+    <Container className="h-screen">
       <Card className="flex flex-col items-center text-center w-[60%] gap-2 p-4">
         <h1 className="text-5xl"> Página não encontrada</h1>
         <h1 className="text-3xl">Erro 404</h1>
