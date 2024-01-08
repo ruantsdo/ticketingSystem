@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 
 //Components
-import Subtitle from "./subtitle";
+import { Subtitle } from "./";
 
 //NextUI
 import {
@@ -73,6 +73,7 @@ function TokensTable({ ...props }) {
       classNames={{
         wrapper: "min-h-[222px]",
       }}
+      className="w-[70%]"
     >
       <TableHeader>
         <TableColumn className="w-1/12">FICHA Nº</TableColumn>

@@ -3,9 +3,12 @@ import { useState, useEffect } from "react";
 
 //Components
 import { FullContainer } from "../../components/";
-import BackUpsModal from "./components/backupsModal";
-import TokensTable from "./components/tokensTable";
-import TokensDetails from "./components/TokenDetailsModal";
+import {
+  BackUpsModal,
+  TokensTable,
+  TokensDetails,
+  TypesGraph,
+} from "./components";
 
 //Hooks
 import useGetRoutes from "../../Hooks/getUserInfos";
@@ -18,7 +21,6 @@ function Reports() {
   const [tableComponent, setTableComponent] = useState();
 
   const [tokenDetailisOpen, setTokenDetailisOpen] = useState(false);
-  //const [targetTokenId, setTargetTokenId] = useState();
   const [targetToken, setTargetToken] = useState();
 
   const defineServices = async () => {
@@ -50,7 +52,10 @@ function Reports() {
 
   return (
     <FullContainer>
-      <div className="flex flex-row w-screen h-full">{tableComponent}</div>
+      <div className="flex flex-row w-screen h-fit items-center justify-center">
+        {tableComponent}
+        <TypesGraph />
+      </div>
       <TokensDetails
         tokenDetailisOpen={tokenDetailisOpen}
         setTokenDetailisOpen={setTokenDetailisOpen}
