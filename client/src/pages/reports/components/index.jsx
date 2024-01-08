@@ -1,4 +1,4 @@
-import TypesGraph from "./typesGraphs";
+import TypesGraph from "./typesGraphics";
 import TokensDetails from "./TokenDetailsModal";
 import TokensTable from "./tokensTable";
 import BackUpsModal from "./backupsModal";

@@ -15,10 +15,14 @@ import useGetRoutes from "../../Hooks/getUserInfos";
 
 function Reports() {
   const { getAllServices } = useGetRoutes();
+
   const [services, setServices] = useState([]);
   const [tokens, setTokens] = useState([]);
 
   const [tableComponent, setTableComponent] = useState();
+  const [typesGraphComponent, setTypesGraphComponent] = useState();
+
+  const [tokensAreDefined, setTokensAreDefined] = useState(false);
 
   const [tokenDetailisOpen, setTokenDetailisOpen] = useState(false);
   const [targetToken, setTargetToken] = useState();
@@ -40,6 +44,12 @@ function Reports() {
   }, []);
 
   useEffect(() => {
+    if (tokensAreDefined === true) {
+      setTypesGraphComponent(
+        <TypesGraph tokens={tokens} services={services} />
+      );
+    }
+
     setTableComponent(
       <TokensTable
         tokens={tokens}
@@ -54,7 +64,7 @@ function Reports() {
     <FullContainer>
       <div className="flex flex-row w-screen h-fit items-center justify-center">
         {tableComponent}
-        <TypesGraph />
+        {typesGraphComponent}
       </div>
       <TokensDetails
         tokenDetailisOpen={tokenDetailisOpen}
@@ -62,7 +72,11 @@ function Reports() {
         token={targetToken}
         services={services}
       />
-      <BackUpsModal BackupsModalIsOpen={true} setTokens={setTokens} />
+      <BackUpsModal
+        BackupsModalIsOpen={true}
+        setTokens={setTokens}
+        setTokensAreDefined={setTokensAreDefined}
+      />
     </FullContainer>
   );
 }

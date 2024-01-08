@@ -26,7 +26,7 @@ import { Divider, Button } from "../../../components";
 import api from "../../../services/api";
 
 function BackUpsModal({ ...props }) {
-  const { BackupsModalIsOpen, setTokens } = props;
+  const { BackupsModalIsOpen, setTokens, setTokensAreDefined } = props;
 
   const [isOpen, setIsOpen] = useState(BackupsModalIsOpen);
 
@@ -69,6 +69,7 @@ function BackUpsModal({ ...props }) {
     );
     setTokens(response.data);
     setIsOpen(false);
+    setTokensAreDefined(true);
   };
 
   useEffect(() => {

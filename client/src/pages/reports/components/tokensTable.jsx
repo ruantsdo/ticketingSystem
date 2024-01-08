@@ -97,7 +97,8 @@ function TokensTable({ ...props }) {
                 color="success"
                 label="Não há fichas disponíveis no momento..."
               />
-              Atualize a página para buscar por atualizações...
+              Atualize a página para buscar por atualizações ou selecione um
+              período diferente ...
             </div>
           )
         }
