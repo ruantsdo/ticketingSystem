@@ -85,7 +85,6 @@ function TokensTable({ ...props }) {
       className="w-[70%]"
     >
       <TableHeader>
-        <TableColumn className="w-1/12">FICHA Nº</TableColumn>
         <TableColumn>SERVIÇO</TableColumn>
         <TableColumn className="hidden sm:flex sm:items-center h-11">
           SOLICITADO POR
@@ -101,11 +100,7 @@ function TokensTable({ ...props }) {
             <Spinner size="lg" label="Carregando..." color="primary" />
           ) : (
             <div className="flex flex-col text-sm">
-              <Spinner
-                size="sm"
-                color="success"
-                label="Não há fichas disponíveis no momento..."
-              />
+              <Spinner size="md" color="success" label="Não há fichas ..." />
               Atualize a página para buscar por atualizações ou selecione um
               período diferente ...
             </div>
@@ -117,7 +112,6 @@ function TokensTable({ ...props }) {
             key={item.id}
             className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
           >
-            <TableCell>{item.position}</TableCell>
             <TableCell>{services[item.service - 1].name}</TableCell>
             <TableCell className="hidden sm:table-cell">
               {item.requested_by !== ""

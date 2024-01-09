@@ -20,11 +20,19 @@ import Graph02 from "./components/graphics/graphic02";
 //Hooks
 import useGetRoutes from "../../Hooks/getUserInfos";
 
+//Icons
+import SearchIcon from "@mui/icons-material/Search";
+import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+
+//Toast
+import { toast } from "react-toastify";
+
 function Reports() {
   const { getAllServices } = useGetRoutes();
 
   const [services, setServices] = useState([]);
   const [tokens, setTokens] = useState([]);
+  const [originalTokens, setOriginalTokens] = useState(null);
 
   const [backupsModalIsOpen, setBackupsModalIsOpen] = useState(true);
 
@@ -56,7 +64,7 @@ function Reports() {
     setTokenDetailisOpen(true);
   };
 
-  function generateGraphData() {
+  const generateGraphData = () => {
     const serviceCount = {};
 
     tokens.forEach((token) => {
@@ -108,7 +116,48 @@ function Reports() {
     setGraphComponent02(<Graph02 graphData={data02} />);
 
     setIsLoading(false);
-  }
+  };
+
+  const filterTokens = () => {
+    if (searchValue !== "" && searchFilter !== "") {
+      const filteredTokens = tokens.filter((token) => {
+        const filterValue = token[searchFilter];
+
+        if (searchFilter === "service") {
+          const foundService = services.find(
+            (service) => service.name === searchValue
+          );
+          return foundService ? foundService.id : null;
+        } else if (searchFilter === "priority") {
+          const upperCaseSearchValue = searchValue.toUpperCase();
+
+          if (upperCaseSearchValue === "NORMAL") {
+            return token.priority === 0;
+          } else if (upperCaseSearchValue === "PRIORIDADE") {
+            return token.priority === 1;
+          }
+        } else if (searchFilter === "status") {
+          const upperCaseSearchValue = searchValue.toUpperCase();
+
+          return (
+            typeof filterValue === "string" &&
+            filterValue.toUpperCase().includes(upperCaseSearchValue)
+          );
+        } else if (
+          typeof filterValue === "string" &&
+          filterValue.includes(searchValue)
+        ) {
+          return true;
+        }
+
+        return false;
+      });
+
+      setTokens(filteredTokens);
+    } else {
+      toast.info("Ambos os campos devem ser preenchidos");
+    }
+  };
 
   useEffect(() => {
     defineServices();
@@ -117,6 +166,9 @@ function Reports() {
 
   useEffect(() => {
     if (tokensAreDefined === true) {
+      if (!originalTokens) {
+        setOriginalTokens(tokens);
+      }
       setLoadMessage("Processando dados...");
       generateGraphData();
     }
@@ -134,7 +186,7 @@ function Reports() {
 
   return (
     <FullContainer className="min-h-screen gap-3">
-      <div className="flex flex-row w-full h-fit justify-around pr-5 pl-5">
+      <div className="flex flex-row w-full h-fit justify-around items-center pr-5 pl-5">
         <Input
           size="sm"
           variant="faded"
@@ -149,7 +201,7 @@ function Reports() {
           items={SelectItems}
           label="Filtrar por"
           placeholder="Indique o filtro desejado"
-          className="mb-1 sm:max-w-xs border-none shadow-none"
+          className="sm:max-w-xs border-none shadow-none w-[30%]"
           variant="faded"
           onSelectionChange={(key) => {
             setSearchFilter(key.currentKey);
@@ -160,11 +212,21 @@ function Reports() {
           ))}
         </Select>
         <Button
-          onPress={() => alert("Clicou")}
+          onPress={() => filterTokens()}
           mode="success"
-          className="w-[10%]"
+          className="w-fit"
+          endContent={<SearchIcon />}
         >
           Buscar
+        </Button>
+        <Button
+          onPress={() => {
+            setTokens(originalTokens);
+          }}
+          className="w-fit bg-alert"
+          endContent={<FilterAltOffIcon />}
+        >
+          Remover filtros
         </Button>
       </div>
       <div className="flex flex-row w-[100%] h-fit items-center justify-around">

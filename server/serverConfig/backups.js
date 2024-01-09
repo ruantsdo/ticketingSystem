@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-const cron = require("node-cron");
 const path = require("path");
 const fs = require("fs");
 const { exec } = require("child_process");
@@ -17,12 +16,6 @@ const dbConfig = {
 
 const mysqlWorkbenchPath =
   '"C:\\Program Files\\MySQL\\MySQL Workbench 8.0\\mysqldump.exe"';
-
-cron.schedule("0 0 * * *", async () => {
-  console.log("Iniciando rotina de backup diário!");
-  await createAndInsertMonthlyTable();
-  backupAndResetTable();
-});
 
 function backupAndResetTable() {
   const tableName = "tokens";

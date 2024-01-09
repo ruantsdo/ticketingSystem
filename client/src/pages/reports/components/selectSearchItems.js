@@ -6,28 +6,33 @@ const SelectItems = [
   },
   {
     id: 2,
-    placeholder: "Criado por",
+    placeholder: "Criado por ...",
     value: "created_by",
   },
   {
     id: 3,
-    placeholder: "Solicitada por",
+    placeholder: "Solicitada por ...",
     value: "requested_by",
   },
   {
     id: 4,
-    placeholder: "Atendida por",
+    placeholder: "Atendida por ...",
     value: "solved_by",
   },
   {
     id: 5,
-    placeholder: "Adiada por",
+    placeholder: "Adiada por ...",
     value: "delayed_by",
   },
   {
     id: 6,
     placeholder: "Prioridade",
     value: "priority",
+  },
+  {
+    id: 7,
+    placeholder: "Status",
+    value: "status",
   },
 ];
 
