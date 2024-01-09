@@ -2,8 +2,16 @@
 import { useState, useEffect } from "react";
 
 //Components
-import { Button, FullContainer } from "../../components/";
-import { BackUpsModal, TokensTable, TokensDetails } from "./components";
+import { Button, FullContainer, Select } from "../../components/";
+import {
+  BackUpsModal,
+  TokensTable,
+  TokensDetails,
+  SelectItems,
+} from "./components";
+
+//NextUi
+import { CircularProgress, SelectItem, Input } from "@nextui-org/react";
 
 //Graphics
 import Graph01 from "./components/graphics/graphic01";
@@ -11,7 +19,6 @@ import Graph02 from "./components/graphics/graphic02";
 
 //Hooks
 import useGetRoutes from "../../Hooks/getUserInfos";
-import { CircularProgress } from "@nextui-org/react";
 
 function Reports() {
   const { getAllServices } = useGetRoutes();
@@ -34,6 +41,9 @@ function Reports() {
 
   const [tokenDetailisOpen, setTokenDetailisOpen] = useState(false);
   const [targetToken, setTargetToken] = useState();
+
+  const [searchValue, setSearchValue] = useState("");
+  const [searchFilter, setSearchFilter] = useState("");
 
   const defineServices = async () => {
     const services = await getAllServices();
@@ -116,6 +126,7 @@ function Reports() {
         tokens={tokens}
         services={services}
         defineTargetToken={defineTargetToken}
+        setBackupsModalIsOpen={setBackupsModalIsOpen}
       />
     );
     // eslint-disable-next-line
@@ -123,9 +134,37 @@ function Reports() {
 
   return (
     <FullContainer className="min-h-screen gap-3">
-      <div className="w-full h-fit items-center justify-around">
-        <Button onPress={() => setBackupsModalIsOpen(true)} mode="success">
-          Selecinar período
+      <div className="flex flex-row w-full h-fit justify-around pr-5 pl-5">
+        <Input
+          size="sm"
+          variant="faded"
+          className="w-[40%]"
+          type="text"
+          label="Buscar por..."
+          name="searchValue"
+          onChange={(e) => setSearchValue(e.target.value)}
+        />
+        <Select
+          size="sm"
+          items={SelectItems}
+          label="Filtrar por"
+          placeholder="Indique o filtro desejado"
+          className="mb-1 sm:max-w-xs border-none shadow-none"
+          variant="faded"
+          onSelectionChange={(key) => {
+            setSearchFilter(key.currentKey);
+          }}
+        >
+          {SelectItems.map((item) => (
+            <SelectItem key={item.value}>{item.placeholder}</SelectItem>
+          ))}
+        </Select>
+        <Button
+          onPress={() => alert("Clicou")}
+          mode="success"
+          className="w-[10%]"
+        >
+          Buscar
         </Button>
       </div>
       <div className="flex flex-row w-[100%] h-fit items-center justify-around">

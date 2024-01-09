@@ -24,9 +24,10 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
+import { Button } from "../../../components";
 
 function TokensTable({ ...props }) {
-  const { tokens, services, defineTargetToken } = props;
+  const { tokens, services, defineTargetToken, setBackupsModalIsOpen } = props;
 
   const [page, setPage] = useState(1);
 
@@ -59,7 +60,7 @@ function TokensTable({ ...props }) {
       }}
       isStriped
       bottomContent={
-        <div className="flex w-full justify-center">
+        <div className="flex flex-row w-full items-center justify-center">
           <Pagination
             isCompact
             showControls
@@ -68,6 +69,14 @@ function TokensTable({ ...props }) {
             total={pages}
             onChange={(page) => setPage(page)}
           />
+
+          <Button
+            onPress={() => setBackupsModalIsOpen(true)}
+            mode="success"
+            className="w-fit right-4 absolute"
+          >
+            Selecionar um período
+          </Button>
         </div>
       }
       classNames={{
