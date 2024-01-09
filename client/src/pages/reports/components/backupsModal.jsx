@@ -86,7 +86,7 @@ function BackUpsModal({ ...props }) {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col text-xl text-center">
-                Selecione um período para começar!
+                Selecione um backup!
               </ModalHeader>
               <Divider />
               <ModalBody className="flex flex-col text-center">

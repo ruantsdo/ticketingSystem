@@ -61,6 +61,13 @@ function TokensTable({ ...props }) {
       isStriped
       bottomContent={
         <div className="flex flex-row w-full items-center justify-center">
+          <Button
+            onPress={() => setBackupsModalIsOpen(true)}
+            mode="success"
+            className="w-fit left-4 absolute"
+          >
+            Selecionar um backup
+          </Button>
           <Pagination
             isCompact
             showControls
@@ -71,7 +78,7 @@ function TokensTable({ ...props }) {
           />
 
           <Button
-            onPress={() => setBackupsModalIsOpen(true)}
+            onPress={() => console.log("Clicou")}
             mode="success"
             className="w-fit right-4 absolute"
           >

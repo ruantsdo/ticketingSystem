@@ -221,7 +221,9 @@ function Reports() {
         </Button>
         <Button
           onPress={() => {
-            setTokens(originalTokens);
+            if (tokensAreDefined === true) {
+              setTokens(originalTokens);
+            }
           }}
           className="w-fit bg-alert"
           endContent={<FilterAltOffIcon />}
