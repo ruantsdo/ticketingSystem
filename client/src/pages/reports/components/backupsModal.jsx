@@ -26,9 +26,12 @@ import { Divider, Button } from "../../../components";
 import api from "../../../services/api";
 
 function BackUpsModal({ ...props }) {
-  const { BackupsModalIsOpen, setTokens, setTokensAreDefined } = props;
-
-  const [isOpen, setIsOpen] = useState(BackupsModalIsOpen);
+  const {
+    setTokens,
+    setTokensAreDefined,
+    setBackupsModalIsOpen,
+    backupsModalIsOpen,
+  } = props;
 
   const [avaliableBackups, setAvaliableBackups] = useState([]);
 
@@ -68,7 +71,7 @@ function BackUpsModal({ ...props }) {
       `/getBackupData/${avaliableBackups[key].name}`
     );
     setTokens(response.data);
-    setIsOpen(false);
+    setBackupsModalIsOpen(false);
     setTokensAreDefined(true);
   };
 
@@ -78,8 +81,7 @@ function BackUpsModal({ ...props }) {
 
   return (
     <>
-      <Button onPress={() => setIsOpen(!isOpen)}>Selecinar período</Button>
-      <Modal isOpen={isOpen} hideCloseButton={true}>
+      <Modal isOpen={backupsModalIsOpen} hideCloseButton={true}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -155,7 +157,7 @@ function BackUpsModal({ ...props }) {
                 <Button
                   mode="failed"
                   onPress={() => {
-                    setIsOpen(!isOpen);
+                    setBackupsModalIsOpen(false);
                   }}
                 >
                   Fechar

@@ -3,7 +3,7 @@ import { NavBar, Container } from "../";
 
 function FullContainer({ children, ...props }) {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen">
       <NavBar />
       <Container {...props}>{children}</Container>
     </div>

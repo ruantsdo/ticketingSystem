@@ -50,7 +50,7 @@ export default function NavBar() {
       shouldHideOnScroll
       isBordered
       onMenuOpenChange={setIsMenuOpen}
-      height={"3rem"}
+      height="3rem"
       className="w-full bg-navBarBackground dark:bg-darkNavBarBackground"
     >
       <NavbarContent>

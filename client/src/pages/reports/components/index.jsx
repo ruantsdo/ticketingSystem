@@ -1,7 +1,6 @@
-import TypesGraph from "./typesGraphics";
 import TokensDetails from "./TokenDetailsModal";
 import TokensTable from "./tokensTable";
 import BackUpsModal from "./backupsModal";
 import Subtitle from "./subtitle";
 
-export { TypesGraph, TokensDetails, TokensTable, BackUpsModal, Subtitle };
+export { TokensDetails, TokensTable, BackUpsModal, Subtitle };

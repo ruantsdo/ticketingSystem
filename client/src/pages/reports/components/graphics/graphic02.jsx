@@ -1,39 +1,59 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Rectangle,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from "recharts";
+
+const COLORS = ["#F5A524", "#2C931F"];
+
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+}) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
 
 const Graph02 = ({ graphData }) => (
-  <ResponsiveContainer width="30%" height="100%">
-    <BarChart
-      width={500}
-      height={300}
-      data={graphData}
-      margin={{
-        top: 5,
-        right: 30,
-        left: 20,
-        bottom: 5,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="Nome" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar
-        dataKey="Quantidade"
+  <ResponsiveContainer width="100%" minHeight={300} height="100%">
+    <PieChart width={400} height={400}>
+      <Pie
+        data={graphData}
+        cx="50%"
+        cy="50%"
+        labelLine={false}
+        label={renderCustomizedLabel}
+        outerRadius={80}
         fill="#8884d8"
-        activeBar={<Rectangle fill="pink" stroke="blue" />}
+        dataKey="Quantidade"
+      >
+        {graphData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index]} />
+        ))}
+      </Pie>
+      <Legend
+        payload={graphData.map((entry, index) => ({
+          id: entry.Nome,
+          type: "square",
+          value: entry.Nome,
+          color: COLORS[index],
+        }))}
       />
-    </BarChart>
+    </PieChart>
   </ResponsiveContainer>
 );
 

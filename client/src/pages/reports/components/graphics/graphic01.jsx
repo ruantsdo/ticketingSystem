@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 const Graph01 = ({ graphData }) => (
-  <ResponsiveContainer width="30%" height={350} className="text-textColor">
+  <ResponsiveContainer width="100%" height={300} className="text-textColor">
     <BarChart
       data={graphData}
       margin={{
