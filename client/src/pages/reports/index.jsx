@@ -228,9 +228,6 @@ function Reports() {
 
   useEffect(() => {
     if (tokensAreDefined === true) {
-      if (!originalTokens) {
-        setOriginalTokens(tokens);
-      }
       setLoadMessage("Processando dados...");
       generateGraphData();
     }
@@ -325,6 +322,7 @@ function Reports() {
           setTokensAreDefined={setTokensAreDefined}
           setBackupsModalIsOpen={setBackupsModalIsOpen}
           backupsModalIsOpen={backupsModalIsOpen}
+          setOriginalTokens={setOriginalTokens}
         />
       </div>
     </FullContainer>

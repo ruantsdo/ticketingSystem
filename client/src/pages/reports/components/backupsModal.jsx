@@ -31,6 +31,7 @@ function BackUpsModal({ ...props }) {
     setTokensAreDefined,
     setBackupsModalIsOpen,
     backupsModalIsOpen,
+    setOriginalTokens,
   } = props;
 
   const [avaliableBackups, setAvaliableBackups] = useState([]);
@@ -71,6 +72,7 @@ function BackUpsModal({ ...props }) {
       `/getBackupData/${avaliableBackups[key].name}`
     );
     setTokens(response.data);
+    setOriginalTokens(response.data);
     setBackupsModalIsOpen(false);
     setTokensAreDefined(true);
   };
