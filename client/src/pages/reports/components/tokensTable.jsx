@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 
 //Components
 import { Subtitle } from "./";
+import { Button } from "../../../components";
 
 //NextUI
 import {
@@ -24,7 +25,8 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
-import { Button } from "../../../components";
+import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 function TokensTable({ ...props }) {
   const { tokens, services, defineTargetToken, setBackupsModalIsOpen } = props;
@@ -61,13 +63,15 @@ function TokensTable({ ...props }) {
       isStriped
       bottomContent={
         <div className="flex flex-row w-full items-center justify-center">
-          <Button
-            onPress={() => setBackupsModalIsOpen(true)}
-            mode="success"
-            className="w-fit left-4 absolute"
-          >
-            Selecionar um backup
-          </Button>
+          <div className="flex flex-row w-[42%] left-2 absolute justify-around">
+            <Button
+              onPress={() => setBackupsModalIsOpen(true)}
+              className="w-fit bg-info"
+              endContent={<PublishedWithChangesIcon />}
+            >
+              Selecionar um backup
+            </Button>
+          </div>
           <Pagination
             isCompact
             showControls
@@ -76,14 +80,16 @@ function TokensTable({ ...props }) {
             total={pages}
             onChange={(page) => setPage(page)}
           />
-
-          <Button
-            onPress={() => console.log("Clicou")}
-            mode="success"
-            className="w-fit right-4 absolute"
-          >
-            Selecionar um período
-          </Button>
+          <div className="flex flex-row right-2 absolute w-[42%] justify-around">
+            <Button
+              onPress={() => alert("clicou")}
+              mode="success"
+              className="w-fit"
+              endContent={<EventAvailableIcon />}
+            >
+              Selecionar um período
+            </Button>
+          </div>
         </div>
       }
       classNames={{

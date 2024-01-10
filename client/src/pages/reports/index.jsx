@@ -19,13 +19,18 @@ import Graph02 from "./components/graphics/graphic02";
 
 //Hooks
 import useGetRoutes from "../../Hooks/getUserInfos";
+import { handleGenerateReport } from "../../Hooks/generateReportXLXS";
 
 //Icons
 import SearchIcon from "@mui/icons-material/Search";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
+import DownloadIcon from "@mui/icons-material/Download";
 
 //Toast
 import { toast } from "react-toastify";
+
+//Models
+import { headers } from "./components/models/reportHeaders";
 
 function Reports() {
   const { getAllServices } = useGetRoutes();
@@ -52,6 +57,8 @@ function Reports() {
 
   const [searchValue, setSearchValue] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
+
+  const [sheetName, setSheetName] = useState("completo");
 
   const defineServices = async () => {
     const services = await getAllServices();
@@ -161,6 +168,7 @@ function Reports() {
       });
 
       setTokens(filteredTokens);
+      generateSheetName();
     } else {
       toast.info("Ambos os campos devem ser preenchidos");
     }
@@ -168,6 +176,49 @@ function Reports() {
 
   const removeAccents = (str) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  const generateSheetName = () => {
+    const filterNames = {
+      service: `por serviço (${searchValue})`,
+      created_by: `senhas criadas por (${searchValue})`,
+      requested_by: `senhas solicitadas por (${searchValue})`,
+      solved_by: `senhas concluídas por (${searchValue})`,
+      delayed_by: `senhas adiadas por (${searchValue})`,
+      priority: `por prioridade (${searchValue})`,
+      status: `por status (${searchValue})`,
+    };
+
+    const defaultFilterName = `outro filtro (${searchValue})`;
+
+    setSheetName(filterNames[searchFilter] || defaultFilterName);
+  };
+
+  const handleCreateReport = async () => {
+    const content = tokens.map((item) => {
+      const service = services.find((service) => service.id === item.service);
+      const serviceName = service
+        ? service.name
+        : "Nome do Serviço Não Encontrado";
+
+      return {
+        ID: item.id,
+        POSIÇÃO: item.position,
+        SERVIÇO: serviceName,
+        PRIORIDADE: item.priority === 1 ? "Prioridade" : "Normal",
+        "SOLICITADO POR": item.requested_by,
+        "CRIADO POR": item.created_by,
+        "CRIADO EM": item.created_at,
+        "RESOLVIDO POR": item.solved_by,
+        "RESOLVIDO EM": item.solved_at,
+        "ATRASADO POR": item.delayed_by,
+        "ATRASADO EM": item.delayed_at,
+        STATUS: item.status,
+        DESCRIÇÃO: item.description,
+      };
+    });
+
+    await handleGenerateReport({ headers, content, sheetName });
   };
 
   useEffect(() => {
@@ -197,7 +248,7 @@ function Reports() {
 
   return (
     <FullContainer className="min-h-screen gap-3">
-      <div className="flex flex-row w-full h-fit justify-around items-center pr-5 pl-5">
+      <div className="flex flex-row w-full h-fit justify-around items-center pr-2 pl-2">
         <Input
           size="sm"
           variant="faded"
@@ -229,6 +280,13 @@ function Reports() {
           endContent={<SearchIcon />}
         >
           Buscar
+        </Button>
+        <Button
+          onPress={() => handleCreateReport()}
+          className="w-fit bg-info"
+          endContent={<DownloadIcon />}
+        >
+          Gerar planilha
         </Button>
         <Button
           onPress={() => {
