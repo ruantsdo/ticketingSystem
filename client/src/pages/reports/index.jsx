@@ -66,6 +66,10 @@ function Reports() {
 
   const generateGraphData = () => {
     const serviceCount = {};
+    const serviceTypeCount = [
+      { Nome: "PRIORIDADE", Quantidade: 0 },
+      { Nome: "NORMAL", Quantidade: 0 },
+    ];
 
     tokens.forEach((token) => {
       const service = services.find((service) => service.id === token.service);
@@ -92,6 +96,12 @@ function Reports() {
           serviceCount[service.name].Aguardando++;
         }
 
+        if (token.priority === 1) {
+          serviceTypeCount[0].Quantidade++;
+        } else {
+          serviceTypeCount[1].Quantidade++;
+        }
+
         serviceCount[service.name].Quantidade++;
       }
     });
@@ -107,12 +117,7 @@ function Reports() {
     const data01 = Object.values(finalResult);
     setGraphComponent01(<Graph01 graphData={data01} />);
 
-    const typeData = [
-      { Nome: "PRIORIDADE", Quantidade: finalResult[1]?.Quantidade || 0 },
-      { Nome: "NORMAL", Quantidade: finalResult[0]?.Quantidade || 0 },
-    ];
-
-    const data02 = Object.values(typeData);
+    const data02 = Object.values(serviceTypeCount);
     setGraphComponent02(<Graph02 graphData={data02} />);
 
     setIsLoading(false);
@@ -137,11 +142,13 @@ function Reports() {
             return token.priority === 1;
           }
         } else if (searchFilter === "status") {
-          const upperCaseSearchValue = searchValue.toUpperCase();
+          const upperCaseSearchValue = removeAccents(searchValue.toUpperCase());
 
           return (
             typeof filterValue === "string" &&
-            filterValue.toUpperCase().includes(upperCaseSearchValue)
+            removeAccents(filterValue.toUpperCase()).includes(
+              upperCaseSearchValue
+            )
           );
         } else if (
           typeof filterValue === "string" &&
@@ -157,6 +164,10 @@ function Reports() {
     } else {
       toast.info("Ambos os campos devem ser preenchidos");
     }
+  };
+
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
 
   useEffect(() => {
