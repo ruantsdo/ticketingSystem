@@ -23,7 +23,7 @@ function TokensDetails({ ...props }) {
   const { tokenDetailisOpen, setTokenDetailisOpen, token, services } = props;
 
   return (
-    <Modal isOpen={tokenDetailisOpen} hideCloseButton={true}>
+    <Modal isOpen={tokenDetailisOpen} hideCloseButton={true} backdrop="opaque">
       <ModalContent>
         {(onClose) => (
           <>

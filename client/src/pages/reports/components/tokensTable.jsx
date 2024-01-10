@@ -29,7 +29,13 @@ import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 function TokensTable({ ...props }) {
-  const { tokens, services, defineTargetToken, setBackupsModalIsOpen } = props;
+  const {
+    tokens,
+    services,
+    defineTargetToken,
+    setBackupsModalIsOpen,
+    setPickerIsOpen,
+  } = props;
 
   const [page, setPage] = useState(1);
 
@@ -82,7 +88,7 @@ function TokensTable({ ...props }) {
           />
           <div className="flex flex-row right-2 absolute w-[42%] justify-around">
             <Button
-              onPress={() => alert("clicou")}
+              onPress={() => setPickerIsOpen(true)}
               mode="success"
               className="w-fit"
               endContent={<EventAvailableIcon />}

@@ -8,6 +8,7 @@ import {
   TokensTable,
   TokensDetails,
   SelectItems,
+  DatePickerModal,
 } from "./components";
 
 //NextUi
@@ -32,8 +33,20 @@ import { toast } from "react-toastify";
 //Models
 import { headers } from "./components/models/reportHeaders";
 
+//TimePicker
+import moment from "moment";
+import "moment/locale/pt-br";
+
 function Reports() {
   const { getAllServices } = useGetRoutes();
+
+  const currentDate = moment();
+  const defaultStartDate = currentDate.startOf("day").toDate();
+  const defaultEndDate = currentDate.endOf("day").toDate();
+  const [startDate, setStartDate] = useState(defaultStartDate);
+  const [endDate, setEndDate] = useState(defaultEndDate);
+  const [pickerIsOpen, setPickerIsOpen] = useState(false);
+  const [pickerFilter, setPickerFilter] = useState(null);
 
   const [services, setServices] = useState([]);
   const [tokens, setTokens] = useState([]);
@@ -221,6 +234,18 @@ function Reports() {
     await handleGenerateReport({ headers, content, sheetName });
   };
 
+  const handleFilterTokensByDateInterval = () => {
+    const filteredItems = tokens.filter((item) => {
+      const itemDate = moment(
+        item[pickerFilter],
+        "DD/MM/YYYY [às] HH:mm:ss"
+      ).toDate();
+      return moment(itemDate).isBetween(startDate, endDate, null, "[]");
+    });
+
+    setTokens(filteredItems);
+  };
+
   useEffect(() => {
     defineServices();
     // eslint-disable-next-line
@@ -238,6 +263,7 @@ function Reports() {
         services={services}
         defineTargetToken={defineTargetToken}
         setBackupsModalIsOpen={setBackupsModalIsOpen}
+        setPickerIsOpen={setPickerIsOpen}
       />
     );
     // eslint-disable-next-line
@@ -311,20 +337,31 @@ function Reports() {
         ) : (
           <>{GraphComponent01}</>
         )}
-        <TokensDetails
-          tokenDetailisOpen={tokenDetailisOpen}
-          setTokenDetailisOpen={setTokenDetailisOpen}
-          token={targetToken}
-          services={services}
-        />
-        <BackUpsModal
-          setTokens={setTokens}
-          setTokensAreDefined={setTokensAreDefined}
-          setBackupsModalIsOpen={setBackupsModalIsOpen}
-          backupsModalIsOpen={backupsModalIsOpen}
-          setOriginalTokens={setOriginalTokens}
-        />
       </div>
+      <TokensDetails
+        tokenDetailisOpen={tokenDetailisOpen}
+        setTokenDetailisOpen={setTokenDetailisOpen}
+        token={targetToken}
+        services={services}
+      />
+      <BackUpsModal
+        setTokens={setTokens}
+        setTokensAreDefined={setTokensAreDefined}
+        setBackupsModalIsOpen={setBackupsModalIsOpen}
+        backupsModalIsOpen={backupsModalIsOpen}
+        setOriginalTokens={setOriginalTokens}
+      />
+      <DatePickerModal
+        pickerIsOpen={pickerIsOpen}
+        setPickerIsOpen={setPickerIsOpen}
+        handleFilterTokensByDateInterval={handleFilterTokensByDateInterval}
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+        pickerFilter={pickerFilter}
+        setPickerFilter={setPickerFilter}
+      />
     </FullContainer>
   );
 }

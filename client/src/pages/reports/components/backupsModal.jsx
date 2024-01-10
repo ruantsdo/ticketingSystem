@@ -83,7 +83,7 @@ function BackUpsModal({ ...props }) {
 
   return (
     <>
-      <Modal isOpen={backupsModalIsOpen} hideCloseButton={true}>
+      <Modal isOpen={backupsModalIsOpen} hideCloseButton={true} backdrop="blur">
         <ModalContent>
           {(onClose) => (
             <>
