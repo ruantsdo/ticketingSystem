@@ -47,6 +47,8 @@ function Reports() {
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [pickerIsOpen, setPickerIsOpen] = useState(false);
   const [pickerFilter, setPickerFilter] = useState(null);
+  const [datePickerSelectPlaceHolder, setDatePickerSelectPlaceHolder] =
+    useState(null);
 
   const [services, setServices] = useState([]);
   const [tokens, setTokens] = useState([]);
@@ -69,9 +71,11 @@ function Reports() {
   const [targetToken, setTargetToken] = useState();
 
   const [searchValue, setSearchValue] = useState("");
-  const [searchFilter, setSearchFilter] = useState("");
+  const [searchFilter, setSearchFilter] = useState(null);
+  const [searchFilterPlaceHolder, setSearchFilterPlaceHolder] = useState(null);
 
   const [sheetName, setSheetName] = useState("completo");
+  const [sheetNameDate, setSheetNameDate] = useState("");
 
   const defineServices = async () => {
     const services = await getAllServices();
@@ -194,10 +198,10 @@ function Reports() {
   const generateSheetName = () => {
     const filterNames = {
       service: `por serviço (${searchValue})`,
-      created_by: `senhas criadas por (${searchValue})`,
-      requested_by: `senhas solicitadas por (${searchValue})`,
-      solved_by: `senhas concluídas por (${searchValue})`,
-      delayed_by: `senhas adiadas por (${searchValue})`,
+      created_by: `de senhas criadas por (${searchValue})`,
+      requested_by: `de senhas solicitadas por (${searchValue})`,
+      solved_by: `de senhas concluídas por (${searchValue})`,
+      delayed_by: `de senhas adiadas por (${searchValue})`,
       priority: `por prioridade (${searchValue})`,
       status: `por status (${searchValue})`,
     };
@@ -230,20 +234,55 @@ function Reports() {
         DESCRIÇÃO: item.description,
       };
     });
-
-    await handleGenerateReport({ headers, content, sheetName });
+    const finalSheetName = `${sheetName}${sheetNameDate}`;
+    await handleGenerateReport({ headers, content, finalSheetName });
   };
 
   const handleFilterTokensByDateInterval = () => {
     const filteredItems = tokens.filter((item) => {
-      const itemDate = moment(
+      const itemDate = moment.utc(
         item[pickerFilter],
         "DD/MM/YYYY [às] HH:mm:ss"
-      ).toDate();
-      return moment(itemDate).isBetween(startDate, endDate, null, "[]");
+      );
+
+      const startDateUTC = moment.utc(startDate);
+      const endDateUTC = moment.utc(endDate);
+
+      const itemDateLocal = itemDate.format("YYYY-MM-DD HH:mm:ss");
+      const startDateLocal = startDateUTC.local().format("YYYY-MM-DD HH:mm:ss");
+      const endDateLocal = endDateUTC.local().format("YYYY-MM-DD HH:mm:ss");
+
+      return moment(itemDateLocal).isBetween(
+        startDateLocal,
+        endDateLocal,
+        null,
+        "seconds"
+      );
     });
+    const startDateLocal = moment
+      .utc(startDate)
+      .local()
+      .format("DD-MM-YYYY HH:mm:ss");
+    const endDateLocal = moment
+      .utc(endDate)
+      .local()
+      .format("DD-MM-YYYY HH:mm:ss");
+
+    setSheetNameDate(` entre ${startDateLocal} e ${endDateLocal}`);
 
     setTokens(filteredItems);
+  };
+
+  const resetFilters = () => {
+    setTokens(originalTokens);
+    setPickerFilter(null);
+    setStartDate(defaultStartDate);
+    setEndDate(defaultEndDate);
+    setSearchFilter(null);
+    setSearchValue("");
+    setSheetName("completo");
+    setDatePickerSelectPlaceHolder([]);
+    setSearchFilterPlaceHolder([]);
   };
 
   useEffect(() => {
@@ -279,6 +318,7 @@ function Reports() {
           type="text"
           label="Buscar por..."
           name="searchValue"
+          value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
         />
         <Select
@@ -288,12 +328,15 @@ function Reports() {
           placeholder="Indique o filtro desejado"
           className="sm:max-w-xs border-none shadow-none w-[30%]"
           variant="faded"
+          selectedKeys={searchFilterPlaceHolder}
+          disabledKeys={searchFilterPlaceHolder}
           onSelectionChange={(key) => {
-            setSearchFilter(key.currentKey);
+            setSearchFilter(SelectItems[key.currentKey - 1].value);
+            setSearchFilterPlaceHolder(key.currentKey);
           }}
         >
           {SelectItems.map((item) => (
-            <SelectItem key={item.value}>{item.placeholder}</SelectItem>
+            <SelectItem key={item.id}>{item.placeholder}</SelectItem>
           ))}
         </Select>
         <Button
@@ -313,9 +356,7 @@ function Reports() {
         </Button>
         <Button
           onPress={() => {
-            if (tokensAreDefined === true) {
-              setTokens(originalTokens);
-            }
+            resetFilters();
           }}
           className="w-fit bg-alert"
           endContent={<FilterAltOffIcon />}
@@ -361,6 +402,8 @@ function Reports() {
         setEndDate={setEndDate}
         pickerFilter={pickerFilter}
         setPickerFilter={setPickerFilter}
+        setSelectPlaceHolder={setDatePickerSelectPlaceHolder}
+        selectPlaceHolder={datePickerSelectPlaceHolder}
       />
     </FullContainer>
   );

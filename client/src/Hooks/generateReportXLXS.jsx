@@ -4,15 +4,15 @@ import { toast } from "react-toastify";
 //XLSX
 import * as XLSX from "xlsx";
 
-const handleGenerateReport = async ({ headers, content, sheetName }) => {
-  toast.promise(generateReport({ headers, content, sheetName }), {
+const handleGenerateReport = async ({ headers, content, finalSheetName }) => {
+  toast.promise(generateReport({ headers, content, finalSheetName }), {
     pending: "Estamos gerando seu relatório",
     success: "Relatório gerado!",
     error: "Falha ao gerar relatório!",
   });
 };
 
-const generateReport = ({ headers, content, sheetName }) => {
+const generateReport = ({ headers, content, finalSheetName }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const options = { header: headers };
@@ -22,7 +22,7 @@ const generateReport = ({ headers, content, sheetName }) => {
 
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
 
-      XLSX.writeFile(wb, `Relatório ${sheetName}.xlsx`);
+      XLSX.writeFile(wb, `Relatório ${finalSheetName}.xlsx`);
 
       resolve();
     } catch (error) {

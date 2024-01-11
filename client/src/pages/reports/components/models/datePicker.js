@@ -1,17 +1,17 @@
 const DatePickerItems = [
   {
     id: 1,
-    placeholder: "Criado em ...",
-    value: "created_by",
+    placeholder: "Criado entre ...",
+    value: "created_at",
   },
   {
     id: 2,
-    placeholder: "Finalizado ás ...",
+    placeholder: "Finalizado entre ...",
     value: "solved_at",
   },
   {
     id: 3,
-    placeholder: "Adiada ás ...",
+    placeholder: "Adiado entre ...",
     value: "delayed_at",
   },
 ];

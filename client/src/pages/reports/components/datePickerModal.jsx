@@ -33,6 +33,8 @@ function DatePickerModal({ ...props }) {
     setEndDate,
     pickerFilter,
     setPickerFilter,
+    selectPlaceHolder,
+    setSelectPlaceHolder,
   } = props;
 
   const inputStyle = {
@@ -49,7 +51,7 @@ function DatePickerModal({ ...props }) {
       isOpen={pickerIsOpen}
       hideCloseButton={true}
       size="2xl"
-      className="h-full sm:h-[70%] xl:h-[50%]"
+      className="h-[70%] 2xl:h-[50%]"
       backdrop="blur"
     >
       <ModalContent>
@@ -67,8 +69,10 @@ function DatePickerModal({ ...props }) {
                     Data e horário iniciais:
                   </label>
                   <Datetime
-                    onChange={(date) => setStartDate(date)}
-                    value={startDate}
+                    onChange={(value) => {
+                      setStartDate(value._d);
+                    }}
+                    initialValue={startDate}
                     inputProps={{ style: inputStyle }}
                     locale="pt-br"
                     dateFormat="DD/MM/YYYY"
@@ -80,8 +84,8 @@ function DatePickerModal({ ...props }) {
                     Data e horário finais:
                   </label>
                   <Datetime
-                    onChange={(date) => {
-                      setEndDate(date);
+                    onChange={(value) => {
+                      setEndDate(value._d);
                     }}
                     value={endDate}
                     inputProps={{ style: inputStyle }}
@@ -98,12 +102,15 @@ function DatePickerModal({ ...props }) {
                 placeholder="Indique o filtro desejado"
                 className="border-none shadow-none w-full"
                 variant="faded"
+                selectedKeys={selectPlaceHolder}
+                disabledKeys={selectPlaceHolder}
                 onSelectionChange={(key) => {
-                  setPickerFilter(key.currentKey);
+                  setSelectPlaceHolder(key.currentKey);
+                  setPickerFilter(DatePickerItems[key.currentKey - 1].value);
                 }}
               >
                 {DatePickerItems.map((item) => (
-                  <SelectItem key={item.value}>{item.placeholder}</SelectItem>
+                  <SelectItem key={item.id}>{item.placeholder}</SelectItem>
                 ))}
               </Select>
             </ModalBody>
