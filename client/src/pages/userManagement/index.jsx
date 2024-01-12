@@ -2,13 +2,7 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 
 //Components
-import {
-  Divider,
-  FullContainer,
-  Button,
-  Notification,
-  Input,
-} from "../../components";
+import { Divider, FullContainer, Button, Input } from "../../components";
 
 //NextUI
 import {
@@ -371,7 +365,6 @@ function UserManagement() {
 
   return (
     <FullContainer>
-      <Notification />
       <div className="flex flex-col w-full sm:w-[95%]">
         <div className="flex flex-col gap-2 justify-end sm:flex-row">
           <Button

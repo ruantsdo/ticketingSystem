@@ -129,8 +129,6 @@ async function getTables() {
       return { id: index + 1, name: tableName };
     });
 
-    //console.log(`Tabelas com o prefixo '${prefix}':`, tables);
-
     return tables;
   } catch (error) {
     console.error("Erro ao executar a consulta:", error);

@@ -96,7 +96,7 @@ function Home() {
         </div>
         <div className="mb-4">
           <h3 className="text-2xl mb-2">Atalhos</h3>
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 justify-center">
             {currentUser.permission_level > 3 ? (
               <AdmShortcuts />
             ) : (
