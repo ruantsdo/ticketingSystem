@@ -33,25 +33,25 @@ function backupAndResetTable() {
     fs.mkdirSync(backupFolder);
   }
 
-  const backupCommand = `${mysqlWorkbenchPath} -u${dbConfig.user} -p${dbConfig.password} ${dbConfig.database} ${tableName} > ${fullPath}`;
+  // const backupCommand = `${mysqlWorkbenchPath} -u${dbConfig.user} -p${dbConfig.password} ${dbConfig.database} ${tableName} > ${fullPath}`;
 
-  exec(backupCommand, (backupError) => {
-    if (backupError) {
-      console.error("Erro ao criar backup:", backupError);
+  // exec(backupCommand, (backupError) => {
+  //   if (backupError) {
+  //     console.error("Erro ao criar backup:", backupError);
+  //   } else {
+  //     console.log("Backup criado com sucesso:", fullPath);
+  //   }
+  // });
+
+  exec(resetTableCommand, (resetError) => {
+    if (resetError) {
+      console.error("Erro ao zerar a tabela:", resetError);
     } else {
-      console.log("Backup criado com sucesso:", fullPath);
-
-      // exec(resetTableCommand, (resetError) => {
-      //   if (resetError) {
-      //     console.error('Erro ao zerar a tabela:', resetError);
-      //   } else {
-      //     console.log('Tabela zerada com sucesso.');
-      //   }
-      // });
-
-      console.log("Rotina de backup diário encerrada!");
+      console.log("Tabela zerada com sucesso.");
     }
   });
+
+  console.log("Rotina de backup diário encerrada!");
 }
 
 async function createAndInsertMonthlyTable() {
