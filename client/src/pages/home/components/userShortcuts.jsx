@@ -5,9 +5,9 @@ import { ShortcutButton } from "./";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
-function UserShortcuts({ children }) {
+function UserShortcuts() {
   return (
-    <>
+    <div className="flex w-full justify-center gap-3">
       <ShortcutButton address="/queueRegistration">
         <PlaylistAddIcon fontSize="large" />
         <span className="text-md font-bold">Criar nova senha</span>
@@ -16,7 +16,7 @@ function UserShortcuts({ children }) {
         <FormatListBulletedIcon fontSize="large" />
         <span className="text-md font-bold">Lista de senhas</span>
       </ShortcutButton>
-    </>
+    </div>
   );
 }
 

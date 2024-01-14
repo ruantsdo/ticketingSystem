@@ -19,6 +19,9 @@
 .env.test.local
 .env.production.local
 
+#Variables
+variables.js
+
 #MySql
 *.sql
 

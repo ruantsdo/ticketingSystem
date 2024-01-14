@@ -1,16 +1,24 @@
-require("dotenv").config({ path: "./.env" });
-
 const express = require("express");
 const cors = require("cors");
 const { Sequelize, DataTypes } = require("sequelize");
+
+const {
+  CLIENT_IP,
+  CLIENT_PORT,
+  DATABASE_NAME,
+  DATABASE_USER,
+  DATABASE_PASSWORD,
+  DATABASE_HOST,
+  DATABASE_PORT,
+  SOCKET_SERVER_PORT,
+  SOCKET_SERVER_IP,
+} = require("./serverConfig/variables");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const allowedOrigins = [
-  `http://${process.env.CLIENT_IP}:${process.env.CLIENT_PORT}`,
-];
+const allowedOrigins = [`http://${CLIENT_IP}:${CLIENT_PORT}`];
 
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
@@ -26,12 +34,12 @@ const io = require("socket.io")(http, {
 });
 
 const sequelize = new Sequelize(
-  process.env.DATABASE_NAME,
-  process.env.DATABASE_USER,
-  process.env.DATABASE_PASSWORD,
+  DATABASE_NAME,
+  DATABASE_USER,
+  DATABASE_PASSWORD,
   {
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
+    host: DATABASE_HOST,
+    port: DATABASE_PORT,
     dialect: "mysql",
     logging: false, //Disable query messages
   }
@@ -168,12 +176,6 @@ io.on("connection", (socket) => {
   });
 });
 
-http.listen(
-  process.env.SOCKET_SERVER_PORT,
-  process.env.SOCKET_SERVER_IP,
-  () => {
-    console.log(
-      "Socket Server ouvindo na porta => " + process.env.SOCKET_SERVER_PORT
-    );
-  }
-);
+http.listen(SOCKET_SERVER_PORT, SOCKET_SERVER_IP, () => {
+  console.log("Socket Server ouvindo na porta => " + SOCKET_SERVER_PORT);
+});

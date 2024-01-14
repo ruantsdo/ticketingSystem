@@ -8,9 +8,9 @@ import AddLocationIcon from "@mui/icons-material/AddLocation";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
-function AdmShortcuts({ children }) {
+function AdmShortcuts() {
   return (
-    <>
+    <div className="flex w-full justify-center gap-3">
       <ShortcutButton address="/user/management">
         <ManageAccountsIcon fontSize="large" />
         <span className="text-md font-bold">Gerenciar Usuários</span>
@@ -31,7 +31,7 @@ function AdmShortcuts({ children }) {
         <AssessmentIcon fontSize="large" />
         <span className="text-md font-bold">Relatórios</span>
       </ShortcutButton>
-    </>
+    </div>
   );
 }
 
