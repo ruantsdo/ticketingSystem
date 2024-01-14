@@ -41,45 +41,47 @@ const useGetRoutes = () => {
     const currentTokens = await getTokens();
     const userServices = await getUserServices();
 
-    if (
-      currentUser.permission_level === 3 ||
-      currentUser.permission_level === 2
-    ) {
-      const tokens = currentTokens.filter((token) => {
-        return userServices.some(
-          (userService) => userService.service_id === token.service
-        );
-      });
+    if (currentTokens && userServices) {
+      if (
+        currentUser.permission_level === 3 ||
+        currentUser.permission_level === 2
+      ) {
+        const tokens = currentTokens.filter((token) => {
+          return userServices.some(
+            (userService) => userService.service_id === token.service
+          );
+        });
 
-      tokens.sort((a, b) => {
-        const statusA = a.status.toUpperCase();
-        const statusB = b.status.toUpperCase();
+        tokens.sort((a, b) => {
+          const statusA = a.status.toUpperCase();
+          const statusB = b.status.toUpperCase();
 
-        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
-          return 1;
-        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
+          if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
+            return 1;
+          } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
+            return -1;
+          } else {
+            return 0;
+          }
+        });
 
-      return tokens;
-    } else if (currentUser.permission_level >= 4) {
-      currentTokens.sort((a, b) => {
-        const statusA = a.status.toUpperCase();
-        const statusB = b.status.toUpperCase();
+        return tokens;
+      } else if (currentUser.permission_level >= 4) {
+        currentTokens.sort((a, b) => {
+          const statusA = a.status.toUpperCase();
+          const statusB = b.status.toUpperCase();
 
-        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
-          return 1;
-        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
+          if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
+            return 1;
+          } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
+            return -1;
+          } else {
+            return 0;
+          }
+        });
 
-      return currentTokens;
+        return currentTokens;
+      }
     }
   };
 
