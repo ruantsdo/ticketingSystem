@@ -11,6 +11,8 @@ const {
 } = require("./variables");
 
 const prefix = "backup";
+const mysqlWorkbenchPath =
+  '"C:\\Program Files\\MySQL\\MySQL Workbench 8.0\\mysqldump.exe"';
 
 const dbConfig = {
   host: DATABASE_HOST,
@@ -19,19 +21,19 @@ const dbConfig = {
   database: DATABASE_NAME,
 };
 
-const mysqlWorkbenchPath =
-  '"C:\\Program Files\\MySQL\\MySQL Workbench 8.0\\mysqldump.exe"';
-
-function backupAndResetTable() {
+async function backupAndResetTable() {
   const tableName = "tokens";
-  const backupFolder = path.join(__dirname, "..", "Backups");
-  const backupFileName = `${prefix}_${tableName}_${new Date().toISOString()}.sql`;
-  const sanitizedFileName = backupFileName.replace(/[^\w\s.-]/gi, "");
-  const fullPath = path.join(backupFolder, sanitizedFileName);
+  const secondTable = "queue";
+  const connection = await mysql.createConnection(dbConfig);
 
-  if (!fs.existsSync(backupFolder)) {
-    fs.mkdirSync(backupFolder);
-  }
+  // const backupFolder = path.join(__dirname, "..", "Backups");
+  // const backupFileName = `${prefix}_${tableName}_${new Date().toISOString()}.sql`;
+  // const sanitizedFileName = backupFileName.replace(/[^\w\s.-]/gi, "");
+  // const fullPath = path.join(backupFolder, sanitizedFileName);
+
+  // if (!fs.existsSync(backupFolder)) {
+  //   fs.mkdirSync(backupFolder);
+  // }
 
   // const backupCommand = `${mysqlWorkbenchPath} -u${dbConfig.user} -p${dbConfig.password} ${dbConfig.database} ${tableName} > ${fullPath}`;
 
@@ -43,13 +45,19 @@ function backupAndResetTable() {
   //   }
   // });
 
-  exec(resetTableCommand, (resetError) => {
-    if (resetError) {
-      console.error("Erro ao zerar a tabela:", resetError);
-    } else {
-      console.log("Tabela zerada com sucesso.");
-    }
-  });
+  try {
+    const resetTableCommand = `TRUNCATE TABLE ??`;
+
+    await connection.query(resetTableCommand, [secondTable]);
+    console.log("Fila zerada com sucesso!");
+
+    await connection.query(resetTableCommand, [tableName]);
+    console.log("Senhas limpas com sucesso!");
+  } catch (resetError) {
+    console.error("Erro ao zerar a tabelas:", resetError);
+  } finally {
+    await connection.end();
+  }
 
   console.log("Rotina de backup diário encerrada!");
 }
