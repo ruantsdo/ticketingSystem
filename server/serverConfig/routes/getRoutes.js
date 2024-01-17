@@ -223,4 +223,18 @@ router.get("/getBackupData/:table", (req, res) => {
   });
 });
 
+router.get("/getHistoric", (req, res) => {
+  db.query("SELECT * from historic", (err, result) => {
+    if (err) {
+      console.log("Falha ao obter hitórico de senhas!");
+      res
+        .status(500)
+        .send("Falha ao obter histórico de senhas no banco de dados!");
+      return;
+    }
+
+    res.send(result);
+  });
+});
+
 module.exports = router;

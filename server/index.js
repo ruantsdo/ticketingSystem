@@ -6,7 +6,7 @@ const cron = require("node-cron");
 const { SERVER_PORT, SERVER_IP } = require("./serverConfig/variables");
 
 const {
-  createAndInsertYearlyTable,
+  createAndInsertHistoricTable,
   backupAndResetTable,
 } = require("./serverConfig/backups");
 
@@ -15,7 +15,7 @@ app.use(express.json());
 
 cron.schedule("0 2 * * *", async () => {
   console.log("Iniciando rotina de backup diário!");
-  await createAndInsertYearlyTable();
+  await createAndInsertHistoricTable();
   backupAndResetTable();
 });
 

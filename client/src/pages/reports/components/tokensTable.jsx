@@ -25,17 +25,10 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
-import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 function TokensTable({ ...props }) {
-  const {
-    tokens,
-    services,
-    defineTargetToken,
-    setBackupsModalIsOpen,
-    setPickerIsOpen,
-  } = props;
+  const { tokens, services, defineTargetToken, setPickerIsOpen } = props;
 
   const [page, setPage] = useState(1);
 
@@ -69,15 +62,7 @@ function TokensTable({ ...props }) {
       isStriped
       bottomContent={
         <div className="flex flex-row w-full items-center justify-center">
-          <div className="flex flex-row w-[42%] left-2 absolute justify-around">
-            <Button
-              onPress={() => setBackupsModalIsOpen(true)}
-              className="w-fit bg-info"
-              endContent={<PublishedWithChangesIcon />}
-            >
-              Selecionar um backup
-            </Button>
-          </div>
+          <div className="flex flex-row w-[42%] left-2 absolute justify-around"></div>
           <Pagination
             isCompact
             showControls

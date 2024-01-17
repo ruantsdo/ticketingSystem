@@ -20,6 +20,7 @@ import Graph02 from "./components/graphics/graphic02";
 
 //Hooks
 import useGetRoutes from "../../Hooks/getUserInfos";
+import getDataHooks from "../../Hooks/getData";
 import { handleGenerateReport } from "../../Hooks/generateReportXLXS";
 
 //Icons
@@ -39,6 +40,7 @@ import "moment/locale/pt-br";
 
 function Reports() {
   const { getAllServices } = useGetRoutes();
+  const { getHistoric } = getDataHooks();
 
   const currentDate = moment();
   const defaultStartDate = currentDate.startOf("day").toDate();
@@ -54,7 +56,7 @@ function Reports() {
   const [tokens, setTokens] = useState([]);
   const [originalTokens, setOriginalTokens] = useState(null);
 
-  const [backupsModalIsOpen, setBackupsModalIsOpen] = useState(true);
+  const [backupsModalIsOpen, setBackupsModalIsOpen] = useState(false);
 
   const [tableComponent, setTableComponent] = useState();
 
@@ -81,6 +83,18 @@ function Reports() {
     const services = await getAllServices();
 
     setServices(services);
+  };
+
+  const getTokens = async () => {
+    try {
+      const response = await getHistoric();
+      setOriginalTokens(response);
+      setTokens(response);
+
+      setTokensAreDefined(true);
+    } catch (error) {
+      console.error("Get services error: " + error);
+    }
   };
 
   const defineTargetToken = (id) => {
@@ -286,6 +300,7 @@ function Reports() {
   };
 
   useEffect(() => {
+    getTokens();
     defineServices();
     // eslint-disable-next-line
   }, []);

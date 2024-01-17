@@ -1,6 +1,3 @@
-const path = require("path");
-const fs = require("fs");
-const { exec } = require("child_process");
 const mysql = require("mysql2/promise");
 
 const {
@@ -10,7 +7,7 @@ const {
   DATABASE_PASSWORD,
 } = require("./variables");
 
-const prefix = "backup";
+const prefix = "historic";
 
 const dbConfig = {
   host: DATABASE_HOST,
@@ -41,22 +38,20 @@ async function backupAndResetTable() {
   console.log("Rotina de backup diário encerrada!");
 }
 
-async function createAndInsertYearlyTable() {
+async function createAndInsertHistoricTable() {
   const connection = await mysql.createConnection(dbConfig);
 
   try {
-    const currentYear = new Date().getFullYear();
-
-    const yearlyTableName = `${prefix}_de_${currentYear}`;
+    const tableName = `${prefix}`;
 
     const [tableExists] = await connection.execute(
       `SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?`,
-      [dbConfig.database, yearlyTableName]
+      [dbConfig.database, tableName]
     );
 
     if (tableExists.length === 0) {
       await connection.execute(`
-        CREATE TABLE ${yearlyTableName} (
+        CREATE TABLE ${tableName} (
           id INT NOT NULL AUTO_INCREMENT,
           daily_id INT NOT NULL,
           position INT NOT NULL,
@@ -77,17 +72,17 @@ async function createAndInsertYearlyTable() {
     }
 
     await connection.execute(
-      `INSERT INTO ${yearlyTableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
+      `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
       SELECT id AS daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description
       FROM tokens`
     );
 
     console.log(
-      `Dados da tabela principal clonados para a tabela ${yearlyTableName} com sucesso.`
+      `Dados da tabela principal clonados para a tabela ${tableName} com sucesso.`
     );
   } catch (error) {
     console.error(
-      `Erro ao criar e inserir dados na tabela ${yearlyTableName}:`,
+      `Erro ao criar e inserir dados na tabela ${tableName}:`,
       error
     );
   } finally {
@@ -117,6 +112,6 @@ async function getTables() {
 
 module.exports = {
   backupAndResetTable,
-  createAndInsertYearlyTable,
+  createAndInsertHistoricTable,
   getTables,
 };
