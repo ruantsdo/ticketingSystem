@@ -11,8 +11,6 @@ const {
 } = require("./variables");
 
 const prefix = "backup";
-const mysqlWorkbenchPath =
-  '"C:\\Program Files\\MySQL\\MySQL Workbench 8.0\\mysqldump.exe"';
 
 const dbConfig = {
   host: DATABASE_HOST,
@@ -25,25 +23,6 @@ async function backupAndResetTable() {
   const tableName = "tokens";
   const secondTable = "queue";
   const connection = await mysql.createConnection(dbConfig);
-
-  // const backupFolder = path.join(__dirname, "..", "Backups");
-  // const backupFileName = `${prefix}_${tableName}_${new Date().toISOString()}.sql`;
-  // const sanitizedFileName = backupFileName.replace(/[^\w\s.-]/gi, "");
-  // const fullPath = path.join(backupFolder, sanitizedFileName);
-
-  // if (!fs.existsSync(backupFolder)) {
-  //   fs.mkdirSync(backupFolder);
-  // }
-
-  // const backupCommand = `${mysqlWorkbenchPath} -u${dbConfig.user} -p${dbConfig.password} ${dbConfig.database} ${tableName} > ${fullPath}`;
-
-  // exec(backupCommand, (backupError) => {
-  //   if (backupError) {
-  //     console.error("Erro ao criar backup:", backupError);
-  //   } else {
-  //     console.log("Backup criado com sucesso:", fullPath);
-  //   }
-  // });
 
   try {
     const resetTableCommand = `TRUNCATE TABLE ??`;
@@ -62,39 +41,22 @@ async function backupAndResetTable() {
   console.log("Rotina de backup diário encerrada!");
 }
 
-async function createAndInsertMonthlyTable() {
+async function createAndInsertYearlyTable() {
   const connection = await mysql.createConnection(dbConfig);
 
   try {
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
 
-    const monthsInPortuguese = [
-      "Janeiro",
-      "Fevereiro",
-      "Março",
-      "Abril",
-      "Maio",
-      "Junho",
-      "Julho",
-      "Agosto",
-      "Setembro",
-      "Outubro",
-      "Novembro",
-      "Dezembro",
-    ];
-
-    const formattedMonth = monthsInPortuguese[currentMonth];
-    const monthlyTableName = `${prefix}_${formattedMonth}_de_${currentYear}`;
+    const yearlyTableName = `${prefix}_de_${currentYear}`;
 
     const [tableExists] = await connection.execute(
       `SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?`,
-      [dbConfig.database, monthlyTableName]
+      [dbConfig.database, yearlyTableName]
     );
 
     if (tableExists.length === 0) {
       await connection.execute(`
-        CREATE TABLE ${monthlyTableName} (
+        CREATE TABLE ${yearlyTableName} (
           id INT NOT NULL AUTO_INCREMENT,
           daily_id INT NOT NULL,
           position INT NOT NULL,
@@ -115,16 +77,19 @@ async function createAndInsertMonthlyTable() {
     }
 
     await connection.execute(
-      `INSERT INTO ${monthlyTableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
+      `INSERT INTO ${yearlyTableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
       SELECT id AS daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description
       FROM tokens`
     );
 
     console.log(
-      `Dados da tabela principal clonados para a tabela ${monthlyTableName} com sucesso.`
+      `Dados da tabela principal clonados para a tabela ${yearlyTableName} com sucesso.`
     );
   } catch (error) {
-    console.error("Erro ao criar e inserir dados na tabela mensal:", error);
+    console.error(
+      `Erro ao criar e inserir dados na tabela ${yearlyTableName}:`,
+      error
+    );
   } finally {
     await connection.end();
   }
@@ -152,6 +117,6 @@ async function getTables() {
 
 module.exports = {
   backupAndResetTable,
-  createAndInsertMonthlyTable,
+  createAndInsertYearlyTable,
   getTables,
 };
