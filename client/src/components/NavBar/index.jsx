@@ -39,10 +39,15 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const logout = () => {
-    localStorage.clear();
-    setCurrentUser(null);
-    redirect("/login");
     toast.warn("Você escolheu sair!");
+
+    setCurrentUser(null);
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("lastDay");
+    localStorage.removeItem("currentSession");
+
+    redirect("/login");
+    window.location.reload(true);
   };
 
   return (

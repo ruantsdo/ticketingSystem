@@ -7,6 +7,9 @@ import api from "../services/api";
 //Toast
 import { toast } from "react-toastify";
 
+//Router Dom
+import { redirect } from "react-router-dom";
+
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
@@ -43,14 +46,24 @@ export const AuthProvider = ({ children }) => {
 
   const validation = async (response, currentUser) => {
     if (response === "expired") {
-      localStorage.clear();
       toast.info("Suas credenciais expiraram...");
       toast.warn("Você deve fazer login novamente...");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("lastDay");
+      localStorage.removeItem("currentSession");
+      setCurrentUser(null);
+
+      redirect("/login");
       window.location.reload(true);
     } else if (response === "invalid") {
-      localStorage.clear();
       toast.error("Parece que esse usuário não é mais válido...");
       toast.warn("Tente fazer login novamente...");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("lastDay");
+      localStorage.removeItem("currentSession");
+      setCurrentUser(null);
+
+      redirect("/login");
       window.location.reload(true);
     } else if (response === "valid") {
       setCurrentUser(currentUser);
