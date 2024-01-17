@@ -36,6 +36,7 @@ function TokenCallAlternative() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo] = useState();
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videosLenght, setVideosLenght] = useState();
 
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
@@ -188,6 +189,7 @@ function TokenCallAlternative() {
     try {
       const response = await api.get("/videoList");
       const data = response.data.videos;
+      setVideosLenght(data.length);
       onVideoEnd(data);
     } catch (error) {
       console.error(error);
@@ -311,6 +313,7 @@ function TokenCallAlternative() {
               src={currentVideo}
               controls
               autoPlay
+              loop={videosLenght > 1 ? false : true}
               className="w-[99.9%] h-[99.9%] rounded-lg"
             />
           ) : (
