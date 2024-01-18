@@ -153,7 +153,7 @@ router.post("/users/remove", async (req, res) => {
 
 router.post("/token/registration", async (req, res) => {
   try {
-    const { services, priority, created_by, requested_by } = req.body;
+    const { services, priority, created, requested_by } = req.body;
 
     const query = `
         INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
@@ -165,7 +165,7 @@ router.post("/token/registration", async (req, res) => {
     await db.query(query, [
       services,
       priority,
-      created_by,
+      created,
       requested_by,
       getTime(),
       services,
