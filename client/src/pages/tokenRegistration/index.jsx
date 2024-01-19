@@ -53,8 +53,6 @@ function QueueRegistration() {
     },
     onSubmit: async (values) => {
       const availability = await checkAvailability(selectedService);
-      console.log(availability);
-
       if (availability || currentUser.permission_level > 2) {
         try {
           await api
@@ -96,9 +94,6 @@ function QueueRegistration() {
     try {
       const service = await api.get(`/services/query/${serviceId}`);
       const token = await api.get(`/token/query/${serviceId}`);
-
-      console.log(service.data[0].limit);
-      console.log(token.data.length);
 
       if (service.data[0].limit === 0) {
         setAvaliability(true);
