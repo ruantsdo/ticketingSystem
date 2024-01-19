@@ -2,12 +2,25 @@ const mysql = require("mysql2/promise");
 
 const {
   DATABASE_HOST,
+  DATABASE_PORT,
   DATABASE_NAME,
   DATABASE_USER,
   DATABASE_PASSWORD,
+  MIN_CONNECTIONS,
+  MAX_CONNECTIONS,
+  TIMEOUT_DELAY,
 } = require("./variables");
 
 const prefix = "historic";
+
+const pool = new mysql.createPool({
+  host: DATABASE_HOST,
+  port: DATABASE_PORT,
+  user: DATABASE_USER,
+  password: DATABASE_PASSWORD,
+  database: DATABASE_NAME,
+  connectionLimit: MIN_CONNECTIONS,
+});
 
 const dbConfig = {
   host: DATABASE_HOST,
@@ -19,7 +32,7 @@ const dbConfig = {
 async function backupAndResetTable() {
   const tableName = "tokens";
   const secondTable = "queue";
-  const connection = await mysql.createConnection(dbConfig);
+  const connection = await pool.getConnection();
 
   try {
     const resetTableCommand = `TRUNCATE TABLE ??`;
@@ -32,14 +45,14 @@ async function backupAndResetTable() {
   } catch (resetError) {
     console.error("Erro ao zerar a tabelas:", resetError);
   } finally {
-    await connection.end();
+    await connection.release();
   }
 
   console.log("Rotina de backup diário encerrada!");
 }
 
 async function createAndInsertHistoricTable() {
-  const connection = await mysql.createConnection(dbConfig);
+  const connection = await pool.getConnection();
 
   try {
     const tableName = `${prefix}`;
@@ -86,12 +99,12 @@ async function createAndInsertHistoricTable() {
       error
     );
   } finally {
-    await connection.end();
+    await connection.release();
   }
 }
 
 async function getTables() {
-  const connection = await mysql.createConnection(dbConfig);
+  const connection = await pool.getConnection();
 
   try {
     const query = `SHOW TABLES LIKE '${prefix}%'`;
@@ -106,7 +119,7 @@ async function getTables() {
   } catch (error) {
     console.error("Erro ao executar a consulta:", error);
   } finally {
-    await connection.end();
+    await connection.release();
   }
 }
 

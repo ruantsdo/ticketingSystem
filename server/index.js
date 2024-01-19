@@ -13,10 +13,10 @@ const {
 app.use(cors());
 app.use(express.json());
 
-cron.schedule("0 2 * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   console.log("Iniciando rotina de backup diário!");
   await createAndInsertHistoricTable();
-  backupAndResetTable();
+  await backupAndResetTable();
 });
 
 const getRoutes = require("./serverConfig/routes/getRoutes");
