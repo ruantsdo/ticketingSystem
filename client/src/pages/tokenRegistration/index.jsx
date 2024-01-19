@@ -52,22 +52,30 @@ function QueueRegistration() {
       requested_by: "",
     },
     onSubmit: async (values) => {
-      try {
-        await api
-          .post("/token/registration", {
-            priority: priority,
-            services: selectedService,
-            created: currentUser.name,
-            requested_by: values.requested_by,
-          })
-          .then((response) => {
-            notify(response.data);
-          });
-      } catch (err) {
-        toast.error(
-          "Houve um problema ao cadastrar a nova ficha! Tente novamente em alguns instantes!"
-        );
-        console.log(err);
+      const availability = await checkAvailability(selectedService);
+      console.log(availability);
+
+      if (availability || currentUser.permission_level > 2) {
+        try {
+          await api
+            .post("/token/registration", {
+              priority: priority,
+              services: selectedService,
+              created: currentUser.name,
+              requested_by: values.requested_by,
+            })
+            .then((response) => {
+              notify(response.data);
+              checkAvailability(selectedService);
+            });
+        } catch (err) {
+          toast.error(
+            "Houve um problema ao cadastrar a nova ficha! Tente novamente em alguns instantes!"
+          );
+          console.log(err);
+        }
+      } else {
+        toast.warn("Parece que não há mais disponibilidade para este serviço!");
       }
     },
   });
@@ -89,19 +97,24 @@ function QueueRegistration() {
       const service = await api.get(`/services/query/${serviceId}`);
       const token = await api.get(`/token/query/${serviceId}`);
 
+      console.log(service.data[0].limit);
+      console.log(token.data.length);
+
       if (service.data[0].limit === 0) {
         setAvaliability(true);
         setRemaining(<AllInclusiveIcon />);
 
-        return;
+        return true;
       }
 
-      if (service.data[0].limit >= token.data.length && token.data.length > 0) {
+      if (service.data[0].limit > token.data.length && token.data.length >= 0) {
         setAvaliability(false);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
+        return true;
       } else {
         setAvaliability(true);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
+        return false;
       }
     } catch (error) {
       console.error(error);

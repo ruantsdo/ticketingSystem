@@ -109,54 +109,59 @@ function Reports() {
       { Nome: "NORMAL", Quantidade: 0 },
     ];
 
-    tokens.forEach((token) => {
-      const service = services.find((service) => service.id === token.service);
-      if (service) {
-        if (!serviceCount[service.name]) {
-          serviceCount[service.name] = {
-            name: service.name,
-            Quantidade: 0,
-            Atendidos: 0,
-            Aguardando: 0,
-            Adiados: 0,
-            "Em atendimento": 0,
-            Disponibilidade: service.limit === 0 ? "Ilimitado" : service.limit,
-          };
+    if (tokens) {
+      tokens.forEach((token) => {
+        const service = services.find(
+          (service) => service.id === token.service
+        );
+        if (service) {
+          if (!serviceCount[service.name]) {
+            serviceCount[service.name] = {
+              name: service.name,
+              Quantidade: 0,
+              Atendidos: 0,
+              Aguardando: 0,
+              Adiados: 0,
+              "Em atendimento": 0,
+              Disponibilidade:
+                service.limit === 0 ? "Ilimitado" : service.limit,
+            };
+          }
+
+          if (token.status === "CONCLUIDO") {
+            serviceCount[service.name].Atendidos++;
+          } else if (token.status === "EM ATENDIMENTO") {
+            serviceCount[service.name]["Em atendimento"]++;
+          } else if (token.status === "ADIADO") {
+            serviceCount[service.name].Adiados++;
+          } else {
+            serviceCount[service.name].Aguardando++;
+          }
+
+          if (token.priority === 1) {
+            serviceTypeCount[0].Quantidade++;
+          } else {
+            serviceTypeCount[1].Quantidade++;
+          }
+
+          serviceCount[service.name].Quantidade++;
         }
+      });
 
-        if (token.status === "CONCLUIDO") {
-          serviceCount[service.name].Atendidos++;
-        } else if (token.status === "EM ATENDIMENTO") {
-          serviceCount[service.name]["Em atendimento"]++;
-        } else if (token.status === "ADIADO") {
-          serviceCount[service.name].Adiados++;
-        } else {
-          serviceCount[service.name].Aguardando++;
-        }
+      const finalResult = Object.values(serviceCount).map((service) => ({
+        ...service,
+        Disponibilidade:
+          service.Disponibilidade === "Ilimitado"
+            ? "Ilimitado"
+            : service.Disponibilidade - service.Quantidade,
+      }));
 
-        if (token.priority === 1) {
-          serviceTypeCount[0].Quantidade++;
-        } else {
-          serviceTypeCount[1].Quantidade++;
-        }
+      const data01 = Object.values(finalResult);
+      setGraphComponent01(<Graph01 graphData={data01} />);
 
-        serviceCount[service.name].Quantidade++;
-      }
-    });
-
-    const finalResult = Object.values(serviceCount).map((service) => ({
-      ...service,
-      Disponibilidade:
-        service.Disponibilidade === "Ilimitado"
-          ? "Ilimitado"
-          : service.Disponibilidade - service.Quantidade,
-    }));
-
-    const data01 = Object.values(finalResult);
-    setGraphComponent01(<Graph01 graphData={data01} />);
-
-    const data02 = Object.values(serviceTypeCount);
-    setGraphComponent02(<Graph02 graphData={data02} />);
+      const data02 = Object.values(serviceTypeCount);
+      setGraphComponent02(<Graph02 graphData={data02} />);
+    }
 
     setIsLoading(false);
   };
@@ -313,7 +318,7 @@ function Reports() {
 
     setTableComponent(
       <TokensTable
-        tokens={tokens}
+        tokens={tokens ? tokens : []}
         services={services}
         defineTargetToken={defineTargetToken}
         setBackupsModalIsOpen={setBackupsModalIsOpen}
