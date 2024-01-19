@@ -10,8 +10,7 @@ router.post("/login", (req, res) => {
     [req.body.cpf],
     (error, response) => {
       if (error) {
-        res.status(500).send({ msg: "Erro interno do servidor" });
-        return;
+        res.send(error);
       }
 
       if (response.length > 0) {
@@ -19,16 +18,10 @@ router.post("/login", (req, res) => {
           req.body.password,
           response[0].password,
           (error, result) => {
-            if (error) {
-              res.status(500).send({ msg: "Erro interno do servidor" });
-              return;
-            }
-
             if (result) {
               res.send(response);
               return;
             }
-
             res.send({ msg: "Senha incorreta!" });
           }
         );
@@ -45,25 +38,18 @@ router.post("/user/check", (req, res) => {
     [req.body.cpf],
     (error, response) => {
       if (error) {
-        res.status(500).send("Erro interno do servidor");
+        res.send(error);
         return;
       }
 
       if (response.length > 0) {
-        const hashedPassword = response[0].password;
+        const isValid = req.body.password === response[0].password;
 
-        bcrypt.compare(req.body.password, hashedPassword, (error, isValid) => {
-          if (error) {
-            res.status(500).send("Erro interno do servidor");
-            return;
-          }
-
-          if (isValid) {
-            res.send("valid");
-          } else {
-            res.send("expired");
-          }
-        });
+        if (isValid) {
+          res.send("valid");
+        } else {
+          res.send("expired");
+        }
       } else {
         res.send("invalid");
       }
@@ -72,43 +58,58 @@ router.post("/user/check", (req, res) => {
 });
 
 router.post("/user/registration", async (req, res) => {
-  try {
-    const existingUser = await db.query("SELECT cpf FROM users WHERE cpf = ?", [
-      req.body.cpf,
-    ]);
+  db.query(
+    //Checks if the user already exists
+    "SELECT cpf FROM users WHERE cpf = ?",
+    [req.body.cpf],
+    async (err, result) => {
+      if (err) {
+        return res.send("Falied to check users");
+      }
 
-    if (existingUser.length > 0) {
-      return res.send("User already exists");
+      if (result.length > 0) {
+        return res.send("User already exists");
+      } else {
+        //If it does not exist, start the registration procedure
+        const hash = await bcrypt.hash(req.body.password, saltRounds);
+        let emailValue = req.body.email !== undefined ? req.body.email : "";
+
+        try {
+          await db.query(
+            "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
+            [
+              req.body.name,
+              hash,
+              req.body.cpf,
+              emailValue,
+              req.body.permissionLevel,
+              getTime(),
+              req.body.created_by,
+            ]
+          );
+        } catch (error) {
+          res.send("Falied to create new user in database");
+        } //Try to insert a new user into the database
+
+        try {
+          await db.query(
+            "SELECT * FROM users WHERE cpf = ?",
+            [req.body.cpf],
+            (err, result) => {
+              insertSelectedServices(result[0].id, req.body.services).then(
+                (response) => {
+                  res.send(response);
+                }
+              );
+            }
+          );
+        } catch (error) {
+          res.send("Failed to link user to services");
+          await db.query("DELETE FROM users WHERE cpf = ?", [req.body.cpf]);
+        } //Attempts to link the user to the services, and if it fails, removes the user from the database
+      } //End of insertion attempt
     }
-
-    const hash = await bcrypt.hash(req.body.password, saltRounds);
-    const emailValue = req.body.email || "";
-
-    const userInsertResult = await db.query(
-      "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
-      [
-        req.body.name,
-        hash,
-        req.body.cpf,
-        emailValue,
-        req.body.permissionLevel,
-        getTime(),
-        req.body.created_by,
-      ]
-    );
-
-    const userId = userInsertResult.insertId;
-
-    const selectedServicesResult = await insertSelectedServices(
-      userId,
-      req.body.services
-    );
-
-    res.send(selectedServicesResult);
-  } catch (error) {
-    console.error("Error during user registration:", error);
-    res.status(500).send("Failed to register new user");
-  }
+  );
 });
 
 router.post("/users/update", async (req, res) => {
@@ -117,43 +118,41 @@ router.post("/users/update", async (req, res) => {
 
   let hash;
 
-  try {
-    if (passwordChanged) {
-      hash = await bcrypt.hash(password, saltRounds);
-    } else {
-      hash = password;
-    }
+  if (passwordChanged) {
+    hash = await await bcrypt.hash(password, saltRounds);
+  } else {
+    hash = password;
+  }
 
+  try {
     await db.query(
       "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, updated_at = ?, updated_by = ? WHERE id = ?",
       [name, email, cpf, level, hash, getTime(), updated_by, id]
     );
-
     res.send("success");
   } catch (err) {
-    console.error("Error updating user:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/users/remove", async (req, res) => {
-  const userId = req.body.id;
-
   try {
-    await db.query("DELETE FROM user_services WHERE user_id = ?", [userId]);
-
-    await db.query("DELETE FROM users WHERE id = ?", [userId]);
-
+    await db.query("DELETE FROM user_services WHERE user_id = ?", [
+      req.body.id,
+    ]);
+    await db.query("DELETE FROM users WHERE id = ?", [req.body.id]);
     res.send("success");
   } catch (err) {
-    console.error("Error removing user:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/token/registration", async (req, res) => {
   try {
-    const { services, priority, created, requested_by } = req.body;
+    const service = req.body.services;
+    const priority = req.body.priority;
+    const created_by = req.body.created;
+    const requested_by = req.body.requested_by;
 
     const query = `
         INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
@@ -163,272 +162,217 @@ router.post("/token/registration", async (req, res) => {
       `;
 
     await db.query(query, [
-      services,
+      service,
       priority,
-      created,
+      created_by,
       requested_by,
       getTime(),
-      services,
+      service,
     ]);
 
     res.send("success");
   } catch (err) {
-    console.error("Error registering token:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/token/update", async (req, res) => {
   try {
-    let query, params;
-
     if (req.body.status === "ADIADO") {
-      query =
-        "UPDATE tokens SET status = ?, delayed_at = ?, delayed_by = ? WHERE id = ?";
-      params = [req.body.status, getTime(), req.body.delayed_by, req.body.id];
+      await db.query(
+        "UPDATE tokens SET status = ?, delayed_at = ?, delayed_by = ? WHERE id = ?",
+        [req.body.status, getTime(), req.body.delayed_by, req.body.id]
+      );
     } else {
-      query = "UPDATE tokens SET status = ? WHERE id = ?";
-      params = [req.body.status, req.body.id];
+      await db.query("UPDATE tokens SET status = ? WHERE id = ?", [
+        req.body.status,
+        req.body.id,
+      ]);
     }
 
-    await db.query(query, params);
-
-    res.send({ msg: "Ficha atualizada com sucesso!" });
+    res.send({ msg: "Ficha cadastrada com sucesso!" });
   } catch (err) {
-    console.error("Error updating token:", err);
-    res.status(500).send({ msg: "Falha na atualização da ficha!" });
+    res.send({ msg: "Falha no cadastramento da ficha!" });
   }
 });
 
 router.post("/token/close", async (req, res) => {
   try {
-    const query =
-      "UPDATE tokens SET status = ?, solved_by = ?, solved_at = ? WHERE id = ?";
+    await db.query(
+      "UPDATE tokens SET status = ?, solved_by = ?, solved_at = ? WHERE id = ?",
+      [req.body.status, req.body.solved_by, getTime(), req.body.id]
+    );
 
-    const params = [
-      req.body.status,
-      req.body.solved_by,
-      getTime(),
-      req.body.id,
-    ];
-
-    await db.query(query, params);
-
-    res.send({ msg: "Ficha fechada com sucesso!" });
+    res.send({ msg: "Ficha cadastrada com sucesso!" });
   } catch (err) {
-    console.error("Error closing token:", err);
-    res.status(500).send({ msg: "Falha no fechamento da ficha!" });
+    res.send({ msg: "Falha no cadastramento da ficha!" });
   }
 });
 
 router.post("/token/remove/byId/:id", async (req, res) => {
   try {
-    const tokenId = req.params.id;
-
-    await db.query("DELETE FROM queue WHERE token_id = ?", [tokenId]);
-    await db.query("DELETE FROM tokens WHERE id = ?", [tokenId]);
-
+    await db.query("DELETE FROM queue WHERE token_id = ?", [req.params.id]);
+    await db.query("DELETE FROM tokens WHERE id = ?", [req.params.id]);
     res.send("success");
   } catch (err) {
-    console.error("Error removing token by ID:", err);
-    res.status(500).send({ msg: "Falha na remoção do token!" });
+    res.send({ msg: "Falha da consulta dos tokens!" });
   }
 });
 
 router.post("/queue/registration", async (req, res) => {
   try {
-    const {
-      token_id,
-      position,
-      service,
-      priority,
-      requested_by,
-      table,
-      location,
-    } = req.body;
-
-    const query = `
-      INSERT INTO queue (token_id, position, service, priority, requested_by, \`table\`, location)
-      VALUES (?,?,?,?,?,?,?)
-    `;
-
-    await db.query(query, [
-      token_id,
-      position,
-      service,
-      priority,
-      requested_by,
-      table,
-      location,
-    ]);
-
+    await db.query(
+      "INSERT INTO queue (token_id, position, service, priority, requested_by, `table`, location) VALUES (?,?,?,?,?,?,?)",
+      [
+        req.body.token_id,
+        req.body.position,
+        req.body.service,
+        req.body.priority,
+        req.body.requested_by,
+        req.body.table,
+        req.body.location,
+      ]
+    );
     res.send("success");
   } catch (err) {
-    console.error("Error registering queue:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/queue/remove", async (req, res) => {
   try {
-    const token_id = req.body.token_id;
-
-    await db.query("DELETE FROM queue WHERE token_id = ?", [token_id]);
-
+    await db.query("DELETE FROM queue WHERE token_id = ?", [req.body.token_id]);
     res.send("success");
   } catch (err) {
-    console.error("Error removing from queue:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/location/registration", async (req, res) => {
   try {
-    const name = req.body.name;
-
-    const existingLocation = await db.query(
+    await db.query(
       "SELECT * FROM locations WHERE name = ?",
-      [name]
+      [req.body.name],
+      (err, result) => {
+        if (result.length > 0) {
+          res.send("already exists");
+        } else {
+          db.query(
+            "INSERT INTO locations (name, description, tables, created_by, created_at) VALUES (?,?,?,?,?)",
+            [
+              req.body.name,
+              req.body.description,
+              req.body.tables,
+              req.body.created_by,
+              getTime(),
+            ]
+          );
+          res.send("success");
+        }
+      }
     );
-
-    if (existingLocation.length > 0) {
-      res.send("already exists");
-    } else {
-      await db.query(
-        "INSERT INTO locations (name, description, tables, created_by, created_at) VALUES (?,?,?,?,?)",
-        [
-          name,
-          req.body.description,
-          req.body.tables,
-          req.body.created_by,
-          getTime(),
-        ]
-      );
-
-      res.send("success");
-    }
   } catch (err) {
-    console.error("Error registering location:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/location/remove", async (req, res) => {
   try {
-    const locationId = req.body.id;
-
-    await db.query("DELETE FROM locations WHERE id = ?", [locationId]);
-
+    await db.query("DELETE FROM locations WHERE id = ?", [req.body.id]);
     res.send("success");
   } catch (err) {
-    console.error("Error removing location:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/location/update", async (req, res) => {
   try {
-    const { id, name, description, tables, updated_by } = req.body;
-
     await db.query(
       "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ? WHERE id = ?",
-      [name, description, tables, updated_by, getTime(), id]
+      [
+        req.body.name,
+        req.body.description,
+        req.body.tables,
+        req.body.updated_by,
+        getTime(),
+        req.body.id,
+      ]
     );
-
     res.send("success");
   } catch (err) {
-    console.error("Error updating location:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/service/registration", async (req, res) => {
   try {
-    const serviceName = req.body.name;
-
-    const existingService = await db.query(
+    await db.query(
       "SELECT * FROM services WHERE name = ?",
-      [serviceName]
+      [req.body.name],
+      (err, result) => {
+        if (result.length > 0) {
+          res.send("already exists");
+        } else {
+          db.query(
+            "INSERT INTO services (name, description, `limit`, created_by, created_at) VALUES (?,?,?,?,?)",
+            [
+              req.body.name,
+              req.body.description,
+              req.body.limit,
+              req.body.created_by,
+              getTime(),
+            ]
+          );
+          res.send("success");
+        }
+      }
     );
-
-    if (existingService.length > 0) {
-      res.send("already exists");
-    } else {
-      await db.query(
-        "INSERT INTO services (name, description, `limit`, created_by, created_at) VALUES (?,?,?,?,?)",
-        [
-          serviceName,
-          req.body.description,
-          req.body.limit,
-          req.body.created_by,
-          getTime(),
-        ]
-      );
-
-      res.send("success");
-    }
   } catch (err) {
-    console.error("Error registering service:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/service/remove", async (req, res) => {
   try {
-    const serviceId = req.body.id;
-
-    await db.query("DELETE FROM services WHERE id = ?", [serviceId]);
-
+    await db.query("DELETE FROM services WHERE id = ?", [req.body.id]);
     res.send("success");
   } catch (err) {
-    console.error("Error removing service:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 router.post("/service/update", async (req, res) => {
   try {
-    const { id, name, description, limit, updated_by } = req.body;
-
-    const existingService = await db.query(
-      "SELECT * FROM services WHERE name = ?",
-      [name]
-    );
-
-    if (existingService.length > 0) {
-      res.send("Service with the same name already exists");
-      return;
-    }
-
     await db.query(
       "UPDATE services SET name = ?, description = ?, `limit` = ?, updated_by = ?, updated_at = ? WHERE id = ?",
-      [name, description, limit, updated_by, getTime(), id]
+      [
+        req.body.name,
+        req.body.desc,
+        req.body.limit,
+        req.body.updated_by,
+        getTime(),
+        req.body.id,
+      ]
     );
-
     res.send("success");
   } catch (err) {
-    console.error("Error updating service:", err);
-    res.status(500).send("failed");
+    res.send("failed");
   }
 });
 
 module.exports = router;
 
-async function insertSelectedServices(userId, services) {
+async function insertSelectedServices(id, services) {
   try {
-    await db.query("DELETE FROM user_services WHERE user_id = ?", [userId]);
-
-    for (const serviceId of services) {
+    await services.map(async (service) => {
       await db.query(
         "INSERT INTO user_services (user_id, service_id) VALUES (?, ?)",
-        [userId, serviceId]
+        [id, service]
       );
-    }
-
-    return "User registration successful";
+    });
+    return "New user created";
   } catch (error) {
-    console.error("Error linking user to services:", error);
-    throw new Error("Failed to link user to services");
+    return "Failed to link services";
   }
 }
 
