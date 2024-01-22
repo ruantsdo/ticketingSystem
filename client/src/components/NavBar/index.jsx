@@ -31,6 +31,7 @@ import { toast } from "react-toastify";
 
 //Icons
 import LogoutIcon from "@mui/icons-material/Logout";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 //Router Dom
 import { redirect } from "react-router-dom";
@@ -90,7 +91,8 @@ export default function NavBar() {
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         />
-        <NavbarBrand className="">
+        <NavbarBrand className="gap-1">
+          <AccountCircleIcon fontSize="large" />
           <div className="flex flex-col justify-center min-h-full">
             <div className="text-[1.5rem] text-white">{displayableName()}</div>
             <div className="text-[0.5rem] dark:text-gray-400">
@@ -109,7 +111,7 @@ export default function NavBar() {
       <NavbarContent justify="end">
         <NavbarItem className="flex gap-5">
           <ThemeSwitcher />
-          <Tooltip content="Fazer logout">
+          <Tooltip content="Sair do sistema">
             <Button
               isIconOnly
               onClick={() => logout()}
