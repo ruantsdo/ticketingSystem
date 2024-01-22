@@ -11,8 +11,18 @@ const getDataHooks = () => {
     }
   };
 
+  const getPermissionsLevels = async () => {
+    try {
+      const response = await api.get("/permissionsLevels");
+      return response.data;
+    } catch (error) {
+      console.error("Get permissions levels error: " + error);
+    }
+  };
+
   return {
     getHistoric,
+    getPermissionsLevels,
   };
 };
 

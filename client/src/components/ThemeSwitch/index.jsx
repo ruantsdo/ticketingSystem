@@ -42,6 +42,7 @@ export default function ThemeSwitcher({ ...props }) {
       endContent={<DarkModeIcon fontSize="sm" />}
       onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={props.className}
+      alt="Theme switcher"
     />
   );
 }

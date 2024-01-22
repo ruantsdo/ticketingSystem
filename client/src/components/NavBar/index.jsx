@@ -29,14 +29,40 @@ import AuthContext from "../../contexts/auth";
 import { toast } from "react-toastify";
 
 //Icons
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 //Router Dom
 import { redirect } from "react-router-dom";
 
 export default function NavBar() {
   const { setCurrentUser, currentUser } = useContext(AuthContext);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  function displayableName() {
+    const fullName = currentUser.name.split(" ");
+
+    if (fullName.length === 1) return fullName[0];
+
+    if (fullName.length >= 1) {
+      const primeiroNome = fullName[0];
+      const ultimoNome = fullName[fullName.length - 1];
+
+      const visibleName = primeiroNome + " " + ultimoNome;
+
+      return visibleName;
+    } else {
+      return null;
+    }
+  }
+
+  const defineLevel = () => {
+    if (currentUser.permission_level === 1) return "TELA";
+    if (currentUser.permission_level === 2) return "FUNCIONÁRIO";
+    if (currentUser.permission_level === 3) return "COORDENADOR";
+    if (currentUser.permission_level === 4) return "ADMINISTRADOR";
+    if (currentUser.permission_level === 5) return "MASTER";
+  };
 
   const logout = () => {
     toast.warn("Você escolheu sair!");
@@ -55,25 +81,24 @@ export default function NavBar() {
       shouldHideOnScroll
       isBordered
       onMenuOpenChange={setIsMenuOpen}
+      maxWidth="full"
       height="3rem"
-      className="w-full bg-navBarBackground dark:bg-darkNavBarBackground"
+      className="bg-navBarBackground dark:bg-darkNavBarBackground items-center justify-evenly"
     >
-      <NavbarContent>
+      <NavbarContent justify="start">
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         />
-        <NavbarBrand>
-          <Link
-            color="foreground"
-            href="/home"
-            className="font-bold text-inherit"
-          >
-            SISTEMA DE SENHAS
-          </Link>
+        <NavbarBrand className="">
+          <div className="flex flex-col justify-center min-h-full">
+            <div className="text-[1.5rem] text-white">{displayableName()}</div>
+            <div className="text-[0.5rem] dark:text-gray-400">
+              {defineLevel()}
+            </div>
+          </div>
         </NavbarBrand>
       </NavbarContent>
-
-      <NavbarContent className="hidden sm:flex gap-3" justify="center">
+      <NavbarContent justify="center" className="hidden sm:flex gap-3">
         {currentUser.permission_level > 3 ? (
           <AdmShortcuts />
         ) : (
@@ -81,8 +106,16 @@ export default function NavBar() {
         )}
       </NavbarContent>
       <NavbarContent justify="end">
-        <NavbarItem justify="end">
+        <NavbarItem className="flex gap-5">
           <ThemeSwitcher />
+          <Button
+            isIconOnly
+            onClick={() => logout()}
+            className="flex rounded-md items-center justify-center hover:scale-105 bg-transparent"
+            startContent={
+              <LogoutIcon className="text-failed dark:text-darkFailed" />
+            }
+          />
         </NavbarItem>
       </NavbarContent>
       <NavbarMenu className="w-screen sm:w-[40%] max-h-unit-8xl rounded-br-lg bg-background dark:bg-darkBackground shadow-xl ring-white border-r-1 border-b-1 border-darkBackground dark:border-background">
@@ -106,7 +139,7 @@ export default function NavBar() {
         <Button
           onClick={() => logout()}
           className="flex bg-failed dark:bg-darkFailed w-2/6 rounded-md text-lg items-center justify-center hover:scale-105"
-          startContent={<ExitToAppIcon />}
+          startContent={<LogoutIcon />}
         >
           Sair
         </Button>

@@ -1,29 +1,37 @@
-import { NavbarItem, Link } from "@nextui-org/react";
+//Components
+import { RedirectButton } from "../../";
 
-function UserShortcuts() {
+//Icons
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import HomeIcon from "@mui/icons-material/Home";
+
+function AdmShortcuts() {
   return (
-    <>
-      <NavbarItem>
-        <Link
-          color="foreground"
-          href="/queueRegistration"
-          className="hover:underline"
-        >
-          Nova senha
-        </Link>
-      </NavbarItem>
-      <NavbarItem>
-        <Link
-          href="/tokensList"
-          color="foreground"
-          aria-current="page"
-          className="hover:underline"
-        >
-          Lista de senhas
-        </Link>
-      </NavbarItem>
-    </>
+    <div className="flex w-full justify-center gap-3">
+      <RedirectButton
+        isIconOnly={true}
+        address="/home"
+        label="Ir a página home"
+      >
+        <HomeIcon fontSize="large" />
+      </RedirectButton>
+      <RedirectButton
+        isIconOnly={true}
+        address="/queueRegistration"
+        label="Registrar uma nova ficha"
+      >
+        <PlaylistAddIcon fontSize="large" />
+      </RedirectButton>
+      <RedirectButton
+        isIconOnly={true}
+        address="/tokensList"
+        label="Ver fichas disponíveis"
+      >
+        <FormatListBulletedIcon fontSize="large" />
+      </RedirectButton>
+    </div>
   );
 }
 
-export default UserShortcuts;
+export default AdmShortcuts;

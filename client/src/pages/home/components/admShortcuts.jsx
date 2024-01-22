@@ -1,5 +1,5 @@
 //Components
-import { ShortcutButton } from "./";
+import { RedirectButton } from "../../../components";
 
 //Icons
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
@@ -11,26 +11,26 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 function AdmShortcuts() {
   return (
     <div className="flex w-full justify-center gap-3">
-      <ShortcutButton address="/user/management">
+      <RedirectButton address="/user/management">
         <ManageAccountsIcon fontSize="large" />
         <span className="text-md font-bold">Gerenciar Usuários</span>
-      </ShortcutButton>
-      <ShortcutButton address="/service/management">
+      </RedirectButton>
+      <RedirectButton address="/service/management">
         <AddHomeWorkIcon fontSize="large" />
         <span className="text-md font-bold">Gerenciar Serviços</span>
-      </ShortcutButton>
-      <ShortcutButton address="/location/management">
+      </RedirectButton>
+      <RedirectButton address="/location/management">
         <AddLocationIcon fontSize="large" />
         <span className="text-md font-bold">Gerenciar Locais</span>
-      </ShortcutButton>
-      <ShortcutButton address="/tokensList">
+      </RedirectButton>
+      <RedirectButton address="/tokensList">
         <FormatListBulletedIcon fontSize="large" />
         <span className="text-md font-bold">Lista de senhas</span>
-      </ShortcutButton>
-      <ShortcutButton address="/reports">
+      </RedirectButton>
+      <RedirectButton address="/reports">
         <AssessmentIcon fontSize="large" />
         <span className="text-md font-bold">Relatórios</span>
-      </ShortcutButton>
+      </RedirectButton>
     </div>
   );
 }

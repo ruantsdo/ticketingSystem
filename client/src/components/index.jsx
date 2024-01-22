@@ -8,6 +8,7 @@ import ThemeSwitcher from "./ThemeSwitch";
 import Input from "./Input";
 import Divider from "./Divider";
 import Select from "./Select";
+import RedirectButton from "./RedirectButton";
 
 export {
   Button,
@@ -20,4 +21,5 @@ export {
   Input,
   Divider,
   Select,
+  RedirectButton,
 };
