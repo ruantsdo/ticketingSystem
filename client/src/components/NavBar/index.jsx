@@ -12,6 +12,7 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   Button,
+  Tooltip,
 } from "@nextui-org/react";
 
 //Components
@@ -108,14 +109,16 @@ export default function NavBar() {
       <NavbarContent justify="end">
         <NavbarItem className="flex gap-5">
           <ThemeSwitcher />
-          <Button
-            isIconOnly
-            onClick={() => logout()}
-            className="flex rounded-md items-center justify-center hover:scale-105 bg-transparent"
-            startContent={
-              <LogoutIcon className="text-failed dark:text-darkFailed" />
-            }
-          />
+          <Tooltip content="Fazer logout">
+            <Button
+              isIconOnly
+              onClick={() => logout()}
+              className="flex rounded-md items-center justify-center hover:scale-105 bg-transparent"
+              startContent={
+                <LogoutIcon className="text-failed dark:text-darkFailed" />
+              }
+            />
+          </Tooltip>
         </NavbarItem>
       </NavbarContent>
       <NavbarMenu className="w-screen sm:w-[40%] max-h-unit-8xl rounded-br-lg bg-background dark:bg-darkBackground shadow-xl ring-white border-r-1 border-b-1 border-darkBackground dark:border-background">
