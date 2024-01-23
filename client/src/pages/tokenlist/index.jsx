@@ -23,6 +23,7 @@ import {
   ModalFooter,
   SelectItem,
   Spinner,
+  Checkbox,
 } from "@nextui-org/react";
 
 //Icons
@@ -56,7 +57,11 @@ function TokensList() {
 
   const [tokensLength, setTokensLength] = useState(1);
   const [tokens, setTokens] = useState([]);
+  const [activeTokens, setActiveTokens] = useState([]);
+  const [originalTokens, setOriginalTokens] = useState([]);
   const [itemKey, setItemKey] = useState();
+
+  const [showFinished, setShowFinished] = useState(false);
 
   const [locations, setLocations] = useState([]);
   const [currentLocation, setCurrentLocation] = useState("");
@@ -204,41 +209,39 @@ function TokensList() {
         );
       });
 
-      tokens.sort((a, b) => {
-        const statusA = a.status.toUpperCase();
-        const statusB = b.status.toUpperCase();
+      setOriginalTokens(tokens);
 
-        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
-          return 1;
-        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
-          return -1;
-        } else {
-          return 0;
-        }
+      const activeTokens = tokens.filter((token) => {
+        return token.status.toUpperCase() !== "CONCLUIDO";
       });
 
-      setTokens(tokens);
-      setTokensLength(tokens.length);
+      setActiveTokens(activeTokens);
+      setTokens(activeTokens);
+      setTokensLength(activeTokens.length);
 
-      getSessionContext(tokens);
+      getSessionContext(activeTokens);
     } else if (currentUser.permission_level >= 4) {
-      data.sort((a, b) => {
-        const statusA = a.status.toUpperCase();
-        const statusB = b.status.toUpperCase();
-
-        if (statusA === "CONCLUIDO" && statusB !== "CONCLUIDO") {
-          return 1;
-        } else if (statusA !== "CONCLUIDO" && statusB === "CONCLUIDO") {
-          return -1;
-        } else {
-          return 0;
-        }
+      const activeTokens = data.filter((token) => {
+        return token.status.toUpperCase() !== "CONCLUIDO";
       });
 
-      setTokens(data);
-      setTokensLength(data.length);
+      setOriginalTokens(data);
+
+      setActiveTokens(activeTokens);
+      setTokens(activeTokens);
+      setTokensLength(activeTokens.length);
 
       getSessionContext(data);
+    }
+  };
+
+  const filterTokens = (mode) => {
+    if (mode) {
+      setTokens(originalTokens);
+      setTokensLength(originalTokens.length);
+    } else {
+      setTokens(activeTokens);
+      setTokensLength(activeTokens.length);
     }
   };
 
@@ -345,45 +348,47 @@ function TokensList() {
   return (
     <FullContainer>
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Select
-            isRequired
-            isOpen={isLocationOpen}
-            size="sm"
-            items={locations}
-            label="Qual local você está no momento?"
-            placeholder="Indique seu local"
-            className="mb-1 sm:max-w-xs border-none shadow-none"
-            variant="faded"
-            value={currentLocation}
-            onSelectionChange={(key) => {
-              countTables(parseInt(key.currentKey));
-              setCurrentLocation(parseInt(key.currentKey));
-            }}
-            onOpenChange={(open) =>
-              open !== isLocationOpen && setLocationIsOpen(open)
-            }
-          >
-            {locations.map((item) => (
-              <SelectItem key={item.id}>{item.name}</SelectItem>
-            ))}
-          </Select>
-          <Select
-            size="sm"
-            items={locationTable}
-            label="Em qual mesa você está?"
-            placeholder="Indique sua mesa"
-            className="mb-1 sm:max-w-xs border-none shadow-none"
-            variant="faded"
-            value={currentTable}
-            onSelectionChange={(key) => {
-              setCurrentTable(key.currentKey);
-            }}
-          >
-            {locationTable.map((item) => (
-              <SelectItem key={item.value}>{item.value}</SelectItem>
-            ))}
-          </Select>
+        <div className="flex flex-row w-full items-center">
+          <div className="flex flex-col w-full gap-2 justify-end sm:flex-row">
+            <Select
+              isRequired
+              isOpen={isLocationOpen}
+              size="sm"
+              items={locations}
+              label="Qual local você está no momento?"
+              placeholder="Indique seu local"
+              className="mb-1 sm:max-w-xs border-none shadow-none"
+              variant="faded"
+              value={currentLocation}
+              onSelectionChange={(key) => {
+                countTables(parseInt(key.currentKey));
+                setCurrentLocation(parseInt(key.currentKey));
+              }}
+              onOpenChange={(open) =>
+                open !== isLocationOpen && setLocationIsOpen(open)
+              }
+            >
+              {locations.map((item) => (
+                <SelectItem key={item.id}>{item.name}</SelectItem>
+              ))}
+            </Select>
+            <Select
+              size="sm"
+              items={locationTable}
+              label="Em qual mesa você está?"
+              placeholder="Indique sua mesa"
+              className="mb-1 sm:max-w-xs border-none shadow-none"
+              variant="faded"
+              value={currentTable}
+              onSelectionChange={(key) => {
+                setCurrentTable(key.currentKey);
+              }}
+            >
+              {locationTable.map((item) => (
+                <SelectItem key={item.value}>{item.value}</SelectItem>
+              ))}
+            </Select>
+          </div>
         </div>
 
         <Table
@@ -394,15 +399,28 @@ function TokensList() {
           }}
           isStriped
           bottomContent={
-            <div className="flex w-full justify-center">
-              <Pagination
-                isCompact
-                showControls
-                color="success"
-                page={page}
-                total={pages}
-                onChange={(page) => setPage(page)}
-              />
+            <div className="flex w-full items-center justify-center">
+              <div className="flex self-center">
+                <Pagination
+                  isCompact
+                  showControls
+                  color="success"
+                  page={page}
+                  total={pages}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+              <div className="flex flex-row right-5 absolute w-[42%] justify-end">
+                <Checkbox
+                  isSelected={showFinished}
+                  onValueChange={() => {
+                    setShowFinished(!showFinished);
+                    filterTokens(!showFinished);
+                  }}
+                >
+                  Mostrar concluídos...
+                </Checkbox>
+              </div>
             </div>
           }
           classNames={{
