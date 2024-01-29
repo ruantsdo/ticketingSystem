@@ -5,18 +5,13 @@ const cron = require("node-cron");
 
 const { SERVER_PORT, SERVER_IP } = require("./serverConfig/variables");
 
-const {
-  createAndInsertHistoricTable,
-  backupAndResetTable,
-} = require("./serverConfig/backups");
+const { createBackup } = require("./serverConfig/backups");
 
 app.use(cors());
 app.use(express.json());
 
 cron.schedule("0 0 * * *", async () => {
-  console.log("Iniciando rotina de backup diário!");
-  await createAndInsertHistoricTable();
-  await backupAndResetTable();
+  createBackup();
 });
 
 const getRoutes = require("./serverConfig/routes/getRoutes");

@@ -7,8 +7,6 @@ const {
   DATABASE_USER,
   DATABASE_PASSWORD,
   MIN_CONNECTIONS,
-  MAX_CONNECTIONS,
-  TIMEOUT_DELAY,
 } = require("./variables");
 
 const prefix = "historic";
@@ -30,6 +28,7 @@ const dbConfig = {
 };
 
 async function backupAndResetTable() {
+  console.log("-> Iniciando processo de limpeza das tabelas...");
   const tableName = "tokens";
   const secondTable = "queue";
   const connection = await pool.getConnection();
@@ -38,23 +37,24 @@ async function backupAndResetTable() {
     const resetTableCommand = `TRUNCATE TABLE ??`;
 
     await connection.query(resetTableCommand, [secondTable]);
-    console.log("Fila zerada com sucesso!");
+    console.log("--> Fila zerada com sucesso!");
 
     await connection.query(resetTableCommand, [tableName]);
-    console.log("Senhas limpas com sucesso!");
+    console.log("--> Senhas limpas com sucesso!");
   } catch (resetError) {
-    console.error("Erro ao zerar a tabelas:", resetError);
+    console.error("***Erro ao zerar as tabelas***", resetError);
   } finally {
     await connection.release();
   }
 
-  console.log("Rotina de backup diário encerrada!");
+  console.log("-> Limpeza dos dados reziduais completa!");
 }
 
 async function createAndInsertHistoricTable() {
   const connection = await pool.getConnection();
 
   try {
+    console.log("-> Verificando existencia da tabela de histórico");
     const tableName = `${prefix}`;
 
     const [tableExists] = await connection.execute(
@@ -63,7 +63,11 @@ async function createAndInsertHistoricTable() {
     );
 
     if (tableExists.length === 0) {
-      await connection.execute(`
+      console.log("--> Tabela de histórico não encontrada...");
+      console.log("--> Iniciando processo de criação...");
+
+      try {
+        await connection.execute(`
         CREATE TABLE ${tableName} (
           id INT NOT NULL AUTO_INCREMENT,
           daily_id INT NOT NULL,
@@ -82,22 +86,37 @@ async function createAndInsertHistoricTable() {
           PRIMARY KEY (id)
         )
       `);
+      } catch (error) {
+        console.log("***Falha ao criar tabela de histórico!***");
+        return false;
+      }
+      console.log("---> Tabela de histórico criada com sucesso!");
+    } else {
+      console.log("--> Tabela encontrada!");
     }
 
-    await connection.execute(
-      `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
-      SELECT id AS daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description
-      FROM tokens`
-    );
+    console.log("-> Iniciando clonagem de dados...");
 
-    console.log(
-      `Dados da tabela principal clonados para a tabela ${tableName} com sucesso.`
-    );
+    try {
+      await connection.execute(
+        `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
+        SELECT id AS daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description
+        FROM tokens`
+      );
+
+      console.log(
+        `--> Dados da tabela principal clonados para a tabela "${tableName}" com sucesso.`
+      );
+    } catch (error) {
+      console.log("***Falha ao clonar os dados!***");
+      return false;
+    }
   } catch (error) {
     console.error(
-      `Erro ao criar e inserir dados na tabela ${tableName}:`,
+      `***Erro ao criar e inserir dados na tabela ${tableName}***`,
       error
     );
+    return false;
   } finally {
     await connection.release();
   }
@@ -123,8 +142,29 @@ async function getTables() {
   }
 }
 
+async function createBackup() {
+  console.log("===================================");
+  console.log("Iniciando rotina de backup diário!");
+  console.log("===================================");
+
+  const success = await createAndInsertHistoricTable();
+
+  if (success === false) {
+    console.log(
+      "Devido a falha no processo de clonagem dos dados, a limpeza será abordada!"
+    );
+  } else {
+    await backupAndResetTable();
+  }
+
+  console.log("===================================");
+  console.log("Rotina de backup diário encerrada!");
+  console.log("===================================");
+}
+
 module.exports = {
   backupAndResetTable,
   createAndInsertHistoricTable,
   getTables,
+  createBackup,
 };
