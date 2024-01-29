@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
+    "boot_server": "node index.js",
+    "boot_socketServer": "node webSocket.js",
+    "boot_videosServer": "node videoServer.js",
     "server": "nodemon index.js",
     "socket": "nodemon webSocket.js",
     "videos": "nodemon videoServer.js"
