@@ -88,10 +88,15 @@ function Reports() {
   const getTokens = async () => {
     try {
       const response = await getHistoric();
-      setOriginalTokens(response);
-      setTokens(response);
 
-      setTokensAreDefined(true);
+      if (response) {
+        setOriginalTokens(response);
+        setTokens(response);
+
+        setTokensAreDefined(true);
+      } else {
+        setLoadMessage("Não há dados para serem exibidos...");
+      }
     } catch (error) {
       console.error("Get services error: " + error);
     }
