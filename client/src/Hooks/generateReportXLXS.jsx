@@ -16,9 +16,20 @@ const generateReport = ({ headers, content, finalSheetName }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const options = { header: headers };
+      const wscols = headers.map((header) => ({ wch: header.length }));
+
+      content.forEach((row) => {
+        headers.forEach((header, i) => {
+          const cellContent = row[header] || "";
+          const cellLength = String(cellContent).length;
+          wscols[i].wch = Math.max(wscols[i].wch + 1, cellLength);
+        });
+      });
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(content, options);
+
+      ws["!cols"] = wscols;
 
       XLSX.utils.book_append_sheet(wb, ws, "Relatório");
 
