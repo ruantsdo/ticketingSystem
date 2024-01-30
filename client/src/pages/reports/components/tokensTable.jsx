@@ -1,5 +1,5 @@
 //React
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 //Components
 import { Subtitle } from "./";
@@ -34,7 +34,7 @@ function TokensTable({ ...props }) {
 
   const rowsPerPage = 5;
 
-  const pages = Math.ceil(tokens.length / rowsPerPage);
+  const pages = Math.max(1, Math.ceil(tokens.length / rowsPerPage));
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -52,6 +52,10 @@ function TokensTable({ ...props }) {
       }
     }
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [tokens]);
 
   return (
     <Table
