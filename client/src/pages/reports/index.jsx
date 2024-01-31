@@ -173,31 +173,49 @@ function Reports() {
 
   const filterTokens = () => {
     if (searchValue !== "" && searchFilter !== "") {
+      let service;
+
+      if (searchFilter === "service") {
+        service = services.find(
+          (service) => service.name.toUpperCase() === searchValue.toUpperCase()
+        );
+
+        if (!service) {
+          toast.info("O serviço buscado não existe!");
+          return;
+        }
+      }
+
       const filteredTokens = tokens.filter((token) => {
         const filterValue = token[searchFilter];
 
         if (searchFilter === "service") {
-          const foundService = services.find(
-            (service) => service.name === searchValue
-          );
-          return foundService ? foundService.id : null;
+          return token.service === service.id ? token : null;
         } else if (searchFilter === "priority") {
-          const upperCaseSearchValue = searchValue.toUpperCase();
-
-          if (upperCaseSearchValue === "NORMAL") {
+          if (searchValue.toUpperCase() === "NORMAL") {
             return token.priority === 0;
-          } else if (upperCaseSearchValue === "PRIORIDADE") {
+          } else if (searchValue.toUpperCase() === "PRIORIDADE") {
             return token.priority === 1;
           }
         } else if (searchFilter === "status") {
           const upperCaseSearchValue = removeAccents(searchValue.toUpperCase());
 
-          return (
-            typeof filterValue === "string" &&
-            removeAccents(filterValue.toUpperCase()).includes(
-              upperCaseSearchValue
-            )
-          );
+          if (upperCaseSearchValue === "EM ESPERA") {
+            console.log("Entrou no if (EM ESPERA)");
+            return (
+              typeof filterValue === "string" &&
+              (removeAccents(filterValue.toUpperCase()).includes("EM ESPERA") ||
+                removeAccents(filterValue.toUpperCase()).includes("ADIADO"))
+            );
+          } else {
+            console.log("Entrou no else (Outros Status)");
+            return (
+              typeof filterValue === "string" &&
+              removeAccents(filterValue.toUpperCase()).includes(
+                upperCaseSearchValue
+              )
+            );
+          }
         } else if (
           typeof filterValue === "string" &&
           filterValue.includes(searchValue)
