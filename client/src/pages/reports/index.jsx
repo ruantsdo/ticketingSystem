@@ -201,14 +201,12 @@ function Reports() {
           const upperCaseSearchValue = removeAccents(searchValue.toUpperCase());
 
           if (upperCaseSearchValue === "EM ESPERA") {
-            console.log("Entrou no if (EM ESPERA)");
             return (
               typeof filterValue === "string" &&
               (removeAccents(filterValue.toUpperCase()).includes("EM ESPERA") ||
                 removeAccents(filterValue.toUpperCase()).includes("ADIADO"))
             );
           } else {
-            console.log("Entrou no else (Outros Status)");
             return (
               typeof filterValue === "string" &&
               removeAccents(filterValue.toUpperCase()).includes(
