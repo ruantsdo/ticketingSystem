@@ -185,7 +185,7 @@ function LocationManagement() {
         } else if (resp === "already exists") {
           toast.info("Já existe um local com esse nome!");
         } else {
-          toast.error("Falha interna no servidor. Tente novamete mais tarde!");
+          toast.error("Falha interna no servidor. Tente novamente mais tarde!");
           setAddLocationIsOpen(false);
         }
       });

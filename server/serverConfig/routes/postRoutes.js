@@ -154,25 +154,48 @@ router.post("/token/registration", async (req, res) => {
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;
 
-    const query = `
-        INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
-        SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?
-        FROM tokens
-        WHERE service = ?
-      `;
+    const insertQuery = `
+      INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
+      SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?
+      FROM tokens
+      WHERE service = ?
+    `;
 
-    await db.query(query, [
-      service,
-      priority,
-      created_by,
-      requested_by,
-      getTime(),
-      service,
-    ]);
+    await db.query(
+      insertQuery,
+      [service, priority, created_by, requested_by, getTime(), service],
+      async (err, result) => {
+        if (result) {
+          const insertedId = result.insertId;
 
-    res.send("success");
+          const selectQuery = "SELECT * FROM tokens WHERE id = ?";
+
+          await db.query(selectQuery, [insertedId], (err, result) => {
+            if (result) {
+              res.status(200).json({
+                message: "success",
+                tokenData: result[0],
+              });
+            } else {
+              res.status(500).json({
+                message: "failed",
+                error: err,
+              });
+            }
+          });
+        } else {
+          res.status(500).json({
+            message: "failed",
+            error: err,
+          });
+        }
+      }
+    );
   } catch (err) {
-    res.send("failed");
+    res.status(500).json({
+      message: "failed",
+      error: err.message,
+    });
   }
 });
 

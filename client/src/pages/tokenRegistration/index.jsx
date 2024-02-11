@@ -1,5 +1,5 @@
 //React
-import { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 //Components
 import {
@@ -31,6 +31,8 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Toast
 import { toast } from "react-toastify";
 
+import { useReactToPrint } from "react-to-print";
+
 function QueueRegistration() {
   const { socket } = useWebSocket();
   const { currentUser } = useContext(AuthContext);
@@ -40,8 +42,10 @@ function QueueRegistration() {
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
 
-  const [availability, setAvaliability] = useState(true);
+  const [availability, setAvailability] = useState(true);
   const [remaining, setRemaining] = useState("");
+
+  const [tokenData, setTokenData] = useState([]);
 
   useEffect(() => {
     handleServices();
@@ -63,8 +67,14 @@ function QueueRegistration() {
               requested_by: values.requested_by,
             })
             .then((response) => {
-              notify(response.data);
+              const data = response.data;
+              setTokenData(data.tokenData);
+              notify(data.message);
               checkAvailability(selectedService);
+
+              setTimeout(() => {
+                handlePrint();
+              }, 500);
             });
         } catch (err) {
           toast.error(
@@ -96,18 +106,18 @@ function QueueRegistration() {
       const token = await api.get(`/token/query/${serviceId}`);
 
       if (service.data[0].limit === 0) {
-        setAvaliability(true);
+        setAvailability(true);
         setRemaining(<AllInclusiveIcon />);
 
         return true;
       }
 
       if (service.data[0].limit > token.data.length && token.data.length >= 0) {
-        setAvaliability(false);
+        setAvailability(false);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return true;
       } else {
-        setAvaliability(true);
+        setAvailability(true);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return false;
       }
@@ -129,9 +139,47 @@ function QueueRegistration() {
     socket.emit("new_token");
   };
 
+  const splitStringIntoLines = (str, maxCharsPerLine) => {
+    const regex = new RegExp(`.{1,${maxCharsPerLine}}`, "g");
+    return str.match(regex).join("\n");
+  };
+
+  const receiptRef = React.useRef();
+
+  const handlePrint = useReactToPrint({
+    content: () => receiptRef.current,
+  });
+
+  const ReceiptComponent = React.forwardRef(({ data }, ref) => {
+    return (
+      <div ref={ref} className="text-center text-darkBackground">
+        <h1 className="underline">{process.env.REACT_APP_COMPANY_NAME}</h1>
+        <h1 className="text-5xl mt-2 mb-1">
+          {tokenData.service &&
+            splitStringIntoLines(
+              services.find((service) => service.id === tokenData.service)
+                ?.name || "",
+              10
+            )}
+        </h1>
+        <h1 className="text-5xl mb-2"> [ {tokenData?.position} ] </h1>
+        {tokenData?.priority === 1 ? (
+          <div className="flex items-center justify-between">
+            <h6 className="text-start">PRIORIDADE</h6>
+            <h5 className="text-end">{tokenData?.created_at}</h5>
+          </div>
+        ) : (
+          <h5 className="text-end">{tokenData?.created_at}</h5>
+        )}
+
+        <h6 className="italic">Válido apenas para o dia da emissão!</h6>
+      </div>
+    );
+  });
+
   return (
     <FullContainer>
-      <Card>
+      <Card className="absolute">
         <p className="text-3xl">Cadastro de ficha</p>
         <Divider />
         <Formik initialValues={formik.initialValues}>
@@ -206,6 +254,10 @@ function QueueRegistration() {
           </Form>
         </Formik>
       </Card>
+      <ReceiptComponent
+        ref={receiptRef}
+        data={{ title: "Receipt", description: "This is a receipt." }}
+      />
     </FullContainer>
   );
 }

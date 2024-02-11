@@ -439,6 +439,7 @@ function ServicesManagement() {
                   label="NOME"
                   value={currentTargetName}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
+                  maxLength={20}
                 />
                 <Input
                   variant="underlined"

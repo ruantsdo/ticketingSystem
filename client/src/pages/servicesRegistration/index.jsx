@@ -136,6 +136,7 @@ function ServicesRegister() {
               onChange={formik.handleChange}
               onFocus={() => setValidName(true)}
               value={formik.values.name}
+              maxLength={20}
             />
             <Input
               type="text"
