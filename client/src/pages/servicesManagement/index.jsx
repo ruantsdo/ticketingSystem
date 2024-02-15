@@ -436,7 +436,7 @@ function ServicesManagement() {
                   variant="underlined"
                   size="sm"
                   className="border-none"
-                  label="NOME"
+                  label="NOME (Máximo de 20 caracteres)"
                   value={currentTargetName}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                   maxLength={20}

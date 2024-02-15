@@ -131,7 +131,7 @@ function ServicesRegister() {
               isInvalid={!validName}
               variant={validName ? "flat" : "bordered"}
               type="text"
-              label="Título do serviço"
+              label="Título do serviço (máximo de 20 caracteres)"
               name="name"
               onChange={formik.handleChange}
               onFocus={() => setValidName(true)}
