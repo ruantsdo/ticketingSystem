@@ -101,11 +101,13 @@ function TokenCallAlternative() {
 
   const speakQueue = async () => {
     if (currentIndex >= 0 && currentIndex < queue.length) {
-      const textToSpeak = `Atenção ${queue[currentIndex].requested_by}, senha ${
-        services[queue[currentIndex].service - 1].name
-      } ${queue[currentIndex].position}, por favor dirija-se á ${
-        locations[queue[currentIndex].location - 1].name
-      }, ${queue[currentIndex].table}`;
+      const textToSpeak = `Atenção ${
+        queue[currentIndex].requested_by
+      }, senha ${getTargetServiceName(queue[currentIndex].service)} ${
+        queue[currentIndex].position
+      }, por favor dirija-se á ${getTargetLocationName(
+        queue[currentIndex].location
+      )}, ${queue[currentIndex].table}`;
 
       await speakText(textToSpeak);
 
@@ -122,7 +124,7 @@ function TokenCallAlternative() {
   const updateText = async (currentIndex) => {
     if (currentIndex >= 0 && currentIndex < queue.length) {
       setdisplayToken(
-        `${services[queue[currentIndex].service - 1].name} ${
+        `${getTargetServiceName(queue[currentIndex].service)} ${
           queue[currentIndex].position
         }`
       );
@@ -130,7 +132,7 @@ function TokenCallAlternative() {
         <p className="text-4xl text-center ">
           <span>Dirija-se á </span>
           <span className="text-blue-700 text-5xl animate-pulse">
-            {locations[queue[currentIndex].location - 1].name}
+            {getTargetLocationName(queue[currentIndex].location)}
           </span>
         </p>
       );
@@ -146,10 +148,10 @@ function TokenCallAlternative() {
       setLastsTokens((prevTokens) => {
         const newToken = {
           id: `${queue[currentIndex].token_id}`,
-          value: `${services[queue[currentIndex].service - 1].name} ${
+          value: `${getTargetServiceName(queue[currentIndex].service)} ${
             queue[currentIndex].position
           }`,
-          location: `${locations[queue[currentIndex].location - 1].name}`,
+          location: `${getTargetLocationName(queue[currentIndex].location)}`,
         };
 
         const prevTokensArray = Array.isArray(prevTokens) ? prevTokens : [];
@@ -214,6 +216,40 @@ function TokenCallAlternative() {
     }
   };
 
+  const getTargetServiceName = (id) => {
+    const currentService = services.find((service) => service.id === id);
+
+    return currentService.name;
+  };
+
+  const getTargetLocationName = (id) => {
+    const currentLocation = locations.find((location) => location.id === id);
+
+    return currentLocation.name;
+  };
+
+  useEffect(() => {
+    socket.on("services_updated", () => {
+      handleServices();
+    });
+
+    return () => {
+      socket.off("services_updated");
+    };
+    // eslint-disable-next-line
+  }); //Socket Server Connection for Services Updates
+
+  useEffect(() => {
+    socket.on("locations_updated", () => {
+      handleLocations();
+    });
+
+    return () => {
+      socket.off("locations_updated");
+    };
+    // eslint-disable-next-line
+  }); //Socket Server Connection for Locations Updates
+
   useEffect(() => {
     handleServices();
     handleLocations();
@@ -234,7 +270,7 @@ function TokenCallAlternative() {
     return () => {
       socket.off("queued_update");
     };
-  }); //Socket Server Connection
+  }); //Socket Server Connection for queue
 
   useEffect(() => {
     if (videoRef.current) {

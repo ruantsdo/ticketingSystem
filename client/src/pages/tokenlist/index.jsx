@@ -70,9 +70,9 @@ function TokensList() {
 
   const [services, setServices] = useState([]);
 
-  const rowsPerPage = 5;
+  const rowsPerPage = 6;
 
-  const pages = Math.ceil(tokensLength / rowsPerPage);
+  const pages = Math.ceil(tokens.length / rowsPerPage);
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -82,7 +82,7 @@ function TokensList() {
   }, [page, tokens]);
 
   const findIndexById = (key) => {
-    for (let i = 0; i < tokensLength; i++) {
+    for (let i = 0; i <= tokens.length; i++) {
       // eslint-disable-next-line
       if (tokens[i].id == key) {
         setItemKey(i);
@@ -100,7 +100,7 @@ function TokensList() {
 
   useEffect(() => {
     socket.on("new_token", () => {
-      handleUserServices();
+      handleTokens();
     });
 
     return () => {
@@ -345,6 +345,12 @@ function TokensList() {
     }
   };
 
+  const getCurrentServiceName = (id) => {
+    const currentService = services.find((service) => service.id === id);
+
+    return currentService.name;
+  };
+
   return (
     <FullContainer>
       <div className="flex flex-col w-full sm:w-[95%]">
@@ -392,7 +398,7 @@ function TokensList() {
         </div>
 
         <Table
-          aria-label="Lista de fichas disponiveis para você"
+          aria-label="Lista de fichas disponíveis para você"
           onRowAction={(key) => {
             findIndexById(key);
             onOpen();
@@ -461,7 +467,7 @@ function TokensList() {
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.position}</TableCell>
-                <TableCell>{services[item.service - 1].name}</TableCell>
+                <TableCell>{getCurrentServiceName(item.service)}</TableCell>
                 <TableCell className="hidden sm:table-cell">
                   {item.requested_by !== ""
                     ? item.requested_by
@@ -610,7 +616,7 @@ function TokensList() {
                 <div>
                   <h5 className="font-bold">Serviço desejado: </h5>
                   <h6 className="indent-2">
-                    {services[tokens[itemKey].service - 1].name}
+                    {getCurrentServiceName(tokens[itemKey].service)}
                   </h6>
                 </div>
                 <div>
