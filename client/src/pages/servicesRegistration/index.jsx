@@ -113,7 +113,7 @@ function ServicesRegister() {
   };
 
   const emitNewLocation = () => {
-    socket.emit("new_service");
+    socket.emit("service_updated");
   };
 
   return (

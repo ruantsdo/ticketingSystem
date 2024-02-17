@@ -171,6 +171,14 @@ io.on("connection", (socket) => {
     io.emit("new_location");
   });
 
+  socket.on("services_updated", () => {
+    io.emit("services_updated");
+  });
+
+  socket.on("locations_updated", () => {
+    io.emit("locations_updated");
+  });
+
   socket.on("disconnect", () => {
     console.log("Cliente desconectado");
   });

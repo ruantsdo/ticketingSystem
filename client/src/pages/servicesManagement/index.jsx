@@ -36,6 +36,7 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+import { useWebSocket } from "../../contexts/webSocket";
 
 //Services
 import api from "../../services/api";
@@ -44,6 +45,7 @@ import api from "../../services/api";
 import { toast } from "react-toastify";
 
 function ServicesManagement() {
+  const { socket } = useWebSocket();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
   const [addServiceIsOpen, setAddServiceIsOpen] = useState(false);
@@ -125,6 +127,7 @@ function ServicesManagement() {
         );
       } else {
         await removeService(id);
+        emitServiceUpdateSignal();
       }
     } catch (error) {
       console.log("Delete service error: " + error);
@@ -141,6 +144,7 @@ function ServicesManagement() {
           if (response.data === "success") {
             toast.success("O serviço foi removido!");
             handleServices();
+            emitServiceUpdateSignal();
           } else if (response.data === "failed") {
             toast.error("Falha ao remover serviço!");
           }
@@ -163,6 +167,7 @@ function ServicesManagement() {
         .then((response) => {
           if (response.data === "success") {
             toast.success("Serviço atualizado!");
+            emitServiceUpdateSignal();
           } else if (response.data === "failed") {
             toast.error("Falha ao atualizar o serviço!");
           }
@@ -193,6 +198,7 @@ function ServicesManagement() {
           toast.success("Serviço cadastrado!");
           handleServices();
           setAddServiceIsOpen(false);
+          emitServiceUpdateSignal();
         } else if (resp === "failed") {
           toast.warn(
             "Falha ao cadastrar o serviço. Tente novamente em alguns instantes!"
@@ -217,6 +223,10 @@ function ServicesManagement() {
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetLimit("");
+  };
+
+  const emitServiceUpdateSignal = () => {
+    socket.emit("services_updated");
   };
 
   useEffect(() => {

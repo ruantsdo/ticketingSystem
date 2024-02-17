@@ -65,7 +65,7 @@ function LocationRegister() {
   const notify = (response) => {
     if (response === "success") {
       toast.success("Local cadastrado!");
-      emitNewLocation();
+      emitLocationUpdateSignal();
       formik.resetForm();
       handleLocations();
     } else if (response === "failed") {
@@ -91,10 +91,6 @@ function LocationRegister() {
     return validation;
   };
 
-  const emitNewLocation = () => {
-    socket.emit("new_location");
-  };
-
   useEffect(() => {
     handleLocations();
   }, []);
@@ -106,6 +102,10 @@ function LocationRegister() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const emitLocationUpdateSignal = () => {
+    socket.emit("locations_updated");
   };
 
   return (

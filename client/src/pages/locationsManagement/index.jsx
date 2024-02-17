@@ -36,6 +36,7 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+import { useWebSocket } from "../../contexts/webSocket";
 
 //Services
 import api from "../../services/api";
@@ -44,6 +45,8 @@ import api from "../../services/api";
 import { toast } from "react-toastify";
 
 function LocationManagement() {
+  const { socket } = useWebSocket();
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
   const [addLocationIsOpen, setAddLocationIsOpen] = useState(false);
@@ -124,6 +127,7 @@ function LocationManagement() {
           if (response.data === "success") {
             toast.success("O local foi removido!");
             handleLocations();
+            emitLocationUpdateSignal();
           } else if (response.data === "failed") {
             toast.error("Falha ao remover local!");
           }
@@ -146,6 +150,7 @@ function LocationManagement() {
         .then((response) => {
           if (response.data === "success") {
             toast.success("Local atualizado!");
+            emitLocationUpdateSignal();
           } else if (response.data === "failed") {
             toast.error("Falha ao atualizar o local!");
           }
@@ -177,6 +182,7 @@ function LocationManagement() {
           toast.success("Local cadastrado!");
           handleLocations();
           setAddLocationIsOpen(false);
+          emitLocationUpdateSignal();
         } else if (resp === "failed") {
           toast.warn(
             "Falha ao cadastrar novo local. Tente novamente em alguns instantes!"
@@ -201,6 +207,10 @@ function LocationManagement() {
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetTables("");
+  };
+
+  const emitLocationUpdateSignal = () => {
+    socket.emit("locations_updated");
   };
 
   useEffect(() => {
