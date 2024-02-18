@@ -179,6 +179,10 @@ io.on("connection", (socket) => {
     io.emit("locations_updated");
   });
 
+  socket.on("midNight", () => {
+    io.emit("midNight");
+  });
+
   socket.on("disconnect", () => {
     console.log("Cliente desconectado");
   });

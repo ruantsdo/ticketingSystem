@@ -9,6 +9,8 @@ const {
   MIN_CONNECTIONS,
 } = require("./variables");
 
+const { midNightSignal } = require("./socketUtils");
+
 const prefix = "historic";
 
 const pool = new mysql.createPool({
@@ -47,14 +49,14 @@ async function backupAndResetTable() {
     await connection.release();
   }
 
-  console.log("-> Limpeza dos dados reziduais completa!");
+  console.log("-> Limpeza dos dados residuais completa!");
 }
 
 async function createAndInsertHistoricTable() {
   const connection = await pool.getConnection();
 
   try {
-    console.log("-> Verificando existencia da tabela de histórico");
+    console.log("-> Verificando existência da tabela de histórico");
     const tableName = `${prefix}`;
 
     const [tableExists] = await connection.execute(
@@ -159,6 +161,24 @@ async function createBackup() {
 
   console.log("===================================");
   console.log("Rotina de backup diário encerrada!");
+  console.log("===================================");
+
+  console.log("===================================");
+  console.log("Solicitando reload aos clientes conectados...");
+  console.log("===================================");
+
+  if (midNightSignal()) {
+    console.log("===================================");
+    console.log("Solicitação enviada aos clientes conectados!");
+    console.log("===================================");
+  } else {
+    console.log("===================================");
+    console.log("Falha ao enviar solicitação aos clientes conectados!");
+    console.log("===================================");
+  }
+
+  console.log("===================================");
+  console.log("As rotinas diárias foram concluídas!");
   console.log("===================================");
 }
 
