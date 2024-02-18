@@ -68,9 +68,13 @@ function TokensTable({ ...props }) {
         <div className="flex flex-row w-full items-center justify-center">
           <div className="flex flex-row w-[42%] left-2 absolute justify-around"></div>
           <Pagination
+            loop
             isCompact
             showControls
+            siblings={1}
+            boundaries={1}
             color="success"
+            initialPage={1}
             page={page}
             total={pages}
             onChange={(page) => setPage(page)}

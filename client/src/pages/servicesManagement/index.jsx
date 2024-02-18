@@ -259,9 +259,13 @@ function ServicesManagement() {
           bottomContent={
             <div className="flex w-full justify-center">
               <Pagination
+                loop
                 isCompact
                 showControls
+                siblings={1}
+                boundaries={1}
                 color="success"
+                initialPage={1}
                 page={page}
                 total={pages}
                 onChange={(page) => setPage(page)}

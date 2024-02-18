@@ -416,9 +416,13 @@ function TokensList() {
             <div className="flex w-full items-center justify-center">
               <div className="flex self-center">
                 <Pagination
+                  loop
                   isCompact
                   showControls
+                  siblings={1}
+                  boundaries={1}
                   color="success"
+                  initialPage={1}
                   page={page}
                   total={pages}
                   onChange={(page) => setPage(page)}
@@ -472,7 +476,7 @@ function TokensList() {
             {(item) => (
               <TableRow
                 key={item.id}
-                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all animate-appearance-in"
+                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.position}</TableCell>
                 <TableCell>{getCurrentServiceName(item.service)}</TableCell>
