@@ -28,6 +28,9 @@ import Menu from "./components/menu";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ReplayIcon from "@mui/icons-material/Replay";
 
+//Toast
+import { toast } from "react-toastify";
+
 function TokenCallAlternative() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
@@ -47,10 +50,11 @@ function TokenCallAlternative() {
   const [displayLocation, setDisplayLocation] = useState("");
   const [displayTable, setDisplayTable] = useState("");
   const [displayName, setDisplayName] = useState("");
-  //const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [services, setServices] = useState([]);
   const [locations, setLocations] = useState([]);
+
+  const maxListLength = Math.ceil(window.innerHeight / 130);
 
   const speakText = useCallback(
     async (text) => {
@@ -105,7 +109,8 @@ function TokenCallAlternative() {
         queue[currentIndex].requested_by
       }, senha ${getTargetServiceName(queue[currentIndex].service)} ${
         queue[currentIndex].position
-      }, por favor dirija-se á ${getTargetLocationName(
+      },
+      por favor dirija-se á ${getTargetLocationName(
         queue[currentIndex].location
       )}, ${queue[currentIndex].table}`;
 
@@ -158,7 +163,7 @@ function TokenCallAlternative() {
 
         const updatedTokens = [newToken, ...prevTokensArray];
 
-        if (updatedTokens.length > 5) {
+        if (updatedTokens.length >= maxListLength + 1) {
           updatedTokens.pop();
         }
 
@@ -229,28 +234,6 @@ function TokenCallAlternative() {
   };
 
   useEffect(() => {
-    socket.on("services_updated", () => {
-      handleServices();
-    });
-
-    return () => {
-      socket.off("services_updated");
-    };
-    // eslint-disable-next-line
-  }); //Socket Server Connection for Services Updates
-
-  useEffect(() => {
-    socket.on("locations_updated", () => {
-      handleLocations();
-    });
-
-    return () => {
-      socket.off("locations_updated");
-    };
-    // eslint-disable-next-line
-  }); //Socket Server Connection for Locations Updates
-
-  useEffect(() => {
     handleServices();
     handleLocations();
     handleVideos();
@@ -261,16 +244,6 @@ function TokenCallAlternative() {
     playAndSpeak();
     // eslint-disable-next-line
   }, [queue]); //Speak Queue
-
-  useEffect(() => {
-    socket.on("queued_update", (data) => {
-      setQueue([...queue, data]);
-    });
-
-    return () => {
-      socket.off("queued_update");
-    };
-  }); //Socket Server Connection for queue
 
   useEffect(() => {
     if (videoRef.current) {
@@ -289,6 +262,35 @@ function TokenCallAlternative() {
     // eslint-disable-next-line
   }, [currentVideoIndex]); //Video PlayBack Observer
 
+  useEffect(() => {
+    socket.on("services_updated", () => {
+      handleServices();
+    });
+
+    socket.on("locations_updated", () => {
+      handleLocations();
+    });
+
+    socket.on("queued_update", (data) => {
+      setQueue([...queue, data]);
+    });
+
+    socket.on("midNight", () => {
+      toast.warning("A sessão atual será limpa e atualizada em 5 segundos!");
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 5000);
+    });
+
+    return () => {
+      socket.off("services_updated");
+      socket.off("locations_updated");
+      socket.off("queued_update");
+      socket.off("midNight");
+    };
+    // eslint-disable-next-line
+  }); //Socket Server Connection for Services Updates, Locations Updates, Queue and Reload observer
+
   return (
     <div className="flex flex-col p-1 gap-1 w-screen h-screen bg-background dark:bg-darkBackground transition-all delay-0">
       <div className="flex border-1 border-divider dark:darkDivider rounded justify-around w-full h-[40%] gap-1 font-mono">
@@ -300,9 +302,9 @@ function TokenCallAlternative() {
             </p>
           </section>
           <section className="flex flex-col items-center">
-            <p className="text-7xl text-center text-blue-700">{displayName}</p>
+            <p className="text-7xl 2xl:text-8xl text-blue-700">{displayName}</p>
             {displayLocation}
-            <p className="text-3xl text-center">{displayTable}</p>
+            <p className="text-2xl text-center">{displayTable}</p>
           </section>
         </div>
       </div>
@@ -329,7 +331,10 @@ function TokenCallAlternative() {
               emptyContent={"Nenhuma ficha foi chamada ainda..."}
             >
               {(item) => (
-                <TableRow key={item.id}>
+                <TableRow
+                  key={`${item.id}_${new Date().getTime()}`}
+                  className="animate-appearance-in"
+                >
                   <TableCell className="text-lg font-bold">
                     {item.value}
                   </TableCell>

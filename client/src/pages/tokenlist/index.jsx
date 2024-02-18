@@ -345,8 +345,17 @@ function TokensList() {
       handleUserServices();
     });
 
+    socket.on("midNight", () => {
+      toast.warning("A sessão atual será limpa e atualizada em 5 segundos!");
+      setTimeout(() => {
+        localStorage.removeItem("currentSession");
+        window.location.reload(true);
+      }, 5000);
+    });
+
     return () => {
       socket.off("new_token");
+      socket.off("midNight");
     };
   });
 
@@ -463,7 +472,7 @@ function TokensList() {
             {(item) => (
               <TableRow
                 key={item.id}
-                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
+                className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all animate-appearance-in"
               >
                 <TableCell>{item.position}</TableCell>
                 <TableCell>{getCurrentServiceName(item.service)}</TableCell>

@@ -29,11 +29,11 @@ const Clock = () => {
 
   return (
     <div className="flex flex-row justify-around items-center w-full h-[20%] border-1 border-divider dark:darkDivider rounded-lg text-4xl">
-      <p className="flex flex-row items-center gap-2">
+      <p className="flex flex-row items-center gap-2 text-3xl 2xl:text-5xl">
         <CalendarMonthOutlinedIcon fontSize="large" />
         {date.toLocaleDateString()}
       </p>
-      <p className="flex flex-row items-center gap-2">
+      <p className="flex flex-row items-center gap-2 text-3xl 2xl:text-5xl">
         <AccessTimeOutlinedIcon fontSize="large" />
         {hour.toLocaleTimeString([], {
           hour: "2-digit",

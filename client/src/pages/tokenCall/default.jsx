@@ -28,6 +28,9 @@ import Menu from "./components/menu";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ReplayIcon from "@mui/icons-material/Replay";
 
+//Toast
+import { toast } from "react-toastify";
+
 function TokenCallDefault() {
   const { speechSynthesis, SpeechSynthesisUtterance } = window;
   const { socket } = useWebSocket();
@@ -36,21 +39,22 @@ function TokenCallDefault() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo] = useState();
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videosLenght, setVideosLenght] = useState();
+  const [videosLength, setVideosLength] = useState();
 
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayToken, setdisplayToken] = useState(
+  const [displayToken, setDisplayToken] = useState(
     "Nenhuma senha foi chamada ainda..."
   );
   const [displayLocation, setDisplayLocation] = useState("");
   const [displayTable, setDisplayTable] = useState("");
   const [displayName, setDisplayName] = useState("");
-  //const [isSpeaking, setIsSpeaking] = useState(false);
 
   const [services, setServices] = useState([]);
   const [locations, setLocations] = useState([]);
+
+  const maxListLength = Math.ceil(window.innerHeight / 130);
 
   const speakText = useCallback(
     async (text) => {
@@ -124,7 +128,7 @@ function TokenCallDefault() {
 
   const updateText = async (currentIndex) => {
     if (currentIndex >= 0 && currentIndex < queue.length) {
-      setdisplayToken(
+      setDisplayToken(
         `${getTargetServiceName(queue[currentIndex].service)} ${
           queue[currentIndex].position
         }`
@@ -159,7 +163,7 @@ function TokenCallDefault() {
 
         const updatedTokens = [newToken, ...prevTokensArray];
 
-        if (updatedTokens.length > 5) {
+        if (updatedTokens.length >= maxListLength + 1) {
           updatedTokens.pop();
         }
 
@@ -192,7 +196,7 @@ function TokenCallDefault() {
     try {
       const response = await api.get("/videoList");
       const data = response.data.videos;
-      setVideosLenght(data.length);
+      setVideosLength(data.length);
       onVideoEnd(data);
     } catch (error) {
       console.error(error);
@@ -242,38 +246,6 @@ function TokenCallDefault() {
   }, [queue]); //Speak Queue
 
   useEffect(() => {
-    socket.on("services_updated", () => {
-      handleServices();
-    });
-
-    return () => {
-      socket.off("services_updated");
-    };
-    // eslint-disable-next-line
-  }); //Socket Server Connection for Services Updates
-
-  useEffect(() => {
-    socket.on("locations_updated", () => {
-      handleLocations();
-    });
-
-    return () => {
-      socket.off("locations_updated");
-    };
-    // eslint-disable-next-line
-  }); //Socket Server Connection for Locations Updates
-
-  useEffect(() => {
-    socket.on("queued_update", (data) => {
-      setQueue([...queue, data]);
-    });
-
-    return () => {
-      socket.off("queued_update");
-    };
-  }); //Socket Server Connection for queue
-
-  useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("ended", handleVideos);
       videoRef.current.volume = 0.8;
@@ -290,20 +262,51 @@ function TokenCallDefault() {
     // eslint-disable-next-line
   }, [currentVideoIndex]); //Video PlayBack Observer
 
+  useEffect(() => {
+    socket.on("services_updated", () => {
+      handleServices();
+    });
+
+    socket.on("locations_updated", () => {
+      handleLocations();
+    });
+
+    socket.on("queued_update", (data) => {
+      setQueue([...queue, data]);
+    });
+
+    socket.on("midNight", () => {
+      toast.warning("A sessão atual será limpa e atualizada em 5 segundos!");
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 5000);
+    });
+
+    return () => {
+      socket.off("services_updated");
+      socket.off("locations_updated");
+      socket.off("queued_update");
+      socket.off("midNight");
+    };
+    // eslint-disable-next-line
+  }); //Socket Server Connection for Services Updates, Locations Updates, Queue and Reload observer
+
   return (
     <div className="flex flex-row p-1 gap-1 w-screen h-screen bg-background dark:bg-darkBackground justify-evenly transition-all delay-0 overflow-auto">
       <div className="flex flex-col justify-around w-6/12 h-full gap-1 font-mono">
-        <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center gap-1">
-          <p className="text-4xl underline">SENHA ATUAL</p>
+        <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center">
+          <p className="text-4xl mt-3.5 lg:mt-0 underline">SENHA ATUAL</p>
           <section className="flex flex-col items-center overflow-hidden">
-            <p className="2xlg:text-9xl text-center text-red-700 animate-pulse break-all">
+            <p className="text-8xl 2xl:text-9xl text-center text-red-700 animate-pulse break-all 2xl:break-words">
               {displayToken}
             </p>
           </section>
           <section className="flex flex-col items-center">
-            <p className="text-8xl text-center text-blue-700">{displayName}</p>
+            <p className="text-7xl 2xl:text-8xl text-center text-blue-700">
+              {displayName}
+            </p>
             {displayLocation}
-            <p className="text-5xl text-center">{displayTable}</p>
+            <p className="text-4xl 2xl:text-5xl text-center">{displayTable}</p>
           </section>
         </div>
         <Clock />
@@ -331,7 +334,10 @@ function TokenCallDefault() {
             emptyContent={"Nenhuma ficha foi chamada ainda..."}
           >
             {(item) => (
-              <TableRow key={item.id}>
+              <TableRow
+                key={`${item.id}_${new Date().getTime()}`}
+                className="animate-appearance-in"
+              >
                 <TableCell className="text-lg font-bold">
                   {item.value}
                 </TableCell>
@@ -350,7 +356,7 @@ function TokenCallDefault() {
               src={currentVideo}
               controls
               autoPlay
-              loop={videosLenght > 1 ? false : true}
+              loop={videosLength > 1 ? false : true}
               className="w-[99.9%] h-[99.9%]"
             />
           ) : (

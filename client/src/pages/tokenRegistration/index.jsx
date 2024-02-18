@@ -48,8 +48,21 @@ function QueueRegistration() {
   const [tokenData, setTokenData] = useState([]);
 
   useEffect(() => {
-    handleServices();
-  }, []);
+    if (!services) {
+      handleServices();
+    }
+
+    socket.on("services_updated", () => {
+      handleServices();
+    });
+
+    socket.on("midNight", () => {
+      toast.warning("A sessão atual será limpa e atualizada em 5 segundos!");
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 5000);
+    });
+  });
 
   const formik = useFormik({
     initialValues: {
