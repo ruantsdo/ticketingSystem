@@ -91,24 +91,6 @@ function TokensList() {
     }
   };
 
-  useEffect(() => {
-    handleServices();
-    handleUserServices();
-    handleLocations();
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    socket.on("new_token", () => {
-      handleTokens();
-    });
-
-    return () => {
-      socket.off("new_token");
-    };
-    // eslint-disable-next-line
-  }, []);
-
   const emitSignalQueueUpdate = (token) => {
     const data = {
       token_id: token.id,
@@ -350,6 +332,23 @@ function TokensList() {
 
     return currentService.name;
   };
+
+  useEffect(() => {
+    handleServices();
+    handleUserServices();
+    handleLocations();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    socket.on("new_token", () => {
+      handleUserServices();
+    });
+
+    return () => {
+      socket.off("new_token");
+    };
+  });
 
   return (
     <FullContainer>
