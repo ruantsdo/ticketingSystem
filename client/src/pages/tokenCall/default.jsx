@@ -291,19 +291,19 @@ function TokenCallDefault() {
   }, [currentVideoIndex]); //Video PlayBack Observer
 
   return (
-    <div className="flex flex-row p-1 gap-3 w-screen h-screen bg-background dark:bg-darkBackground justify-evenly transition-all delay-0 overflow-auto">
+    <div className="flex flex-row p-1 gap-1 w-screen h-screen bg-background dark:bg-darkBackground justify-evenly transition-all delay-0 overflow-auto">
       <div className="flex flex-col justify-around w-6/12 h-full gap-1 font-mono">
-        <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center">
+        <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center gap-1">
           <p className="text-4xl underline">SENHA ATUAL</p>
-          <section className="flex flex-col items-center">
-            <p className="text-9xl text-center text-red-700 animate-pulse">
+          <section className="flex flex-col items-center overflow-hidden">
+            <p className="2xlg:text-9xl text-center text-red-700 animate-pulse break-all">
               {displayToken}
             </p>
           </section>
           <section className="flex flex-col items-center">
-            <p className="text-6xl text-center text-blue-700">{displayName}</p>
+            <p className="text-8xl text-center text-blue-700">{displayName}</p>
             {displayLocation}
-            <p className="text-4xl text-center">{displayTable}</p>
+            <p className="text-5xl text-center">{displayTable}</p>
           </section>
         </div>
         <Clock />

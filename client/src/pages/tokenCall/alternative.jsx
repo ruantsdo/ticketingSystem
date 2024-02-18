@@ -36,12 +36,12 @@ function TokenCallAlternative() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [currentVideo, setCurrentVideo] = useState();
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videosLenght, setVideosLenght] = useState();
+  const [videosLength, setVideosLength] = useState();
 
   const [queue, setQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayToken, setdisplayToken] = useState(
+  const [displayToken, setDisplayToken] = useState(
     "Nenhuma senha foi chamada ainda..."
   );
   const [displayLocation, setDisplayLocation] = useState("");
@@ -123,7 +123,7 @@ function TokenCallAlternative() {
 
   const updateText = async (currentIndex) => {
     if (currentIndex >= 0 && currentIndex < queue.length) {
-      setdisplayToken(
+      setDisplayToken(
         `${getTargetServiceName(queue[currentIndex].service)} ${
           queue[currentIndex].position
         }`
@@ -191,7 +191,7 @@ function TokenCallAlternative() {
     try {
       const response = await api.get("/videoList");
       const data = response.data.videos;
-      setVideosLenght(data.length);
+      setVideosLength(data.length);
       onVideoEnd(data);
     } catch (error) {
       console.error(error);
@@ -295,12 +295,12 @@ function TokenCallAlternative() {
         <Menu className="absolute mt-3 ml-[93%] z-50 opacity-20 hover:opacity-100" />
         <div className="flex flex-col justify-around w-full h-full border-1 rounded-lg">
           <section className="flex flex-col items-center">
-            <p className="text-9xl text-center text-red-700 animate-pulse">
+            <p className="text-8xl 2xl:text-9xl text-center text-red-700 animate-pulse">
               {displayToken}
             </p>
           </section>
           <section className="flex flex-col items-center">
-            <p className="text-6xl text-center text-blue-700">{displayName}</p>
+            <p className="text-7xl text-center text-blue-700">{displayName}</p>
             {displayLocation}
             <p className="text-3xl text-center">{displayTable}</p>
           </section>
@@ -349,7 +349,7 @@ function TokenCallAlternative() {
               src={currentVideo}
               controls
               autoPlay
-              loop={videosLenght > 1 ? false : true}
+              loop={videosLength > 1 ? false : true}
               className="w-[99.9%] h-[99.9%] rounded-lg"
             />
           ) : (
