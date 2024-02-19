@@ -105,7 +105,7 @@ function LocationManagement() {
       (local) => local.name === currentTargetName
     );
 
-    if (duplicateLocation.length > 0) {
+    if (duplicateLocation.length > 1) {
       const checkId = locations.some((local) => local.id !== id);
       if (checkId) {
         toast.info("Já existe um local com esse nome!");
