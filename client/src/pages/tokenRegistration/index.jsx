@@ -48,9 +48,7 @@ function QueueRegistration() {
   const [tokenData, setTokenData] = useState([]);
 
   useEffect(() => {
-    if (!services) {
-      handleServices();
-    }
+    handleServices();
 
     socket.on("services_updated", () => {
       handleServices();
@@ -62,7 +60,13 @@ function QueueRegistration() {
         window.location.reload(true);
       }, 5000);
     });
-  });
+
+    return () => {
+      socket.off("services_updated");
+      socket.off("midNight");
+    };
+    // eslint-disable-next-line
+  }, []);
 
   const formik = useFormik({
     initialValues: {

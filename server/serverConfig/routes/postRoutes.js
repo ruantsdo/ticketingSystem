@@ -73,9 +73,10 @@ router.post("/user/registration", async (req, res) => {
         //If it does not exist, start the registration procedure
         const hash = await bcrypt.hash(req.body.password, saltRounds);
         let emailValue = req.body.email !== undefined ? req.body.email : "";
+        let newUserId;
 
         try {
-          await db.query(
+          const result = await db.query(
             "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
             [
               req.body.name,
@@ -87,16 +88,18 @@ router.post("/user/registration", async (req, res) => {
               req.body.created_by,
             ]
           );
+
+          newUserId = result.insertId;
         } catch (error) {
           res.send("Falied to create new user in database");
-        } //Try to insert a new user into the database
+        }
 
         try {
           await db.query(
             "SELECT * FROM users WHERE cpf = ?",
             [req.body.cpf],
             (err, result) => {
-              insertSelectedServices(result[0].id, req.body.services).then(
+              insertSelectedServices(newUserId, req.body.services).then(
                 (response) => {
                   res.send(response);
                 }

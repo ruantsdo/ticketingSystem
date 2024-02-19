@@ -60,7 +60,6 @@ function UserManagement() {
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedPermission, setSelectedPermission] = useState();
 
-  const [usersList, setUsersList] = useState([]);
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
@@ -154,9 +153,9 @@ function UserManagement() {
             })
             .then((response) => {
               if (response.data === "New user created") {
+                handleUsersList();
                 toast.success("Novo usuário cadastrado!");
                 clearStates();
-                handleUsersList();
                 setAddUserIsOpen(false);
               } else if (response.data === "User already exists") {
                 toast.info("Já existe um cadastrado usuário com esse CPF!");
@@ -198,13 +197,13 @@ function UserManagement() {
   const handleUsersList = async () => {
     try {
       const response = await api.get("/users/query/full");
-      setUsersList(response.data);
+      filterUsers(response.data);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const filterUsers = async () => {
+  const filterUsers = async (usersList) => {
     if (currentUser.permission_level > 3) {
       setUsers(usersList);
     } else {
@@ -235,7 +234,7 @@ function UserManagement() {
   };
 
   const checkUserCpf = async (id) => {
-    const duplicateUsers = usersList.filter(
+    const duplicateUsers = users.filter(
       (user) => user.cpf === currentTargetCPF
     );
 
@@ -358,11 +357,6 @@ function UserManagement() {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-    filterUsers();
-    // eslint-disable-next-line
-  }, [usersList]);
-
   return (
     <FullContainer>
       <div className="flex flex-col w-full sm:w-[95%]">
@@ -419,7 +413,7 @@ function UserManagement() {
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há usuários dísponiveis..."
+                    label="Ainda não há usuários disponíveis..."
                   />
                   Atualize a página para buscar por atualizações...
                 </div>
@@ -428,7 +422,7 @@ function UserManagement() {
           >
             {(item) => (
               <TableRow
-                key={item.id}
+                key={`${item.id}`}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.id}</TableCell>
@@ -530,8 +524,6 @@ function UserManagement() {
                   label="SENHA (Deixe em branco para manter a atual)"
                   onChange={(e) => {
                     setCurrentTargetNewPassword(e.target.value);
-                    console.log(e.target.value);
-                    console.log(currentTargetNewPassword);
                   }}
                 />
               </ModalBody>
@@ -592,7 +584,7 @@ function UserManagement() {
                   size="sm"
                   className="border-none"
                   label="NOME"
-                  value={currentTargetName}
+                  value={currentTargetName || ""}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
@@ -600,7 +592,7 @@ function UserManagement() {
                   size="sm"
                   className="border-none"
                   label="EMAIL"
-                  value={currentTargetEmail}
+                  value={currentTargetEmail || ""}
                   onChange={(e) => setCurrentTargetEmail(e.target.value)}
                 />
                 <Input
@@ -610,7 +602,7 @@ function UserManagement() {
                   size="sm"
                   label="CPF"
                   maxLength={11}
-                  value={currentTargetCPF}
+                  value={currentTargetCPF || ""}
                   onChange={(e) => setCurrentTargetCPF(e.target.value)}
                 />
                 <Select
@@ -645,8 +637,8 @@ function UserManagement() {
                   className="border-none"
                   items={filteredPermissionLevels}
                   selectionMode="single"
-                  label="Nivel de permissão"
-                  placeholder="Indique nivel de permissão desta pessoa"
+                  label="Nível de permissão"
+                  placeholder="Indique nível de permissão desta pessoa"
                   name="permissionLevel"
                   selectedKeys={selectedPermission}
                   onSelectionChange={(values) => {
@@ -669,7 +661,7 @@ function UserManagement() {
                   size="sm"
                   type="password"
                   label="SENHA"
-                  value={currentTargetNewPassword}
+                  value={currentTargetNewPassword || ""}
                   onChange={(e) => setCurrentTargetNewPassword(e.target.value)}
                 />
                 <Input
@@ -679,7 +671,7 @@ function UserManagement() {
                   size="sm"
                   type="password"
                   label="CONFIRME A SENHA"
-                  value={currentTargetNewPasswordConfirm}
+                  value={currentTargetNewPasswordConfirm || ""}
                   onChange={(e) =>
                     setCurrentTargetNewPasswordConfirm(e.target.value)
                   }

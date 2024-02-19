@@ -12,7 +12,7 @@ import {
 } from "./components";
 
 //NextUi
-import { CircularProgress, SelectItem, Input } from "@nextui-org/react";
+import { CircularProgress, SelectItem, Input, Card } from "@nextui-org/react";
 
 //Graphics
 import Graph01 from "./components/graphics/graphic01";
@@ -162,7 +162,11 @@ function Reports() {
       }));
 
       const data01 = Object.values(finalResult);
-      setGraphComponent01(<Graph01 graphData={data01} />);
+      setGraphComponent01(
+        <Card className="flex w-full bg-cardBackground transition-all">
+          <Graph01 graphData={data01} />
+        </Card>
+      );
 
       const data02 = Object.values(serviceTypeCount);
       setGraphComponent02(<Graph02 graphData={data02} />);

@@ -95,7 +95,7 @@ function ServicesManagement() {
       (service) => service.name === currentTargetName
     );
 
-    if (duplicateServices.length > 0) {
+    if (duplicateServices.length > 1) {
       const checkId = services.some((service) => service.id !== id);
       if (checkId) {
         toast.info("Já existe um serviço com esse nome!");
@@ -144,7 +144,6 @@ function ServicesManagement() {
           if (response.data === "success") {
             toast.success("O serviço foi removido!");
             handleServices();
-            emitServiceUpdateSignal();
           } else if (response.data === "failed") {
             toast.error("Falha ao remover serviço!");
           }

@@ -4,7 +4,7 @@ import { Card as NextCard, CardBody as NextCardBody } from "@nextui-org/react";
 function Card({ children, ...props }) {
   const { className, ...restProps } = props;
 
-  const baseClasses = `flex bg-cardBackground dark:darkBackground sm:w-[40%] w-[95%] transition-all`;
+  const baseClasses = `flex bg-cardBackground dark:bg-darkBackground sm:w-[40%] w-[95%] transition-all`;
   const combinedClassName = className
     ? `${baseClasses} ${className}`
     : baseClasses;

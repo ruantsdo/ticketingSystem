@@ -180,7 +180,7 @@ function TokensList() {
     }
   };
 
-  const defineFilteredTokens = (data, userServices) => {
+  const defineFilteredTokens = async (data, userServices) => {
     if (
       currentUser.permission_level === 3 ||
       currentUser.permission_level === 2
@@ -234,7 +234,6 @@ function TokensList() {
         id: id,
         delayed_by: currentUser.name,
       });
-
       emitSignalTokenUpdate();
     } catch (error) {
       console.error(error);
@@ -248,7 +247,6 @@ function TokensList() {
         id: id,
         solved_by: currentUser.name,
       });
-
       emitSignalTokenUpdate();
     } catch (error) {
       console.error(error);
@@ -270,10 +268,10 @@ function TokensList() {
         await api.post(`/token/remove/byId/${id}`).then((response) => {
           if (response.data === "success") {
             toast.success("A senha foi removida!");
+            emitSignalTokenUpdate();
           } else {
             toast.error("Houve um problema na remoção da senha!");
           }
-          emitSignalTokenUpdate();
         });
       } catch (error) {
         console.log("Delete Token Error: " + error);
@@ -342,6 +340,7 @@ function TokensList() {
 
   useEffect(() => {
     socket.on("new_token", () => {
+      window.location.reload(true);
       handleUserServices();
     });
 
@@ -736,7 +735,7 @@ function TokensList() {
                       }
                       onPress={() => {
                         if (currentLocation) {
-                          setTimeout(async () => {
+                          setTimeout(() => {
                             updateToken("EM ATENDIMENTO", tokens[itemKey].id);
                             insertOnQueue(tokens[itemKey]);
                             emitSignalQueueUpdate(tokens[itemKey]);

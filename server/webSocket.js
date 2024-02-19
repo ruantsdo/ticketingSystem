@@ -154,10 +154,11 @@ QueueModel.belongsTo(TokenModel, {
   foreignKey: "token",
   targetKey: "id",
   as: "tokenInfo",
+  onDelete: "CASCADE",
 });
 
 io.on("connection", (socket) => {
-  console.log("Cliente conectado");
+  console.log(`Cliente conectado: ${socket.id}`);
 
   socket.on("new_token", () => {
     io.emit("new_token");
@@ -184,7 +185,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("Cliente desconectado");
+    console.log(`Cliente desconectado: ${socket.id}`);
   });
 });
 
