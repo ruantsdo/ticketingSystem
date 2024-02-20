@@ -296,11 +296,11 @@ function TokensList() {
     setLocationTable(numbers);
   };
 
-  const updateSessionContext = async (tokenKey, inService, id) => {
+  const updateSessionContext = async (tokenKey, inService, token) => {
     const session = {
       inService: inService,
       token_position: tokenKey,
-      token_id: id,
+      token: token,
     };
 
     localStorage.setItem("currentSession", JSON.stringify(session));
@@ -312,15 +312,21 @@ function TokensList() {
     );
 
     if (currentSession) {
-      if (
-        currentSession.token_id === tokens[currentSession.token_position].id
-      ) {
+      const currentToken = tokens.map((token) => {
+        if (token.id === currentSession.token.id) {
+          return token;
+        } else {
+          return false;
+        }
+      });
+
+      if (currentToken === false) {
+        localStorage.removeItem("currentSession");
+        toast.info("Parece que seu atendimento anterior foi removido ...");
+      } else {
         setItemKey(currentSession.token_position);
         setInService(currentSession.inService);
         onOpen();
-      } else {
-        toast.info("Parece que o seu atendimento anterior foi encerrado...");
-        localStorage.removeItem("currentSession");
       }
     }
   };
@@ -742,7 +748,7 @@ function TokensList() {
                             updateSessionContext(
                               itemKey,
                               true,
-                              tokens[itemKey].id
+                              tokens[itemKey]
                             );
                             toast.success(
                               "A ficha foi adicionada a fila de chamada..."

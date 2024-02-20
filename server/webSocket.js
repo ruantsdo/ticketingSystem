@@ -46,10 +46,10 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     logging: false, //Disable query message
     pool: {
-      max: parseInt(MAX_CONNECTIONS),
-      min: parseInt(MIN_CONNECTIONS),
-      acquire: parseInt(TIMEOUT_DELAY),
-      idle: parseInt(TIMEOUT_DELAY / 2),
+      max: MAX_CONNECTIONS,
+      min: MIN_CONNECTIONS,
+      acquire: TIMEOUT_DELAY,
+      idle: TIMEOUT_DELAY / 2,
     },
   }
 );
