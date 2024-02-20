@@ -219,6 +219,16 @@ function LocationManagement() {
     // eslint-disable-next-line
   }, []);
 
+  useEffect(() => {
+    socket.on("locations_updated", () => {
+      handleLocations();
+    });
+
+    return () => {
+      socket.off("locations_updated");
+    };
+  });
+
   return (
     <FullContainer>
       <Notification />

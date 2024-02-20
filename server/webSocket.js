@@ -12,6 +12,9 @@ const {
   DATABASE_PORT,
   SOCKET_SERVER_PORT,
   SOCKET_SERVER_IP,
+  MIN_CONNECTIONS,
+  MAX_CONNECTIONS,
+  TIMEOUT_DELAY,
 } = require("./serverConfig/variables");
 
 const app = express();
@@ -41,7 +44,13 @@ const sequelize = new Sequelize(
     host: DATABASE_HOST,
     port: DATABASE_PORT,
     dialect: "mysql",
-    logging: false, //Disable query messages
+    logging: false, //Disable query message
+    pool: {
+      max: parseInt(MAX_CONNECTIONS),
+      min: parseInt(MIN_CONNECTIONS),
+      acquire: parseInt(TIMEOUT_DELAY),
+      idle: parseInt(TIMEOUT_DELAY / 2),
+    },
   }
 );
 

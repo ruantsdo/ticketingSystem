@@ -676,9 +676,9 @@ function TokensList() {
                               );
                             } else {
                               updateToken("ADIADO", tokens[itemKey].id);
+                              localStorage.removeItem("currentSession");
                               toast.info("A ficha foi adiada!");
                               setInService(false);
-                              localStorage.removeItem("currentSession");
                               onClose();
                             }
                           });
