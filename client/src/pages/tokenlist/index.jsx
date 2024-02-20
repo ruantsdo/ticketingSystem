@@ -340,7 +340,6 @@ function TokensList() {
 
   useEffect(() => {
     socket.on("new_token", () => {
-      window.location.reload(true);
       handleUserServices();
     });
 
