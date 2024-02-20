@@ -73,10 +73,9 @@ router.post("/user/registration", async (req, res) => {
         //If it does not exist, start the registration procedure
         const hash = await bcrypt.hash(req.body.password, saltRounds);
         let emailValue = req.body.email !== undefined ? req.body.email : "";
-        let newUserId;
 
         try {
-          const result = await db.query(
+          await db.query(
             "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
             [
               req.body.name,
@@ -88,28 +87,36 @@ router.post("/user/registration", async (req, res) => {
               req.body.created_by,
             ]
           );
-
-          newUserId = result.insertId;
         } catch (error) {
           res.send("Falied to create new user in database");
-        }
+        } finally {
+          setTimeout(async () => {
+            try {
+              await db.query(
+                "SELECT id FROM users WHERE cpf = ?",
+                [req.body.cpf],
+                (err, result) => {
+                  if (err) {
+                    console.log(
+                      "Falha ao inserir os serviços para este usuário!"
+                    );
+                    console.log(err);
+                    return;
+                  }
 
-        try {
-          await db.query(
-            "SELECT * FROM users WHERE cpf = ?",
-            [req.body.cpf],
-            (err, result) => {
-              insertSelectedServices(newUserId, req.body.services).then(
-                (response) => {
-                  res.send(response);
+                  insertSelectedServices(result[0].id, req.body.services).then(
+                    (response) => {
+                      res.send(response);
+                    }
+                  );
                 }
               );
-            }
-          );
-        } catch (error) {
-          res.send("Failed to link user to services");
-          await db.query("DELETE FROM users WHERE cpf = ?", [req.body.cpf]);
-        } //Attempts to link the user to the services, and if it fails, removes the user from the database
+            } catch (error) {
+              res.send("Failed to link user to services");
+              await db.query("DELETE FROM users WHERE cpf = ?", [req.body.cpf]);
+            } //Attempts to link the user to the services, and if it fails, removes the user from the database
+          }, 500);
+        }
       } //End of insertion attempt
     }
   );
