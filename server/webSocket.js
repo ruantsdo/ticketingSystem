@@ -170,27 +170,39 @@ io.on("connection", (socket) => {
   console.log(`Cliente conectado: ${socket.id}`);
 
   socket.on("new_token", () => {
-    io.emit("new_token");
+    setTimeout(() => {
+      io.emit("new_token");
+    }, 300);
   });
 
   socket.on("queued_update", (data) => {
-    io.emit("queued_update", data);
+    setTimeout(() => {
+      io.emit("queued_update", data);
+    }, 300);
   });
 
   socket.on("new_location", () => {
-    io.emit("new_location");
+    setTimeout(() => {
+      io.emit("new_location");
+    }, 300);
   });
 
   socket.on("services_updated", () => {
-    io.emit("services_updated");
+    setTimeout(() => {
+      io.emit("services_updated");
+    }, 300);
   });
 
   socket.on("locations_updated", () => {
-    io.emit("locations_updated");
+    setTimeout(() => {
+      io.emit("locations_updated");
+    }, 300);
   });
 
   socket.on("midNight", () => {
-    io.emit("midNight");
+    setTimeout(() => {
+      io.emit("midNight");
+    }, 300);
   });
 
   socket.on("disconnect", () => {
