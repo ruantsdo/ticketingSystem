@@ -15,6 +15,7 @@ const {
   MIN_CONNECTIONS,
   MAX_CONNECTIONS,
   TIMEOUT_DELAY,
+  SOCKET_TIMEOUT,
 } = require("./serverConfig/variables");
 
 const app = express();
@@ -172,37 +173,37 @@ io.on("connection", (socket) => {
   socket.on("new_token", () => {
     setTimeout(() => {
       io.emit("new_token");
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("queued_update", (data) => {
     setTimeout(() => {
       io.emit("queued_update", data);
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("new_location", () => {
     setTimeout(() => {
       io.emit("new_location");
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("services_updated", () => {
     setTimeout(() => {
       io.emit("services_updated");
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("locations_updated", () => {
     setTimeout(() => {
       io.emit("locations_updated");
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("midNight", () => {
     setTimeout(() => {
       io.emit("midNight");
-    }, 300);
+    }, SOCKET_TIMEOUT);
   });
 
   socket.on("disconnect", () => {
