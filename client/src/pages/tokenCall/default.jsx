@@ -131,13 +131,13 @@ function TokenCallDefault() {
     );
 
     const textToSpeak = `Atenção ${data.requested_by}, senha ${currentService} ${data.position},
-    por favor dirija-se á ${currentLocation}, ${data.table}`;
+    por favor dirija-se à ${currentLocation}, ${data.table}`;
 
     setDisplayInfo({
       token: `${currentService} - ${data.position}`,
       location: (
         <p className="text-4xl 2xl:text-5xl text-center">
-          <span>Dirija-se á </span>
+          <span>Dirija-se à </span>
           <span className="text-blue-700 text-5xl 2xl:text-6xl animate-pulse">
             {currentLocation}
           </span>
