@@ -101,7 +101,7 @@ function TokenCallAlternative() {
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voices[ptBrVoice];
+      utterance.voice = ptBrVoice;
 
       utterance.addEventListener("start", () => {
         setIsSpeaking(true);
@@ -166,6 +166,10 @@ function TokenCallAlternative() {
     });
 
     await speakText(textToSpeak);
+
+    const updatedQueue = callQueue;
+    updatedQueue.shift();
+    setCallQueue(updatedQueue);
   };
 
   const playAudio = () => {
@@ -210,19 +214,13 @@ function TokenCallAlternative() {
     });
 
     socket.on("queued_update", (data) => {
-      if (callQueue.length === 0) {
+      if (callQueue.length === 0 && !isSpeaking) {
         setCallQueue([data]);
         playAudio().then(() => {
           speakQueue(data);
         });
       } else {
         setCallQueue((prevQueue) => [...prevQueue, data]);
-
-        if (!isSpeaking) {
-          playAudio().then(() => {
-            speakQueue(data);
-          });
-        }
       }
     });
 
@@ -243,28 +241,18 @@ function TokenCallAlternative() {
 
   useEffect(() => {
     if (!isSpeaking) {
-      if (callQueue.length > 1) {
+      if (callQueue.length >= 1) {
         setTimeout(() => {
           playAudio().then(() => {
-            const updatedQueue = callQueue;
-            updatedQueue.shift();
-            setCallQueue(updatedQueue);
-
-            if (updatedQueue.length > 0) {
-              const nextData = updatedQueue[0];
-              speakQueue(nextData);
+            if (callQueue.length) {
+              speakQueue(callQueue[0]);
             }
           });
         }, delayBeforeSpeech);
-      } else {
+      } else if (callQueue.length === 0) {
         setTimeout(() => {
-          const updatedQueue = callQueue;
-          updatedQueue.shift();
-          setCallQueue(updatedQueue);
-
-          if (updatedQueue.length > 0) {
-            const nextData = updatedQueue[0];
-            speakQueue(nextData);
+          if (callQueue.length) {
+            speakQueue(callQueue[0]);
           }
         }, delayBeforeSpeech);
       }
