@@ -32,6 +32,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+import { useWebSocket } from "../../contexts/webSocket";
 
 //Services
 import api from "../../services/api";
@@ -39,7 +40,13 @@ import api from "../../services/api";
 //Toast
 import { toast } from "react-toastify";
 
+//Hooks
+import useGetUserInfo from "../../Hooks/getUserInfos";
+
 function UserManagement() {
+  const { socket } = useWebSocket();
+  const { getUserServices } = useGetUserInfo();
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [addUserIsOpen, setAddUserIsOpen] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -79,6 +86,7 @@ function UserManagement() {
     for (let i = 0; i < users.length; i++) {
       // eslint-disable-next-line
       if (users[i].id == key) {
+        filterUserServices(users[i].id);
         setItemKey(i);
         updateStates(i);
         return;
@@ -139,6 +147,17 @@ function UserManagement() {
     ) {
       toast.info(`Campos com * são obrigatórios!`);
     } else {
+      if (currentTargetEmail) {
+        const duplicateUsers = users.filter(
+          (user) => user.email === currentTargetEmail
+        );
+
+        if (duplicateUsers.length) {
+          toast.info("Já existe um usuário com esse Email!");
+          return;
+        }
+      }
+
       if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
         try {
           await api
@@ -153,9 +172,9 @@ function UserManagement() {
             })
             .then((response) => {
               if (response.data === "New user created") {
-                handleUsersList();
-                toast.success("Novo usuário cadastrado!");
+                emitSignal();
                 clearStates();
+                toast.success("Novo usuário cadastrado!");
                 setAddUserIsOpen(false);
               } else if (response.data === "User already exists") {
                 toast.info("Já existe um cadastrado usuário com esse CPF!");
@@ -173,15 +192,6 @@ function UserManagement() {
       } else {
         toast.info("As senhas devem ser iguais!");
       }
-    }
-  };
-
-  const handleCurrentUserServices = async () => {
-    try {
-      const response = await api.get(`/user_services/query/${currentUser.id}`);
-      return response.data;
-    } catch (error) {
-      console.log(error);
     }
   };
 
@@ -207,7 +217,7 @@ function UserManagement() {
     if (currentUser.permission_level > 3) {
       setUsers(usersList);
     } else {
-      const currentTargetServices = await handleCurrentUserServices();
+      const currentTargetServices = await getUserServices(currentUser.id);
       const userServices = await handleUsersServices();
       try {
         const filteredUsers = userServices.filter((user) => {
@@ -251,23 +261,19 @@ function UserManagement() {
   };
 
   const checkUserEmail = async (id) => {
-    if (currentTargetEmail === "") {
-      await updateUser(id);
-    } else {
-      const duplicateUsers = users.filter(
-        (user) => user.email === currentTargetEmail
-      );
+    const duplicateUsers = users.filter(
+      (user) => user.email === currentTargetEmail
+    );
 
-      if (duplicateUsers.length > 0) {
-        const checkId = duplicateUsers.some((user) => user.id !== id);
-        if (checkId) {
-          toast.info("Já existe um usuário com esse Email!");
-        } else {
-          await updateUser(id);
-        }
+    if (duplicateUsers.length > 0) {
+      const checkId = duplicateUsers.some((user) => user.id !== id);
+      if (checkId) {
+        toast.info("Já existe um usuário com esse Email!");
       } else {
         await updateUser(id);
       }
+    } else {
+      await updateUser(id);
     }
   };
 
@@ -284,8 +290,8 @@ function UserManagement() {
         })
         .then((response) => {
           if (response.data === "success") {
+            emitSignal();
             toast.success("O usuário foi removido!");
-            handleUsersList();
           } else if (response.data === "failed") {
             toast.error("Falha ao remover usuário!");
           }
@@ -315,14 +321,16 @@ function UserManagement() {
             ? currentTargetNewPassword
             : currentTargetPassword,
           passwordChanged: passwordChanged,
+          services: selectedServices,
         })
-        .then((response) => {
+        .then(async (response) => {
           if (response.data === "success") {
+            emitSignal();
             toast.success("Usuário atualizado!");
+            clearStates();
           } else if (response.data === "failed") {
             toast.error("Falha ao atualizar usuário!");
           }
-          handleUsersList();
         });
     } catch (error) {
       console.error(error);
@@ -349,11 +357,45 @@ function UserManagement() {
     setSelectedPermission(null);
   };
 
+  const filterUserServices = async (id) => {
+    try {
+      const response = await getUserServices(id);
+
+      const filtered = response.map((resp) => {
+        const foundService = services.find(
+          (service) => service.id === resp.service_id
+        );
+        return foundService ? String(foundService.id) : null;
+      });
+
+      setSelectedServices(filtered);
+    } catch (error) {
+      console.error("Erro ao obter serviços do usuário:", error);
+    }
+  };
+
+  const getInitialData = async () => {
+    await handleServices();
+    await handlePermissionsLevels();
+    await handleUsersList();
+    await checkLevel();
+  };
+
+  const emitSignal = () => {
+    socket.emit("users_updated");
+  };
+
   useEffect(() => {
-    handleServices();
-    handlePermissionsLevels();
-    handleUsersList();
-    checkLevel();
+    getInitialData();
+
+    socket.on("users_updated", async () => {
+      await handleUsersList();
+    });
+
+    return () => {
+      socket.off("users_updated");
+    };
+
     // eslint-disable-next-line
   }, []);
 
@@ -462,8 +504,14 @@ function UserManagement() {
 
       <Modal
         isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onClose={() => clearStates()}
+        onOpenChange={() => {
+          onOpenChange();
+        }}
+        onClose={() =>
+          setTimeout(() => {
+            clearStates();
+          }, 300)
+        }
         backdrop="opaque"
       >
         <ModalContent>
@@ -512,6 +560,7 @@ function UserManagement() {
                   className="border-none"
                   size="sm"
                   label="CPF"
+                  maxLength="11"
                   defaultValue={users[itemKey].cpf}
                   onChange={(e) => setCurrentTargetCPF(e.target.value)}
                 />
@@ -526,15 +575,62 @@ function UserManagement() {
                     setCurrentTargetNewPassword(e.target.value);
                   }}
                 />
+
+                <Select
+                  isRequired
+                  isDisabled={users[itemKey].id === 1}
+                  isReadOnly={!isAdmin}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  items={filteredPermissionLevels}
+                  selectionMode="single"
+                  label="Nível de permissão"
+                  placeholder="Nível de permissão desta pessoa"
+                  name="permissionLevel"
+                  selectedKeys={String(currentTargetLevel)}
+                  onSelectionChange={(values) => {
+                    setCurrentTargetLevel(values.currentKey);
+                  }}
+                >
+                  {(filteredPermissionLevels) => (
+                    <SelectItem
+                      key={filteredPermissionLevels.id}
+                      value={filteredPermissionLevels.id}
+                    >
+                      {filteredPermissionLevels.name}
+                    </SelectItem>
+                  )}
+                </Select>
+
+                <Select
+                  isReadOnly={!isAdmin}
+                  isDisabled={users[itemKey].id === 1}
+                  variant="underlined"
+                  size="sm"
+                  className="border-none"
+                  selectionMode="multiple"
+                  label="Serviços do usuário"
+                  selectedKeys={selectedServices}
+                  onSelectionChange={(values) => {
+                    setSelectedServices(Array.from(values));
+                  }}
+                >
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name}
+                    </SelectItem>
+                  ))}
+                </Select>
               </ModalBody>
 
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button
                   className="bg-transparent text-failed w-15"
-                  onPress={() => {
+                  onPress={async () => {
+                    await removeUser(users[itemKey].id);
                     onClose();
-                    removeUser(users[itemKey].id);
                   }}
                   startContent={<DeleteForeverIcon />}
                 >
@@ -553,8 +649,9 @@ function UserManagement() {
                   <Button
                     mode="success"
                     className="w-10"
-                    onPress={() => {
-                      checkUserCpf(users[itemKey].id).then(onClose());
+                    onPress={async () => {
+                      await checkUserCpf(users[itemKey].id);
+                      onClose();
                     }}
                   >
                     Salvar
@@ -569,6 +666,7 @@ function UserManagement() {
       <Modal
         isOpen={addUserIsOpen}
         onOpenChange={() => setAddUserIsOpen(!addUserIsOpen)}
+        onClose={() => clearStates()}
       >
         <ModalContent>
           {(onClose) => (
@@ -683,7 +781,6 @@ function UserManagement() {
                   mode="failed"
                   variant="light"
                   onPress={() => {
-                    clearStates();
                     setAddUserIsOpen(false);
                     onClose();
                   }}

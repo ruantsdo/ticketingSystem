@@ -7,7 +7,7 @@ import api from "../services/api";
 //Contexts
 import AuthContext from "../contexts/auth";
 
-const useGetRoutes = () => {
+const useGetUserInfo = () => {
   const { currentUser } = useContext(AuthContext);
 
   const getAllServices = async () => {
@@ -19,12 +19,13 @@ const useGetRoutes = () => {
     }
   };
 
-  const getUserServices = async () => {
+  const getUserServices = async (id) => {
     try {
-      const response = await api.get(`/user_services/query/${currentUser.id}`);
+      const response = await api.get(`/user_services/query/${id}`);
       return response.data;
     } catch (error) {
-      console.log("Falha ao obter serviços do usuário!");
+      console.error("Falha ao obter serviços do usuário!");
+      console.error(error);
     }
   };
 
@@ -37,9 +38,9 @@ const useGetRoutes = () => {
     }
   };
 
-  const defineFilteredTokens = async () => {
+  const defineFilteredTokens = async (id) => {
     const currentTokens = await getTokens();
-    const userServices = await getUserServices();
+    const userServices = await getUserServices(id);
 
     if (currentTokens && userServices) {
       if (
@@ -93,4 +94,4 @@ const useGetRoutes = () => {
   };
 };
 
-export default useGetRoutes;
+export default useGetUserInfo;

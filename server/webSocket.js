@@ -200,6 +200,12 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("users_updated", () => {
+    setTimeout(() => {
+      io.emit("users_updated");
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("midNight", () => {
     setTimeout(() => {
       io.emit("midNight");

@@ -123,13 +123,22 @@ router.post("/user/registration", async (req, res) => {
 });
 
 router.post("/users/update", async (req, res) => {
-  const { id, name, email, cpf, level, updated_by, password, passwordChanged } =
-    req.body;
+  const {
+    id,
+    name,
+    email,
+    cpf,
+    level,
+    updated_by,
+    password,
+    passwordChanged,
+    services,
+  } = req.body;
 
   let hash;
 
   if (passwordChanged) {
-    hash = await await bcrypt.hash(password, saltRounds);
+    hash = await bcrypt.hash(password, saltRounds);
   } else {
     hash = password;
   }
@@ -139,7 +148,14 @@ router.post("/users/update", async (req, res) => {
       "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, updated_at = ?, updated_by = ? WHERE id = ?",
       [name, email, cpf, level, hash, getTime(), updated_by, id]
     );
-    res.send("success");
+
+    const response = await UpdateSelectedServices(id, services);
+
+    if (response) {
+      res.send("success");
+    } else {
+      res.send("failed");
+    }
   } catch (err) {
     res.send("failed");
   }
@@ -396,16 +412,115 @@ router.post("/service/update", async (req, res) => {
 module.exports = router;
 
 async function insertSelectedServices(id, services) {
+  let connection;
+
   try {
-    await services.map(async (service) => {
+    connection = await new Promise((resolve, reject) => {
+      db.getConnection((err, conn) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(conn);
+        }
+      });
+    });
+
+    await new Promise((resolve, reject) => {
+      connection.beginTransaction((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    for (const service of services) {
       await db.query(
         "INSERT INTO user_services (user_id, service_id) VALUES (?, ?)",
         [id, service]
       );
+    }
+
+    await new Promise((resolve, reject) => {
+      connection.commit((err) => {
+        if (err) {
+          connection.rollback(() => {
+            reject(err);
+          });
+        } else {
+          resolve();
+        }
+      });
     });
+
     return "New user created";
   } catch (error) {
+    console.error(error);
+    await new Promise((resolve) => connection.rollback(() => resolve()));
     return "Failed to link services";
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+async function UpdateSelectedServices(id, services) {
+  let connection;
+
+  try {
+    connection = await new Promise((resolve, reject) => {
+      db.getConnection((err, conn) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(conn);
+        }
+      });
+    });
+
+    await new Promise((resolve, reject) => {
+      connection.beginTransaction((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    await db.query("DELETE FROM user_services WHERE user_id = ?", [id]);
+
+    for (const service of services) {
+      await db.query(
+        "INSERT INTO user_services (user_id, service_id) VALUES (?, ?)",
+        [id, service]
+      );
+    }
+
+    await new Promise((resolve, reject) => {
+      connection.commit((err) => {
+        if (err) {
+          // Reverte a transação em caso de erro no commit
+          connection.rollback(() => {
+            reject(err);
+          });
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    await new Promise((resolve) => connection.rollback(() => resolve()));
+    return false;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 }
 

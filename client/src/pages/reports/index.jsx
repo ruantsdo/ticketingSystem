@@ -19,7 +19,7 @@ import Graph01 from "./components/graphics/graphic01";
 import Graph02 from "./components/graphics/graphic02";
 
 //Hooks
-import useGetRoutes from "../../Hooks/getUserInfos";
+import useGetUserInfo from "../../Hooks/getUserInfos";
 import getDataHooks from "../../Hooks/getData";
 import { handleGenerateReport } from "../../Hooks/generateReportXLXS";
 
@@ -39,7 +39,7 @@ import moment from "moment";
 import "moment/locale/pt-br";
 
 function Reports() {
-  const { getAllServices } = useGetRoutes();
+  const { getAllServices } = useGetUserInfo();
   const { getHistoric } = getDataHooks();
 
   const currentDate = moment();

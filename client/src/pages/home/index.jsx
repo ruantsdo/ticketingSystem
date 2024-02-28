@@ -8,7 +8,7 @@ import { Container, AdmShortcuts, UserShortcuts } from "./components";
 import AuthContext from "../../contexts/auth";
 
 //Hooks
-import useGetRoutes from "../../Hooks/getUserInfos";
+import useGetUserInfo from "../../Hooks/getUserInfos";
 
 //Recharts
 import {
@@ -27,7 +27,7 @@ import { CircularProgress, Card } from "@nextui-org/react";
 
 function Home() {
   const { currentUser } = useContext(AuthContext);
-  const { defineFilteredTokens, getAllServices } = useGetRoutes();
+  const { defineFilteredTokens, getAllServices } = useGetUserInfo();
 
   const [loadingGraph, setLoadingGraph] = useState(true);
   const [graphData, setGraphData] = useState(null);
