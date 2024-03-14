@@ -1,11 +1,11 @@
-import './App.css';
+//React
+import React from "react";
 
-import AppRoutes from './routes/index';
+//Components
+import Router from "./routes/index";
 
 function App() {
-  return (
-    <AppRoutes />
-  );
+  return <Router />;
 }
 
 export default App;

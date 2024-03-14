@@ -1,29 +1,51 @@
 //React
-import React from "react";
+import React, { useContext } from "react";
 
-//Router-DOM
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+//Routes
+import AuthRoutes from "./authRoutes";
+import AppRoutes from "./appRoutes";
+import ScreenRoutes from "./screenRoutes";
+import UserRoutes from "./userRoutes";
 
-//Pages
-import LoginPage from "../pages/login";
-import Home from "../pages/home"
-import NewUserPage from "../pages/registerNewUser"
+//Contexts
+import AuthContext from "../contexts/auth";
 
-const AppRoutes = () => {
+//NextUi
+import { CircularProgress } from "@nextui-org/react";
 
-    return(
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" index element={<LoginPage />} />
-                <Route path="/login" index element={<LoginPage />} />
-                <Route path="/home" index element={<Home />} />
-                <Route path="/newUser" index element={<NewUserPage />} />
-                NewUserPage
+//Components
+import { Container } from "../components";
 
-                <Route path="*" element={<Home />} />
-            </Routes>
-        </BrowserRouter>
-    )
-}
+const Router = () => {
+  const { currentUser, isLoading } = useContext(AuthContext);
 
-export default AppRoutes
+  if (isLoading) {
+    return (
+      <Container>
+        <CircularProgress
+          size="lg"
+          color="warning"
+          aria-label="Carregando..."
+          label="Carregando..."
+        />
+      </Container>
+    );
+  }
+
+  if (currentUser) {
+    if (currentUser.permission_level === 1) {
+      return <ScreenRoutes />;
+    } else if (
+      currentUser.permission_level === 2 ||
+      currentUser.permission_level === 3
+    ) {
+      return <UserRoutes />;
+    } else if (currentUser.permission_level >= 4) {
+      return <AppRoutes />;
+    }
+  } else {
+    return <AuthRoutes />;
+  }
+};
+
+export default Router;
