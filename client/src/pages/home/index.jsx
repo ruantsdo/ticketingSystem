@@ -33,8 +33,10 @@ function Home() {
   const [graphData, setGraphData] = useState(null);
 
   const handleGetInfo = async () => {
-    const tokens = await defineFilteredTokens();
+    const tokens = await defineFilteredTokens(currentUser.id);
     const services = await getAllServices();
+
+    console.log(tokens);
 
     generateGraphData(tokens, services);
   };

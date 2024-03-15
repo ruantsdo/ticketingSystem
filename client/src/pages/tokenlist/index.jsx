@@ -312,21 +312,14 @@ function TokensList() {
     );
 
     if (currentSession) {
-      const currentToken = tokens.map((token) => {
-        if (token.id === currentSession.token.id) {
-          return token;
-        } else {
-          return false;
-        }
-      });
-
-      if (currentToken === false) {
-        localStorage.removeItem("currentSession");
-        toast.info("Parece que seu atendimento anterior foi removido ...");
-      } else {
+      const currentToken = currentSession.token;
+      if (currentToken.id === tokens[currentSession.token_position].id) {
         setItemKey(currentSession.token_position);
         setInService(currentSession.inService);
         onOpen();
+      } else {
+        localStorage.removeItem("currentSession");
+        toast.info("Parece que seu atendimento anterior foi removido ...");
       }
     }
   };
