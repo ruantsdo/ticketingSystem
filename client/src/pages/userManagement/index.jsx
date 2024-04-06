@@ -175,7 +175,8 @@ function UserManagement() {
 
   const updateStates = async (id) => {
     const userServices = await getUserServices(users[id].id);
-    setSelectedServices(userServices);
+    const values = userServices.map((user) => String(Object.values(user)));
+    setSelectedServices(values);
 
     setCurrentTargetName(users[id].name);
     setCurrentTargetEmail(users[id].email);
