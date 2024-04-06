@@ -34,26 +34,18 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
+//Services
+import api from "../../services/api";
+
 //Toast
 import { toast } from "react-toastify";
 
-//Stores
-import useUsersStore from "../../stores/usersStore/store";
-import useServicesStore from "../../stores/servicesStore/store";
-import useUsersUtils from "../../stores/usersStore/utils";
+//Hooks
+import useGetUserInfo from "../../Hooks/getUserInfos";
 
 function UserManagement() {
   const { socket } = useWebSocket();
-  const {
-    getUsersList,
-    createNewUser,
-    updateUser,
-    deleteUser,
-    getUserServices,
-    processingUserStore,
-  } = useUsersStore();
-  const { filterPermissionLevels, filterUserServices } = useUsersUtils();
-  const { getAllServices } = useServicesStore();
+  const { getUserServices } = useGetUserInfo();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [addUserIsOpen, setAddUserIsOpen] = useState(false);
@@ -68,14 +60,14 @@ function UserManagement() {
   const [currentTargetNewPasswordConfirm, setCurrentTargetNewPasswordConfirm] =
     useState("");
 
-  const [services, setServices] = useState([]);
-  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
-  const [users, setUsers] = useState([]);
-  const isAdmin = currentUser.permission_level > 2 ? true : false;
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  const [services, setServices] = useState();
+  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState();
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedPermission, setSelectedPermission] = useState();
 
+  const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
 
@@ -90,11 +82,11 @@ function UserManagement() {
     return users.slice(start, end);
   }, [page, users]);
 
-  const findIndexById = async (key) => {
+  const findIndexById = (key) => {
     for (let i = 0; i < users.length; i++) {
       // eslint-disable-next-line
       if (users[i].id == key) {
-        handleFilterUserServices(users[i].id);
+        filterUserServices(users[i].id);
         setItemKey(i);
         updateStates(i);
         return;
@@ -102,81 +94,250 @@ function UserManagement() {
     }
   };
 
-  const handleCreateNewUser = async () => {
-    const data = {
-      name: currentTargetName,
-      email: currentTargetEmail,
-      cpf: currentTargetCPF,
-      permission: selectedPermission,
-      updated_by: currentUser.name,
-      password: currentTargetNewPassword,
-      services: selectedServices,
-    };
-
-    if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
-      createNewUser(data);
+  const checkLevel = () => {
+    if (currentUser.permission_level > 2) {
+      setIsAdmin(true);
     } else {
-      toast.info("As senhas devem ser iguais!");
+      setIsAdmin(false);
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    deleteUser(id);
-  };
+  const handleServices = async () => {
+    try {
+      const response = await api.get("/services/query");
+      setServices(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }; //FEITO
 
-  const handleUpdateUser = async (id) => {
+  const handlePermissionsLevels = async () => {
+    try {
+      const response = await api.get("/permissionsLevels");
+      defineFilteredPermissionLevels(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }; //FEITO
+
+  const defineFilteredPermissionLevels = (data) => {
+    let filteredPermissionLevels = [];
+
+    if (currentUser.permission_level === 3) {
+      filteredPermissionLevels.push({ id: data[1].id, name: data[1].name });
+    } else if (currentUser.permission_level === 4) {
+      filteredPermissionLevels = [
+        { id: data[1].id, name: data[1].name },
+        { id: data[2].id, name: data[2].name },
+      ];
+    } else if (currentUser.permission_level === 5) {
+      filteredPermissionLevels = data;
+    }
+
+    setFilteredPermissionLevels(filteredPermissionLevels);
+  }; // FEITO
+
+  const handleCreateNewUser = async () => {
+    if (
+      !currentTargetCPF ||
+      !currentTargetName ||
+      !currentTargetNewPassword ||
+      !selectedPermission ||
+      !selectedServices
+    ) {
+      toast.info(`Campos com * são obrigatórios!`);
+    } else {
+      if (currentTargetEmail) {
+        const duplicateUsers = users.filter(
+          (user) => user.email === currentTargetEmail
+        );
+
+        if (duplicateUsers.length) {
+          toast.info("Já existe um usuário com esse Email!");
+          return;
+        }
+      }
+
+      if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
+        try {
+          await api
+            .post("/user/registration", {
+              name: currentTargetName,
+              email: currentTargetEmail,
+              cpf: currentTargetCPF,
+              services: selectedServices,
+              permissionLevel: selectedPermission,
+              password: currentTargetNewPassword,
+              created_by: currentUser.name,
+            })
+            .then((response) => {
+              if (response.data === "New user created") {
+                emitSignal();
+                clearStates();
+                toast.success("Novo usuário cadastrado!");
+                setAddUserIsOpen(false);
+              } else if (response.data === "User already exists") {
+                toast.info("Já existe um cadastrado usuário com esse CPF!");
+              } else {
+                toast.error(
+                  "Houve um problema ao cadastrar o novo usuário! Tente novamente em alguns instantes!"
+                );
+                clearStates();
+                setAddUserIsOpen(false);
+              }
+            });
+        } catch (err) {
+          console.log(err);
+        }
+      } else {
+        toast.info("As senhas devem ser iguais!");
+      }
+    }
+  }; // FEITO
+
+  const handleUsersServices = async () => {
+    try {
+      const response = await api.get("/user_services/query/full");
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  }; // FEITO
+
+  const handleUsersList = async () => {
+    try {
+      const response = await api.get("/users/query/full");
+      filterUsers(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }; // FEITO
+
+  const filterUsers = async (usersList) => {
+    if (currentUser.permission_level > 3) {
+      setUsers(usersList);
+    } else {
+      const currentTargetServices = await getUserServices(currentUser.id);
+      const userServices = await handleUsersServices();
+      try {
+        const filteredUsers = userServices.filter((user) => {
+          return currentTargetServices.some((service) => {
+            return user.service_id === service.service_id;
+          });
+        });
+
+        const uniqueUserIds = [
+          ...new Set(filteredUsers.map((user) => user.user_id)),
+        ];
+
+        const filteredUsersList = usersList.filter((user) => {
+          return uniqueUserIds.some((uniqueUser) => {
+            return user.id === uniqueUser;
+          });
+        });
+
+        setUsers(filteredUsersList);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }; // FEITO
+
+  const checkUserCpf = async (id) => {
+    const duplicateUsers = users.filter(
+      (user) => user.cpf === currentTargetCPF
+    );
+
+    if (duplicateUsers.length > 0) {
+      const checkId = duplicateUsers.some((user) => user.id !== id);
+      if (checkId) {
+        toast.info("Já existe um usuário com esse CPF!");
+      } else {
+        await checkUserEmail(id);
+      }
+    } else {
+      await checkUserEmail(id);
+    }
+  }; // FEITO
+
+  const checkUserEmail = async (id) => {
+    const duplicateUsers = users.filter(
+      (user) => user.email === currentTargetEmail
+    );
+
+    if (duplicateUsers.length > 0) {
+      const checkId = duplicateUsers.some((user) => user.id !== id);
+      if (checkId) {
+        toast.info("Já existe um usuário com esse Email!");
+      } else {
+        await updateUser(id);
+      }
+    } else {
+      await updateUser(id);
+    }
+  }; // FEITO
+
+  const removeUser = async (id) => {
+    if (id === 1) {
+      toast.warn("Esse usuário não pode ser removido!");
+      return;
+    }
+
+    try {
+      await api
+        .post("/users/remove", {
+          id: id,
+        })
+        .then((response) => {
+          if (response.data === "success") {
+            emitSignal();
+            toast.success("O usuário foi removido!");
+          } else if (response.data === "failed") {
+            toast.error("Falha ao remover usuário!");
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }; // FEITO
+
+  const updateUser = async (id) => {
     let passwordChanged = false;
 
     if (currentTargetNewPassword) {
       passwordChanged = true;
     }
 
-    const data = {
-      id: id,
-      name: currentTargetName,
-      email: currentTargetEmail,
-      cpf: currentTargetCPF,
-      permission: currentTargetLevel,
-      updated_by: currentUser.name,
-      password: currentTargetNewPassword
-        ? currentTargetNewPassword
-        : currentTargetPassword,
-      passwordChanged: passwordChanged,
-      services: selectedServices,
-    };
-
-    await updateUser(data);
-  };
-
-  const handleFilterUserServices = async (id) => {
-    filterUserServices(id);
-  };
-
-  const getInitialData = async (
-    setServices,
-    setFilteredPermissionLevels,
-    setUsers
-  ) => {
     try {
-      const [servicesData, filteredPermissionLevelsData, usersData] =
-        await Promise.all([
-          getAllServices(),
-          filterPermissionLevels(),
-          getUsersList(),
-        ]);
-      setServices(servicesData);
-      setFilteredPermissionLevels(filteredPermissionLevelsData);
-      setUsers(usersData);
+      await api
+        .post("/users/update", {
+          id: id,
+          name: currentTargetName,
+          email: currentTargetEmail,
+          cpf: currentTargetCPF,
+          level: currentTargetLevel,
+          updated_by: currentUser.name,
+          password: currentTargetNewPassword
+            ? currentTargetNewPassword
+            : currentTargetPassword,
+          passwordChanged: passwordChanged,
+          services: selectedServices,
+        })
+        .then(async (response) => {
+          if (response.data === "success") {
+            emitSignal();
+            toast.success("Usuário atualizado!");
+            clearStates();
+          } else if (response.data === "failed") {
+            toast.error("Falha ao atualizar usuário!");
+          }
+        });
     } catch (error) {
-      console.error("Erro ao obter dados iniciais:", error);
-      throw error;
+      console.error(error);
     }
-  };
+  }; // FEITO
 
-  const updateStates = async (id) => {
-    const userServices = await getUserServices(users[id].id);
-    setSelectedServices(userServices);
-
+  const updateStates = (id) => {
     setCurrentTargetName(users[id].name);
     setCurrentTargetEmail(users[id].email);
     setCurrentTargetCPF(users[id].cpf);
@@ -196,11 +357,39 @@ function UserManagement() {
     setSelectedPermission(null);
   };
 
+  const filterUserServices = async (id) => {
+    try {
+      const response = await getUserServices(id);
+
+      const filtered = response.map((resp) => {
+        const foundService = services.find(
+          (service) => service.id === resp.service_id
+        );
+        return foundService ? String(foundService.id) : null;
+      });
+
+      setSelectedServices(filtered);
+    } catch (error) {
+      console.error("Erro ao obter serviços do usuário:", error);
+    }
+  }; // FEITO
+
+  const getInitialData = async () => {
+    await handleServices();
+    await handlePermissionsLevels();
+    await handleUsersList();
+    await checkLevel();
+  };
+
+  const emitSignal = () => {
+    socket.emit("users_updated");
+  };
+
   useEffect(() => {
-    getInitialData(setServices, setFilteredPermissionLevels, setUsers);
+    getInitialData();
 
     socket.on("users_updated", async () => {
-      await getInitialData(setServices, setFilteredPermissionLevels, setUsers);
+      await handleUsersList();
     });
 
     return () => {
@@ -225,8 +414,8 @@ function UserManagement() {
         </div>
         <Table
           aria-label="Lista de usuários"
-          onRowAction={async (key) => {
-            await findIndexById(key);
+          onRowAction={(key) => {
+            findIndexById(key);
             onOpen();
           }}
           isStriped
@@ -299,10 +488,8 @@ function UserManagement() {
                         mode="failed"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
-                          handleDeleteUser(item.id);
+                          removeUser(item.id);
                         }}
-                        isDisabled={processingUserStore}
-                        isLoading={processingUserStore}
                       >
                         <DeleteForeverIcon fontSize="small" />
                       </Button>
@@ -428,7 +615,6 @@ function UserManagement() {
                   onSelectionChange={(values) => {
                     setSelectedServices(Array.from(values));
                   }}
-                  isLoading={processingUserStore}
                 >
                   {services.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
@@ -443,12 +629,10 @@ function UserManagement() {
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={async () => {
-                    await handleDeleteUser(users[itemKey].id);
+                    await removeUser(users[itemKey].id);
                     onClose();
                   }}
                   startContent={<DeleteForeverIcon />}
-                  isDisabled={processingUserStore}
-                  isLoading={processingUserStore}
                 >
                   DELETAR
                 </Button>
@@ -466,11 +650,9 @@ function UserManagement() {
                     mode="success"
                     className="w-10"
                     onPress={async () => {
-                      await handleUpdateUser(users[itemKey].id);
+                      await checkUserCpf(users[itemKey].id);
                       onClose();
                     }}
-                    isDisabled={processingUserStore}
-                    isLoading={processingUserStore}
                   >
                     Salvar
                   </Button>
@@ -612,8 +794,6 @@ function UserManagement() {
                   onPress={() => {
                     handleCreateNewUser();
                   }}
-                  isDisabled={processingUserStore}
-                  isLoading={processingUserStore}
                 >
                   Cadastrar
                 </Button>

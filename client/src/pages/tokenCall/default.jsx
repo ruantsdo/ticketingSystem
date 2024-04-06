@@ -57,7 +57,7 @@ function TokenCallDefault() {
 
   const maxListLength = Math.ceil(window.innerHeight / 180); //Define how many rows the tables have based on screen resolution
   const delayBeforeSpeech = 5000; //Delay before start speak
-  const videoVolume = 50; //brute value
+  const videoVolume = 5; //brute value
   const initialVideoVolume = videoVolume / 100;
 
   const [isSpeaking, setIsSpeaking] = useState(false);

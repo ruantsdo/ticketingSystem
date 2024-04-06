@@ -125,6 +125,46 @@ router.get("/users/query/full", async (req, res) => {
   }
 });
 
+router.get("/users/query/cpf/:cpf", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM users WHERE cpf = ?",
+      [req.params.cpf],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send("Erro interno do servidor");
+        } else {
+          res.send(result);
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Erro interno do servidor");
+  }
+}); // NEW
+
+router.get("/users/query/email/:email", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [req.params.email],
+      (err, result) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send("Erro interno do servidor");
+        } else {
+          res.send(result);
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Erro interno do servidor");
+  }
+}); // NEW
+
 router.get("/permissionsLevels", async (req, res) => {
   try {
     await db.query("SELECT * FROM permission_levels", (err, result) => {
