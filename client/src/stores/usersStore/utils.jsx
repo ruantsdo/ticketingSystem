@@ -23,6 +23,8 @@ const useUsersUtils = () => {
   const { getAllServices } = useServicesStore();
   const { getPermissionLevels } = useGetDataUtils();
 
+  const isAdmin = currentUser.permission_level > 2 ? true : false;
+
   const filterPermissionLevels = async () => {
     const permissionLevels = await getPermissionLevels();
     let filteredPermissionLevels = [];
@@ -113,6 +115,7 @@ const useUsersUtils = () => {
     filterUsersList,
     getAllUsersServices,
     filterUserServices,
+    isAdmin,
   };
 };
 

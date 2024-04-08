@@ -52,7 +52,8 @@ function UserManagement() {
     getUserServices,
     processingUserStore,
   } = useUsersStore();
-  const { filterPermissionLevels, filterUserServices } = useUsersUtils();
+  const { filterPermissionLevels, filterUserServices, isAdmin } =
+    useUsersUtils();
   const { getAllServices } = useServicesStore();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -71,7 +72,6 @@ function UserManagement() {
   const [services, setServices] = useState([]);
   const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
   const [users, setUsers] = useState([]);
-  const isAdmin = currentUser.permission_level > 2 ? true : false;
 
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedPermission, setSelectedPermission] = useState();
