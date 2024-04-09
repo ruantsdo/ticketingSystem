@@ -19,7 +19,6 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
@@ -38,28 +37,39 @@ import AddTaskIcon from "@mui/icons-material/AddTask";
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
-//Services
-import api from "../../services/api";
-
 //Toast
 import { toast } from "react-toastify";
 
+//Stores
+import useLocationsStore from "../../stores/locationsStore/store";
+
+//Utils
+import useUsersUtils from "../../stores/usersStore/utils";
+import useGetDataUtils from "../../utils/getDataUtils";
+
 function LocationManagement() {
   const { socket } = useWebSocket();
+  const { isAdmin } = useUsersUtils();
+  const {
+    processingLocationsStore,
+    createNewLocation,
+    getLocationsList,
+    removeLocation,
+    updateLocation,
+  } = useLocationsStore();
+  const { findIndexById } = useGetDataUtils();
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { currentUser } = useContext(AuthContext);
-  const [addLocationIsOpen, setAddLocationIsOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [isAdd, setIsAdd] = useState(false);
 
+  const [currentTargetId, setCurrentTargetId] = useState("");
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
   const [currentTargetTables, setCurrentTargetTables] = useState(1);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-
   const [locations, setLocations] = useState([]);
   const [page, setPage] = useState(1);
-  const [itemKey, setItemKey] = useState();
 
   const rowsPerPage = 5;
 
@@ -72,94 +82,21 @@ function LocationManagement() {
     return locations.slice(start, end);
   }, [page, locations]);
 
-  const findIndexById = (key) => {
-    for (let i = 0; i < locations.length; i++) {
-      // eslint-disable-next-line
-      if (locations[i].id == key) {
-        setItemKey(i);
-        updateStates(i);
-        return;
-      }
-    }
+  const handleRemoveLocation = async (id) => {
+    await removeLocation(id);
   };
 
-  const checkLevel = () => {
-    if (currentUser.permission_level > 3) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  };
+  const handleUpdateLocation = async (id) => {
+    const data = {
+      id: id,
+      name: currentTargetName,
+      description: currentTargetDesc,
+      tables: currentTargetTables,
+      updated_by: currentUser.name,
+    };
 
-  const handleLocations = async () => {
-    try {
-      const response = await api.get("/location/query");
-      setLocations(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const checkLocalName = async (id) => {
-    const duplicateLocation = locations.filter(
-      (local) => local.name === currentTargetName
-    );
-
-    if (duplicateLocation.length > 1) {
-      const checkId = locations.some((local) => local.id !== id);
-      if (checkId) {
-        toast.info("Já existe um local com esse nome!");
-      } else {
-        await updateLocation(id);
-      }
-    } else {
-      await updateLocation(id);
-    }
-  };
-
-  const removeLocation = async (id) => {
-    try {
-      await api
-        .post("/location/remove", {
-          id: id,
-        })
-        .then((response) => {
-          if (response.data === "success") {
-            toast.success("O local foi removido!");
-            handleLocations();
-            emitLocationUpdateSignal();
-          } else if (response.data === "failed") {
-            toast.error("Falha ao remover local!");
-          }
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const updateLocation = async (id) => {
-    try {
-      await api
-        .post("/location/update", {
-          id: id,
-          name: currentTargetName,
-          description: currentTargetDesc,
-          tables: currentTargetTables,
-          updated_by: currentUser.name,
-        })
-        .then((response) => {
-          if (response.data === "success") {
-            toast.success("Local atualizado!");
-            emitLocationUpdateSignal();
-          } else if (response.data === "failed") {
-            toast.error("Falha ao atualizar o local!");
-          }
-
-          handleLocations();
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    const response = await updateLocation(data);
+    if (response) setOpenModal(false);
   };
 
   const handleAddNewLocation = async () => {
@@ -168,60 +105,58 @@ function LocationManagement() {
       return;
     }
 
-    await api
-      .post("/location/registration", {
-        name: currentTargetName,
-        description: currentTargetDesc,
-        tables: currentTargetTables,
-        created_by: currentUser.name,
-      })
-      .then((response) => {
-        const resp = response.data;
+    const data = {
+      name: currentTargetName,
+      description: currentTargetDesc,
+      tables: currentTargetTables,
+      created_by: currentUser.name,
+    };
 
-        if (resp === "success") {
-          toast.success("Local cadastrado!");
-          handleLocations();
-          setAddLocationIsOpen(false);
-          emitLocationUpdateSignal();
-        } else if (resp === "failed") {
-          toast.warn(
-            "Falha ao cadastrar novo local. Tente novamente em alguns instantes!"
-          );
-          setAddLocationIsOpen(false);
-        } else if (resp === "already exists") {
-          toast.info("Já existe um local com esse nome!");
-        } else {
-          toast.error("Falha interna no servidor. Tente novamente mais tarde!");
-          setAddLocationIsOpen(false);
-        }
-      });
+    const response = await createNewLocation(data);
+    if (response) setOpenModal(false);
   };
 
-  const updateStates = (id) => {
-    setCurrentTargetName(locations[id].name);
-    setCurrentTargetDesc(locations[id].description);
-    setCurrentTargetTables(locations[id].tables);
+  const handleOpenModal = async (key) => {
+    if (key) {
+      const index = await findIndexById(locations, key);
+      setIsAdd(false);
+      updateStates(index);
+      setOpenModal(true);
+      return;
+    }
+
+    setIsAdd(true);
+    clearStates();
+    setOpenModal(true);
+  };
+
+  const updateStates = (index) => {
+    setCurrentTargetId(locations[index].id);
+    setCurrentTargetName(locations[index].name);
+    setCurrentTargetDesc(locations[index].description);
+    setCurrentTargetTables(locations[index].tables);
   };
 
   const clearStates = () => {
+    setCurrentTargetId("");
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetTables("");
   };
 
-  const emitLocationUpdateSignal = () => {
-    socket.emit("locations_updated");
+  const getInitialData = async () => {
+    const locations = await getLocationsList();
+    setLocations(locations);
   };
 
   useEffect(() => {
-    handleLocations();
-    checkLevel();
+    getInitialData();
     // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     socket.on("locations_updated", () => {
-      handleLocations();
+      getInitialData();
     });
 
     return () => {
@@ -238,7 +173,9 @@ function LocationManagement() {
             mode="success"
             className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
             startContent={<AddIcon />}
-            onPress={() => setAddLocationIsOpen(true)}
+            onPress={() => handleOpenModal()}
+            isLoading={processingLocationsStore}
+            isDisabled={processingLocationsStore}
           >
             Novo local
           </Button>
@@ -246,8 +183,7 @@ function LocationManagement() {
         <Table
           aria-label="Lista de locais"
           onRowAction={(key) => {
-            findIndexById(key);
-            onOpen();
+            handleOpenModal(key);
           }}
           isStriped
           bottomContent={
@@ -308,9 +244,10 @@ function LocationManagement() {
                         mode="success"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
-                          findIndexById(item.id);
-                          onOpen();
+                          handleOpenModal(item.id);
                         }}
+                        isLoading={processingLocationsStore}
+                        isDisabled={processingLocationsStore || !isAdmin}
                       >
                         <EditIcon fontSize="small" />
                       </Button>
@@ -319,8 +256,10 @@ function LocationManagement() {
                         mode="failed"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
-                          removeLocation(item.id);
+                          handleRemoveLocation(item.id);
                         }}
+                        isLoading={processingLocationsStore}
+                        isDisabled={processingLocationsStore || !isAdmin}
                       >
                         <DeleteForeverIcon fontSize="small" />
                       </Button>
@@ -334,101 +273,9 @@ function LocationManagement() {
       </div>
 
       <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onClose={() => clearStates()}
-        backdrop="opaque"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
-                <section className="flex flex-col gap-1 justify-center items-center">
-                  <h1>Dados do local </h1>
-                  {locations[itemKey].updated_by ? (
-                    <h6>
-                      Atualizado por: {locations[itemKey].updated_by} em{" "}
-                      {locations[itemKey].updated_at}
-                    </h6>
-                  ) : (
-                    <h6>Este local ainda não foi atualizado</h6>
-                  )}
-                </section>
-              </ModalHeader>
-              <Divider />
-              <ModalBody>
-                <Input
-                  isReadOnly={!isAdmin}
-                  variant="underlined"
-                  size="sm"
-                  className="border-none"
-                  label="NOME"
-                  defaultValue={locations[itemKey].name}
-                  onChange={(e) => setCurrentTargetName(e.target.value)}
-                />
-                <Input
-                  isReadOnly={!isAdmin}
-                  variant="underlined"
-                  size="sm"
-                  className="border-none"
-                  label="DESCRIÇÃO"
-                  defaultValue={locations[itemKey].description}
-                  onChange={(e) => setCurrentTargetDesc(e.target.value)}
-                />
-                <Input
-                  isReadOnly={!isAdmin}
-                  variant="underlined"
-                  size="sm"
-                  className="border-none"
-                  type="number"
-                  min={1}
-                  label="QUANTIDADE DE MESAS"
-                  defaultValue={locations[itemKey].tables}
-                  onChange={(e) => setCurrentTargetTables(e.target.value)}
-                />
-              </ModalBody>
-              <Divider />
-              <ModalFooter className="flex justify-between align-middle">
-                <Button
-                  className="bg-transparent text-failed w-15"
-                  onPress={() => {
-                    onClose();
-                    removeLocation(locations[itemKey].id);
-                  }}
-                  startContent={<DeleteForeverIcon />}
-                >
-                  DELETAR
-                </Button>
-                <div className="flex flex-row items-center justify-end w-full gap-3">
-                  <Button
-                    mode="failed"
-                    className="w-10"
-                    onPress={() => {
-                      onClose();
-                    }}
-                  >
-                    Fechar
-                  </Button>
-                  <Button
-                    mode="success"
-                    className="w-10"
-                    onPress={() => {
-                      checkLocalName(locations[itemKey].id).then(onClose());
-                    }}
-                  >
-                    Salvar
-                  </Button>
-                </div>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      <Modal
-        isOpen={addLocationIsOpen}
+        isOpen={openModal}
         onOpenChange={() => {
-          setAddLocationIsOpen(!addLocationIsOpen);
+          setOpenModal(!openModal);
           clearStates();
         }}
       >
@@ -436,7 +283,7 @@ function LocationManagement() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1 text-center">
-                Adicionar novo local
+                {isAdd ? "Adicionar novo local" : "Atualizar local"}
               </ModalHeader>
               <Divider />
               <ModalBody>
@@ -446,6 +293,7 @@ function LocationManagement() {
                   size="sm"
                   className="border-none"
                   label="NOME"
+                  defaultValue={currentTargetName}
                   value={currentTargetName}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
@@ -455,6 +303,7 @@ function LocationManagement() {
                   className="border-none"
                   label="DESCRIÇÃO"
                   value={currentTargetDesc}
+                  defaultValue={currentTargetDesc}
                   onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
                 <Input
@@ -487,10 +336,16 @@ function LocationManagement() {
                   type="submit"
                   endContent={<AddTaskIcon />}
                   onPress={() => {
-                    handleAddNewLocation();
+                    if (isAdd) {
+                      handleAddNewLocation();
+                    } else {
+                      handleUpdateLocation(currentTargetId);
+                    }
                   }}
+                  isLoading={processingLocationsStore}
+                  isDisabled={processingLocationsStore}
                 >
-                  Cadastrar
+                  {isAdd ? "Cadastrar" : "Atualizar"}
                 </Button>
               </ModalFooter>
             </>

@@ -1,22 +1,7 @@
-//React
-import { useContext } from "react";
-
 //Services
 import api from "../services/api";
 
-//Contexts
-import AuthContext from "../contexts/auth";
-
-//Toast
-import { toast } from "react-toastify";
-
-//Utils
-import useSocketUtils from "./socketUtils";
-
 const useGetDataUtils = () => {
-  const { currentUser } = useContext(AuthContext);
-  const { usersUpdatedSignal } = useSocketUtils();
-
   const getPermissionLevels = async () => {
     try {
       const response = await api.get("/permissionsLevels");
@@ -27,8 +12,17 @@ const useGetDataUtils = () => {
     }
   };
 
+  const findIndexById = (array, key) => {
+    const index = array.findIndex((item) => Number(item.id) === Number(key));
+    if (index !== -1) {
+      return Number(index);
+    }
+    return false;
+  };
+
   return {
     getPermissionLevels,
+    findIndexById,
   };
 };
 

@@ -55,6 +55,21 @@ router.get("/location/query", async (req, res) => {
   }
 });
 
+router.post("/location/query/name", async (req, res) => {
+  const { name, id } = req.body;
+  const query =
+    id !== undefined
+      ? "SELECT * FROM locations WHERE name = ? AND id != ?"
+      : "SELECT * FROM locations WHERE name = ?";
+  try {
+    await db.query(query, [name, id], (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.get("/services/query", async (req, res) => {
   try {
     await db.query("SELECT * FROM services", (err, result) => {
@@ -143,7 +158,7 @@ router.get("/users/query/cpf/:cpf", async (req, res) => {
     console.log(error);
     res.status(500).send("Erro interno do servidor");
   }
-}); // NEW
+});
 
 router.get("/users/query/email/:email", async (req, res) => {
   try {
@@ -163,7 +178,7 @@ router.get("/users/query/email/:email", async (req, res) => {
     console.log(error);
     res.status(500).send("Erro interno do servidor");
   }
-}); // NEW
+});
 
 router.get("/permissionsLevels", async (req, res) => {
   try {

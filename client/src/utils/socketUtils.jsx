@@ -8,8 +8,13 @@ const useSocketUtils = () => {
     socket.emit("users_updated");
   };
 
+  const locationsUpdatedSignal = () => {
+    socket.emit("locations_updated");
+  };
+
   return {
     usersUpdatedSignal,
+    locationsUpdatedSignal,
   };
 };
 
