@@ -80,6 +80,31 @@ router.get("/services/query", async (req, res) => {
   }
 });
 
+router.post("/services/query/name", async (req, res) => {
+  const { name, id } = req.body;
+  try {
+    if (id !== null) {
+      await db.query(
+        "SELECT * FROM services WHERE name = ? AND id != ?",
+        [name, id],
+        (err, result) => {
+          res.send(result);
+        }
+      );
+    } else {
+      await db.query(
+        "SELECT * FROM services WHERE name = ?",
+        [name],
+        (err, result) => {
+          res.send(result);
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 router.get("/services/query/:id", async (req, res) => {
   try {
     await db.query(
