@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import useSocketUtils from "../../utils/socketUtils";
 
 const useUsersStore = () => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, isAdmin } = useContext(AuthContext);
   const { usersUpdatedSignal } = useSocketUtils();
 
   const [processingUserStore, setProcessingUserStore] = useState(false);
@@ -49,6 +49,7 @@ const useUsersStore = () => {
   };
 
   const getUserByCPF = async (cpf) => {
+    setProcessingUserStore(true);
     try {
       const response = await api.get(`/users/query/cpf/${cpf}`);
       return response.data;
@@ -78,7 +79,13 @@ const useUsersStore = () => {
   };
 
   const createNewUser = async (data) => {
+    if (!isAdmin) {
+      toast.info("Você não tem privilégios para realizar essa ação!");
+      return;
+    }
+
     setProcessingUserStore(true);
+
     if (
       !data.cpf ||
       !data.name ||
@@ -140,6 +147,13 @@ const useUsersStore = () => {
   };
 
   const updateUser = async (data) => {
+    if (!isAdmin && data.id !== currentUser.id) {
+      toast.info("Você não tem privilégios para realizar essa ação!");
+      return;
+    }
+
+    setProcessingUserStore(true);
+
     try {
       await api
         .post("/users/update", {
@@ -175,6 +189,13 @@ const useUsersStore = () => {
   };
 
   const deleteUser = async (id) => {
+    if (!isAdmin) {
+      toast.info("Você não tem privilégios para realizar essa ação!");
+      return;
+    }
+
+    setProcessingUserStore(true);
+
     if (id === 1) {
       toast.warn("Esse usuário não pode ser removido!");
       setProcessingUserStore(false);
