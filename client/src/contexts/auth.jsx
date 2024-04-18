@@ -15,6 +15,7 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const daysToCheck = 1; //Time interval (in days) to revalidate credentials
 
@@ -42,9 +43,13 @@ export const AuthProvider = ({ children }) => {
         console.log(error);
       }
     }
+
+    setIsLoading(false);
   };
 
   const validation = async (response, currentUser) => {
+    setIsLoading(true);
+
     if (response === "expired") {
       toast.info("Suas credenciais expiraram...");
       toast.warn("Você deve fazer login novamente...");
@@ -52,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("lastDay");
       localStorage.removeItem("currentSession");
       setCurrentUser(null);
+      setIsAdmin(false);
 
       redirect("/login");
       window.location.reload(true);
@@ -62,11 +68,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("lastDay");
       localStorage.removeItem("currentSession");
       setCurrentUser(null);
+      setIsAdmin(false);
 
       redirect("/login");
       window.location.reload(true);
     } else if (response === "valid") {
       setCurrentUser(currentUser);
+      setIsAdmin(currentUser.permission_level > 2 ? true : false);
     }
 
     setIsLoading(false);
@@ -93,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         } else {
           //Not a day has passed since the last check
           setCurrentUser(currentUser);
+          setIsAdmin(currentUser.permission_level > 2 ? true : false);
           setIsLoading(false);
         }
       }
@@ -109,6 +118,7 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser,
         isLoading,
         setIsLoading,
+        isAdmin,
       }}
     >
       {children}
