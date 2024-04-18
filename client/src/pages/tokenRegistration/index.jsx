@@ -31,11 +31,15 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Toast
 import { toast } from "react-toastify";
 
+//Store
+import useServicesStore from "../../stores/servicesStore/store";
+
 import { useReactToPrint } from "react-to-print";
 
 function QueueRegistration() {
   const { socket } = useWebSocket();
-  const { currentUser } = useContext(AuthContext);
+  const { getAllServices } = useServicesStore();
+  const { currentUser, isAdmin } = useContext(AuthContext);
 
   const [services, setServices] = useState([]);
 
@@ -74,7 +78,7 @@ function QueueRegistration() {
     },
     onSubmit: async (values) => {
       const availability = await checkAvailability(selectedService);
-      if (availability || currentUser.permission_level > 2) {
+      if (availability || isAdmin) {
         try {
           await api
             .post("/token/registration", {
@@ -145,7 +149,7 @@ function QueueRegistration() {
 
   const handleServices = async () => {
     try {
-      const response = await api.get("/services/query");
+      const response = getAllServices();
       setServices(response.data);
     } catch (error) {
       console.error(error);
