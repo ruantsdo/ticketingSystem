@@ -7,23 +7,16 @@ import api from "../../services/api";
 //Contexts
 import AuthContext from "../../contexts/auth";
 
-//Toast
-import { toast } from "react-toastify";
-
 //Utils
 import useGetDataUtils from "../../utils/getDataUtils";
 
 // Stores
 import useUsersStore from "./store";
-import useServicesStore from "../servicesStore/store";
 
 const useUsersUtils = () => {
   const { currentUser } = useContext(AuthContext);
   const { getUsersList, getUserServices } = useUsersStore();
-  const { getAllServices } = useServicesStore();
   const { getPermissionLevels } = useGetDataUtils();
-
-  const isAdmin = currentUser.permission_level > 2 ? true : false;
 
   const filterPermissionLevels = async () => {
     const permissionLevels = await getPermissionLevels();
@@ -52,28 +45,6 @@ const useUsersUtils = () => {
     } catch (error) {
       console.error("Falha ao obter serviços dos usuários!");
       console.log(error);
-    }
-  };
-
-  const filterUserServices = async (id) => {
-    try {
-      const services = await getAllServices();
-      const userServices = await getUserServices(id);
-
-      const filtered = userServices.map((userService) => {
-        const foundService = services.find(
-          (service) => service.id === userService.service_id
-        );
-        return foundService ? String(foundService.id) : null;
-      });
-
-      return filtered;
-    } catch (error) {
-      toast.error(
-        "Falha ao obter serviços do usuário. Tente novamente am alguns instantes!"
-      );
-      console.error("Erro ao obter serviços do usuário.");
-      console.error(error);
     }
   };
 
@@ -114,8 +85,6 @@ const useUsersUtils = () => {
     filterPermissionLevels,
     filterUsersList,
     getAllUsersServices,
-    filterUserServices,
-    isAdmin,
   };
 };
 

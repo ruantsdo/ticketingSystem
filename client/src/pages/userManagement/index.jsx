@@ -54,8 +54,7 @@ function UserManagement() {
     getUserServices,
     processingUserStore,
   } = useUsersStore();
-  const { filterPermissionLevels, filterUserServices, isAdmin } =
-    useUsersUtils();
+  const { filterPermissionLevels, isAdmin } = useUsersUtils();
   const { getAllServices } = useServicesStore();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -96,7 +95,6 @@ function UserManagement() {
     for (let i = 0; i < users.length; i++) {
       // eslint-disable-next-line
       if (users[i].id == key) {
-        handleFilterUserServices(users[i].id);
         setItemKey(i);
         updateStates(i);
         return;
@@ -148,10 +146,6 @@ function UserManagement() {
     };
 
     await updateUser(data);
-  };
-
-  const handleFilterUserServices = async (id) => {
-    filterUserServices(id);
   };
 
   const getInitialData = async (
