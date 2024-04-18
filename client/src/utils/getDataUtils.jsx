@@ -12,7 +12,7 @@ const useGetDataUtils = () => {
     }
   };
 
-  const findIndexById = (array, key) => {
+  const findIndexById = async (array, key) => {
     const index = array.findIndex((item) => Number(item.id) === Number(key));
     if (index !== -1) {
       return Number(index);
