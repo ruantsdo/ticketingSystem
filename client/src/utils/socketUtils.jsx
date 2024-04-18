@@ -12,9 +12,14 @@ const useSocketUtils = () => {
     socket.emit("locations_updated");
   };
 
+  const servicesUpdatedSignal = () => {
+    socket.emit("services_updated");
+  };
+
   return {
     usersUpdatedSignal,
     locationsUpdatedSignal,
+    servicesUpdatedSignal,
   };
 };
 
