@@ -63,13 +63,13 @@ function Reports() {
   const [GraphComponent01, setGraphComponent01] = useState();
   const [GraphComponent02, setGraphComponent02] = useState();
   const [isLoading, setIsLoading] = useState(true);
-  const [loadMenssage, setLoadMessage] = useState(
+  const [loadMessage, setLoadMessage] = useState(
     "Aguardando input de dados..."
   );
 
   const [tokensAreDefined, setTokensAreDefined] = useState(false);
 
-  const [tokenDetailisOpen, setTokenDetailisOpen] = useState(false);
+  const [tokenDetailIsOpen, setTokenDetailIsOpen] = useState(false);
   const [targetToken, setTargetToken] = useState();
 
   const [searchValue, setSearchValue] = useState("");
@@ -104,7 +104,7 @@ function Reports() {
 
   const defineTargetToken = (id) => {
     setTargetToken(tokens[id]);
-    setTokenDetailisOpen(true);
+    setTokenDetailIsOpen(true);
   };
 
   const generateGraphData = () => {
@@ -412,21 +412,21 @@ function Reports() {
       <div className="flex flex-row w-[100%] h-fit items-center justify-around">
         {tableComponent}
         {isLoading ? (
-          <CircularProgress label={loadMenssage} color="primary" />
+          <CircularProgress label={loadMessage} color="primary" />
         ) : (
           <div className="w-[25%] h-[100%]">{GraphComponent02}</div>
         )}
       </div>
       <div className="flex flex-col w-[99%] h-fit items-center justify-around">
         {isLoading ? (
-          <CircularProgress label={loadMenssage} color="primary" />
+          <CircularProgress label={loadMessage} color="primary" />
         ) : (
           <>{GraphComponent01}</>
         )}
       </div>
       <TokensDetails
-        tokenDetailisOpen={tokenDetailisOpen}
-        setTokenDetailisOpen={setTokenDetailisOpen}
+        tokenDetailIsOpen={tokenDetailIsOpen}
+        setTokenDetailIsOpen={setTokenDetailIsOpen}
         token={targetToken}
         services={services}
       />

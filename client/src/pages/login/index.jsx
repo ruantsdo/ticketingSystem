@@ -67,7 +67,7 @@ function LoginPage() {
                 navigate("/home");
               }
             } else {
-              toast.warn("Verifique suas crendenciais e tente novamente!");
+              toast.warn("Verifique suas credenciais e tente novamente!");
             }
             return;
           });

@@ -59,7 +59,7 @@ function TokensTable({ ...props }) {
 
   return (
     <Table
-      aria-label="Lista de fichas disponiveis para você"
+      aria-label="Lista de fichas disponíveis para você"
       onRowAction={(key) => {
         findIndexById(key);
       }}

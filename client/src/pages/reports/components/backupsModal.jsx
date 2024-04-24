@@ -34,33 +34,33 @@ function BackUpsModal({ ...props }) {
     setOriginalTokens,
   } = props;
 
-  const [avaliableBackups, setAvaliableBackups] = useState([]);
+  const [availableBackups, setAvailableBackups] = useState([]);
 
   const [page, setPage] = useState(1);
   const rowsPerPage = 4;
-  const pages = Math.ceil(avaliableBackups.length / rowsPerPage);
+  const pages = Math.ceil(availableBackups.length / rowsPerPage);
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return avaliableBackups.slice(start, end);
+    return availableBackups.slice(start, end);
     // eslint-disable-next-line
-  }, [page, avaliableBackups]);
+  }, [page, availableBackups]);
 
   const findIndexById = (key) => {
-    for (let i = 0; i < avaliableBackups.length; i++) {
+    for (let i = 0; i < availableBackups.length; i++) {
       // eslint-disable-next-line
-      if (avaliableBackups[i].id == key) {
+      if (availableBackups[i].id == key) {
         getTableData(i);
         return;
       }
     }
   };
 
-  const getAvaliableBackups = async () => {
+  const getAvailableBackups = async () => {
     try {
       const response = await api.get("/checkBackups");
-      setAvaliableBackups(response.data);
+      setAvailableBackups(response.data);
     } catch (error) {
       console.log("Falha ao obter lista de backups!");
       console.log(error);
@@ -69,7 +69,7 @@ function BackUpsModal({ ...props }) {
 
   const getTableData = async (key) => {
     const response = await api.get(
-      `/getBackupData/${avaliableBackups[key].name}`
+      `/getBackupData/${availableBackups[key].name}`
     );
     setTokens(response.data);
     setOriginalTokens(response.data);
@@ -78,7 +78,7 @@ function BackUpsModal({ ...props }) {
   };
 
   useEffect(() => {
-    getAvaliableBackups();
+    getAvailableBackups();
   }, []);
 
   return (
@@ -123,7 +123,7 @@ function BackUpsModal({ ...props }) {
                   <TableBody
                     items={items}
                     emptyContent={
-                      !avaliableBackups ? (
+                      !availableBackups ? (
                         <Spinner
                           size="lg"
                           label="Carregando..."

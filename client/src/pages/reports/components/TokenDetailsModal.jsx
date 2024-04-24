@@ -20,10 +20,10 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 
 function TokensDetails({ ...props }) {
-  const { tokenDetailisOpen, setTokenDetailisOpen, token, services } = props;
+  const { tokenDetailIsOpen, setTokenDetailIsOpen, token, services } = props;
 
   return (
-    <Modal isOpen={tokenDetailisOpen} hideCloseButton={true} backdrop="opaque">
+    <Modal isOpen={tokenDetailIsOpen} hideCloseButton={true} backdrop="opaque">
       <ModalContent>
         {(onClose) => (
           <>
@@ -143,7 +143,7 @@ function TokensDetails({ ...props }) {
             <ModalFooter className="flex justify-center align-middle">
               <Button
                 onPress={() => {
-                  setTokenDetailisOpen(false);
+                  setTokenDetailIsOpen(false);
                   onClose();
                 }}
                 mode="failed"
