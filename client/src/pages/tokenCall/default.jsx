@@ -32,9 +32,14 @@ import { toast } from "react-toastify";
 import getDataHooks from "../../Hooks/getData";
 import useUtilsHooks from "../../Hooks/utilsHooks";
 
+//Stores
+import { useServicesStore, useLocationsStore } from "../../stores";
+
 function TokenCallDefault() {
   const { socket } = useWebSocket();
-  const { getServicesList, getLocationsList, getVideosList } = getDataHooks();
+  const { getAllServices } = useServicesStore();
+  const { getLocationsList } = useLocationsStore();
+  const { getVideosList } = getDataHooks();
   const { getTargetServiceName, getTargetLocationName } = useUtilsHooks();
 
   const [callQueue, setCallQueue] = useState([]);
@@ -69,7 +74,7 @@ function TokenCallDefault() {
   };
 
   const handleServicesList = async () => {
-    const data = await getServicesList();
+    const data = await getAllServices();
     setServices(data);
   };
 

@@ -7,9 +7,6 @@ import { Container, AdmShortcuts, UserShortcuts } from "./components";
 //Contexts
 import AuthContext from "../../contexts/auth";
 
-//Hooks
-import useGetUserInfo from "../../Hooks/getUserInfos";
-
 //Recharts
 import {
   BarChart,
@@ -25,18 +22,20 @@ import {
 //NextUi
 import { CircularProgress, Card } from "@nextui-org/react";
 
+//Stores
+import { useServicesStore, useTokensStore } from "../../stores";
+
 function Home() {
   const { currentUser } = useContext(AuthContext);
-  const { defineFilteredTokens, getAllServices } = useGetUserInfo();
+  const { getAllServices } = useServicesStore();
+  const { FilterTokensByUser } = useTokensStore();
 
   const [loadingGraph, setLoadingGraph] = useState(true);
   const [graphData, setGraphData] = useState(null);
 
   const handleGetInfo = async () => {
-    const tokens = await defineFilteredTokens(currentUser.id);
+    const tokens = await FilterTokensByUser(currentUser.id);
     const services = await getAllServices();
-
-    console.log(tokens);
 
     generateGraphData(tokens, services);
   };

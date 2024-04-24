@@ -19,7 +19,6 @@ import Graph01 from "./components/graphics/graphic01";
 import Graph02 from "./components/graphics/graphic02";
 
 //Hooks
-import useGetUserInfo from "../../Hooks/getUserInfos";
 import getDataHooks from "../../Hooks/getData";
 import { handleGenerateReport } from "../../Hooks/generateReportXLXS";
 
@@ -38,8 +37,11 @@ import { headers } from "./components/models/reportHeaders";
 import moment from "moment";
 import "moment/locale/pt-br";
 
+//Stores
+import { useServicesStore } from "../../stores";
+
 function Reports() {
-  const { getAllServices } = useGetUserInfo();
+  const { getAllServices } = useServicesStore();
   const { getHistoric } = getDataHooks();
 
   const currentDate = moment();

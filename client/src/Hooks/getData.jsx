@@ -11,33 +11,6 @@ const getDataHooks = () => {
     }
   };
 
-  const getPermissionsLevels = async () => {
-    try {
-      const response = await api.get("/permissionsLevels");
-      return response.data;
-    } catch (error) {
-      console.error("Get permissions levels error: " + error);
-    }
-  };
-
-  const getServicesList = async () => {
-    try {
-      const response = await api.get("/services/query");
-      return response.data;
-    } catch (error) {
-      console.log("Failed to get services list: " + error);
-    }
-  };
-
-  const getLocationsList = async () => {
-    try {
-      const response = await api.get("/location/query");
-      return response.data;
-    } catch (error) {
-      console.error("Failed to get locations list: " + error);
-    }
-  };
-
   const getVideosList = async () => {
     try {
       const response = await api.get("/videoList");
@@ -51,9 +24,6 @@ const getDataHooks = () => {
 
   return {
     getHistoric,
-    getPermissionsLevels,
-    getServicesList,
-    getLocationsList,
     getVideosList,
   };
 };
