@@ -28,13 +28,13 @@ import { useServicesStore, useTokensStore } from "../../stores";
 function Home() {
   const { currentUser } = useContext(AuthContext);
   const { getAllServices } = useServicesStore();
-  const { FilterTokensByUser } = useTokensStore();
+  const { filterTokensByUser } = useTokensStore();
 
   const [loadingGraph, setLoadingGraph] = useState(true);
   const [graphData, setGraphData] = useState(null);
 
   const handleGetInfo = async () => {
-    const tokens = await FilterTokensByUser(currentUser.id);
+    const tokens = await filterTokensByUser(currentUser.id);
     const services = await getAllServices();
 
     generateGraphData(tokens, services);

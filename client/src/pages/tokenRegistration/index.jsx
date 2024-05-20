@@ -32,13 +32,16 @@ import { useWebSocket } from "../../contexts/webSocket";
 import { toast } from "react-toastify";
 
 //Store
-import useServicesStore from "../../stores/servicesStore/store";
+import { useServicesStore, useTokensStore } from "../../stores";
+import useSocketUtils from "../../utils/socketUtils";
 
 import { useReactToPrint } from "react-to-print";
 
 function QueueRegistration() {
+  const { newTokenSignal } = useSocketUtils();
   const { socket } = useWebSocket();
-  const { getAllServices } = useServicesStore();
+  const { getAllServices, getServiceById } = useServicesStore();
+  const { getTokensByServiceId } = useTokensStore();
   const { currentUser, isAdmin } = useContext(AuthContext);
 
   const [services, setServices] = useState([]);
@@ -46,7 +49,7 @@ function QueueRegistration() {
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
 
-  const [availability, setAvailability] = useState(true);
+  const [availability, setAvailability] = useState(false);
   const [remaining, setRemaining] = useState("");
 
   const [tokenData, setTokenData] = useState([]);
@@ -83,7 +86,7 @@ function QueueRegistration() {
           await api
             .post("/token/registration", {
               priority: priority,
-              services: selectedService,
+              service: selectedService,
               created: currentUser.name,
               requested_by: values.requested_by,
             })
@@ -112,7 +115,7 @@ function QueueRegistration() {
   const notify = (response) => {
     if (response === "success") {
       toast.success("Ficha registrada!");
-      emitNewTokenSignal();
+      newTokenSignal();
       formik.resetForm();
     } else if (response === "failed") {
       toast.warn(
@@ -123,8 +126,8 @@ function QueueRegistration() {
 
   const checkAvailability = async (serviceId) => {
     try {
-      const service = await api.get(`/services/query/${serviceId}`);
-      const token = await api.get(`/token/query/${serviceId}`);
+      const service = await getServiceById(serviceId);
+      const token = await getTokensByServiceId(serviceId);
 
       if (service.data[0].limit === 0) {
         setAvailability(true);
@@ -149,15 +152,11 @@ function QueueRegistration() {
 
   const handleServices = async () => {
     try {
-      const response = getAllServices();
-      setServices(response.data);
+      const response = await getAllServices();
+      setServices(response);
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const emitNewTokenSignal = () => {
-    socket.emit("new_token");
   };
 
   const splitStringIntoLines = (str, maxCharsPerLine) => {

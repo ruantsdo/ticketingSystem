@@ -16,7 +16,12 @@ const useSocketUtils = () => {
     socket.emit("services_updated");
   };
 
+  const newTokenSignal = () => {
+    socket.emit("new_token");
+  };
+
   return {
+    newTokenSignal,
     usersUpdatedSignal,
     locationsUpdatedSignal,
     servicesUpdatedSignal,

@@ -14,12 +14,12 @@ import { toast } from "react-toastify";
 import useSocketUtils from "../../utils/socketUtils";
 
 //Stores
-import { useUserStore } from "../";
+import { useUsersStore } from "../";
 
 const useTokensStore = () => {
   const { currentUser, isAdmin } = useContext(AuthContext);
-  const { getUserServices } = useUserStore();
-  const {} = useSocketUtils();
+  const { getUserServices } = useUsersStore();
+  const { newTokenSignal } = useSocketUtils();
 
   const [processingTokensStore, setProcessingTokensStore] = useState(false);
 
@@ -35,7 +35,75 @@ const useTokensStore = () => {
     }
   };
 
-  const FilterTokensByUser = async (id) => {
+  const getTokensByServiceId = async (serviceId) => {
+    setProcessingTokensStore(true);
+    try {
+      const response = await api.get(`/token/query/${serviceId}`);
+      return response;
+    } catch (error) {
+      toast.error("Falha ao recuperar tokens do serviço...");
+      console.error("Falha ao recuperar tokens do serviço...");
+      console.error(error);
+    } finally {
+      setProcessingTokensStore(false);
+    }
+  };
+
+  const checkTokenAvailability = async (serviceId) => {
+    try {
+      const service = await api.get(`/services/query/${serviceId}`);
+      const token = await api.get(`/token/query/${serviceId}`);
+
+      if (service.data[0].limit === 0) return "infinity";
+      return `${token.data.length}/${service.data[0].limit}`;
+    } catch (error) {
+      toast.error("Falha ao verificar disponibilidade da ficha!");
+      console.error(
+        "Falha ao verificar a disponibilidade da ficha ... " + error
+      );
+    }
+  };
+
+  const registerToken = async (data) => {
+    setProcessingTokensStore(true);
+    const { priority, service, requested_by } = data;
+    const disposability = await checkTokenAvailability(service);
+
+    if (!disposability || !isAdmin || disposability !== "infinity")
+      return false;
+
+    try {
+      const response = await api.post("/token/registration", {
+        priority,
+        service,
+        created: currentUser.name,
+        requested_by,
+      });
+      const data = response.data;
+      const tokenInfo = data.tokensData;
+      const message = data.message;
+
+      if (message === "success") {
+        toast.success("Ficha registrada!");
+        newTokenSignal();
+        tokenInfo.disposability = disposability;
+        return tokenInfo;
+      } else if (message === "failed") {
+        toast.warn(
+          "Falha ao registrar nova ficha! Tente novamente em alguns instantes!"
+        );
+      }
+    } catch (err) {
+      toast.error(
+        "Houve um problema ao cadastrar a nova ficha! Tente novamente em alguns instantes!"
+      );
+      console.log(err);
+    } finally {
+      setProcessingTokensStore(false);
+    }
+  };
+
+  const filterTokensByUser = async (id) => {
     setProcessingTokensStore(true);
 
     try {
@@ -94,8 +162,10 @@ const useTokensStore = () => {
 
   return {
     processingTokensStore,
-    FilterTokensByUser,
+    filterTokensByUser,
+    getTokensByServiceId,
     getAllTokens,
+    registerToken,
   };
 };
 

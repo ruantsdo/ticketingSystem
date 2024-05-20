@@ -175,7 +175,7 @@ router.post("/users/remove", async (req, res) => {
 
 router.post("/token/registration", async (req, res) => {
   try {
-    const service = req.body.services;
+    const service = req.body.service;
     const priority = req.body.priority;
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;

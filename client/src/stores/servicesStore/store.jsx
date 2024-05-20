@@ -37,6 +37,20 @@ const useServicesStore = () => {
     }
   };
 
+  const getServiceById = async (serviceId) => {
+    setProcessingServicesStore(true);
+    try {
+      const response = await api.get(`/services/query/${serviceId}`);
+      return response;
+    } catch (error) {
+      toast.error("Falha ao recuperar dados do serviço...");
+      console.error("Falha ao recuperar dados do serviço...");
+      console.error(error);
+    } finally {
+      setProcessingServicesStore(false);
+    }
+  };
+
   const createNewService = async (data) => {
     if (!isAdmin) {
       toast.info("Você não tem privilégios para realizar essa ação!");
@@ -161,6 +175,7 @@ const useServicesStore = () => {
 
   return {
     getAllServices,
+    getServiceById,
     createNewService,
     updateService,
     deleteService,
