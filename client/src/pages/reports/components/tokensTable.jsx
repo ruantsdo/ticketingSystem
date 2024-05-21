@@ -84,6 +84,7 @@ function TokensTable({ ...props }) {
         <div className="flex flex-row w-full items-center justify-center">
           <div className="flex flex-row w-[42%] left-2 absolute justify-around">
             <Select
+              size="sm"
               label="Linhas"
               variant="bordered"
               placeholder="5 linhas"
