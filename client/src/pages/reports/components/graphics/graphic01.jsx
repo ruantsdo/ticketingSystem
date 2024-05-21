@@ -27,19 +27,13 @@ const Graph01 = ({ graphData }) => (
       <Tooltip />
       <Legend />
       <Bar dataKey="Quantidade" stackId="a" fill="#ffc658" maxBarSize={100} />
-      <Bar
-        dataKey="Disponibilidade"
-        stackId="a"
-        fill="#82ca9d"
-        maxBarSize={100}
-      />
       <Bar dataKey="Atendidos" stackId="b" fill="#2C931F" maxBarSize={100} />
       <Bar dataKey="Aguardando" stackId="b" fill="#008EDB" maxBarSize={100} />
       <Bar dataKey="Adiados" stackId="b" fill="#FF6254" maxBarSize={100} />
       <Bar
-        dataKey="Em atendimento"
+        dataKey="Encerrados pelo sistema"
         stackId="b"
-        fill="#A946A0"
+        fill="#CE1E1E"
         maxBarSize={100}
       />
     </BarChart>

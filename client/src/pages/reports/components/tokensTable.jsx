@@ -16,23 +16,25 @@ import {
   Pagination,
   Chip,
   Spinner,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 
 //Icons
-import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
-import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 function TokensTable({ ...props }) {
-  const { tokens, services, defineTargetToken, setPickerIsOpen } = props;
+  const { tokens, defineTargetToken, setPickerIsOpen } = props;
+
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const tableRowsQuantity = lineCount();
 
   const [page, setPage] = useState(1);
-
-  const rowsPerPage = 5;
 
   const pages = Math.max(1, Math.ceil(tokens.length / rowsPerPage));
 
@@ -41,7 +43,7 @@ function TokensTable({ ...props }) {
     const end = start + rowsPerPage;
 
     return tokens.slice(start, end);
-  }, [page, tokens]);
+  }, [page, tokens, rowsPerPage]);
 
   const findIndexById = (key) => {
     for (let i = 0; i < tokens.length; i++) {
@@ -53,9 +55,23 @@ function TokensTable({ ...props }) {
     }
   };
 
+  function lineCount() {
+    const result = [];
+
+    for (let i = 5; i <= 30; i += 5) {
+      result.push({ label: `${i} linhas`, value: i });
+    }
+
+    return result;
+  }
+
   useEffect(() => {
     setPage(1);
   }, [tokens]);
+
+  useEffect(() => {
+    lineCount();
+  }, []);
 
   return (
     <Table
@@ -66,7 +82,21 @@ function TokensTable({ ...props }) {
       isStriped
       bottomContent={
         <div className="flex flex-row w-full items-center justify-center">
-          <div className="flex flex-row w-[42%] left-2 absolute justify-around"></div>
+          <div className="flex flex-row w-[42%] left-2 absolute justify-around">
+            <Select
+              label="Linhas"
+              variant="bordered"
+              placeholder="5 linhas"
+              className="w-[50%]"
+              onChange={(e) => setRowsPerPage(e.target.value)}
+            >
+              {tableRowsQuantity.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
           <Pagination
             loop
             isCompact
@@ -124,7 +154,7 @@ function TokensTable({ ...props }) {
             key={item.id}
             className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
           >
-            <TableCell>{services[item.service - 1].name}</TableCell>
+            <TableCell>{item.service}</TableCell>
             <TableCell className="hidden sm:table-cell">
               {item.requested_by !== ""
                 ? item.requested_by
@@ -144,31 +174,19 @@ function TokensTable({ ...props }) {
                   className="bg-success w-8 self-center mr-1.5"
                 />
               )}
-              {item.status === "EM ESPERA" ? (
+              {item.delayed_by !== null && (
                 <Chip
                   radius="full"
-                  startContent={<HourglassBottomIcon />}
-                  className="bg-info w-8 self-center mr-1.5"
+                  startContent={<ReportIcon />}
+                  className="bg-failed w-8 self-center mr-1.5"
                 />
-              ) : item.status === "EM ATENDIMENTO" ? (
+              )}
+              {item.status === "ENCERRADO PELO SISTEMA" ? (
                 <Chip
                   radius="full"
-                  startContent={<AirlineSeatReclineNormalIcon />}
-                  className="bg-info w-8 self-center mr-1.5"
+                  startContent={<SettingsIcon />}
+                  className="bg-darkFailed w-8 self-center mr-1.5"
                 />
-              ) : item.status === "ADIADO" ? (
-                <div>
-                  <Chip
-                    radius="full"
-                    startContent={<HourglassBottomIcon />}
-                    className="bg-info w-8 self-center mr-1.5"
-                  />
-                  <Chip
-                    radius="full"
-                    startContent={<ReportIcon />}
-                    className="bg-failed w-8 self-center mr-1.5"
-                  />
-                </div>
               ) : item.status === "CONCLUIDO" ? (
                 <Chip
                   radius="full"

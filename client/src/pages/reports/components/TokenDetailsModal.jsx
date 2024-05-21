@@ -14,13 +14,13 @@ import {
 //Icons
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
-import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 function TokensDetails({ ...props }) {
-  const { tokenDetailIsOpen, setTokenDetailIsOpen, token, services } = props;
+  const { tokenDetailIsOpen, setTokenDetailIsOpen, token } = props;
 
   return (
     <Modal isOpen={tokenDetailIsOpen} hideCloseButton={true} backdrop="opaque">
@@ -58,14 +58,14 @@ function TokensDetails({ ...props }) {
                   >
                     EM ESPERA
                   </Chip>
-                ) : token.status === "EM ATENDIMENTO" ? (
+                ) : token.status === "ENCERRADO PELO SISTEMA" ? (
                   <Chip
                     size="sm"
                     radius="sm"
-                    className="bg-infoSecondary"
-                    startContent={<AirlineSeatReclineNormalIcon size={18} />}
+                    startContent={<SettingsIcon size={18} />}
+                    className="bg-darkFailed"
                   >
-                    EM ATENDIMENTO
+                    ENCERRADO PELO SISTEMA
                   </Chip>
                 ) : token.status === "CONCLUIDO" ? (
                   <Chip
@@ -77,24 +77,14 @@ function TokensDetails({ ...props }) {
                     CONCLUÍDO
                   </Chip>
                 ) : token.status === "ADIADO" ? (
-                  <div className="flex gap-3">
-                    <Chip
-                      size="sm"
-                      radius="sm"
-                      className="bg-info"
-                      startContent={<HourglassBottomIcon size={18} />}
-                    >
-                      EM ESPERA
-                    </Chip>
-                    <Chip
-                      size="sm"
-                      radius="sm"
-                      className="bg-failed"
-                      startContent={<ReportIcon size={18} />}
-                    >
-                      ADIADO
-                    </Chip>
-                  </div>
+                  <Chip
+                    size="sm"
+                    radius="sm"
+                    className="bg-failed"
+                    startContent={<ReportIcon size={18} />}
+                  >
+                    ADIADO
+                  </Chip>
                 ) : null}
               </section>
             </ModalHeader>
@@ -106,7 +96,7 @@ function TokensDetails({ ...props }) {
               </div>
               <div>
                 <h5 className="font-bold">Serviço desejado: </h5>
-                <h6 className="indent-2">{services[token.service - 1].name}</h6>
+                <h6 className="indent-2">{token.service}</h6>
               </div>
               <div>
                 <h5 className="font-bold">Criada por: </h5>
