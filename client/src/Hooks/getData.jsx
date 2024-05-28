@@ -7,7 +7,7 @@ const getDataHooks = () => {
       const response = await api.get("/getHistoric");
       return response.data;
     } catch (error) {
-      console.error("Get services error: " + error);
+      console.error("Get historic error: " + error);
     }
   };
 

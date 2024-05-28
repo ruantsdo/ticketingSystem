@@ -46,7 +46,7 @@ export default function NavBar() {
 
     if (fullName.length === 1) return fullName[0];
 
-    if (fullName.length >= 1) {
+    if (fullName.length > 1) {
       const primeiroNome = fullName[0];
       const ultimoNome = fullName[fullName.length - 1];
 
@@ -54,7 +54,7 @@ export default function NavBar() {
 
       return visibleName;
     } else {
-      return null;
+      return "Usuário";
     }
   }
 
