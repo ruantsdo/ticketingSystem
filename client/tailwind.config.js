@@ -62,6 +62,9 @@ module.exports = {
         "shadow-drop-center":
           "3s cubic-bezier(0.250, 0.460, 0.450, 0.940) infinite both",
       },
+      backgroundImage: {
+        "login-background": "url('./assets/images/background-login.jpg')",
+      },
     },
   },
   plugins: [nextui()],

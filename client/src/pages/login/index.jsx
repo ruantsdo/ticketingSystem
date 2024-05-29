@@ -1,6 +1,7 @@
 //React
 import { useContext, useState } from "react";
 
+//Navigation
 import { useNavigate } from "react-router-dom";
 
 //Components
@@ -79,9 +80,9 @@ function LoginPage() {
   });
 
   return (
-    <Container className="h-screen">
-      <ThemeSwitcher className="absolute top-5 right-3" />
-      <Card>
+    <Container className="h-screen bg-login-background bg-cover">
+      <ThemeSwitcher className="absolute top-5 right-3 z-50" />
+      <Card className="place-self-end h-screen bg-opacity-60 dark:bg-opacity-60">
         <p className="text-3xl">Login</p>
         <Divider />
         <Formik initialValues={formik.initialValues}>
