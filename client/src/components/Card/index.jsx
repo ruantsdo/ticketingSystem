@@ -10,12 +10,7 @@ function Card({ children, ...props }) {
     : baseClasses;
 
   return (
-    <NextCard
-      isBlurred
-      shadow="md"
-      className={combinedClassName}
-      {...restProps}
-    >
+    <NextCard shadow="md" className={combinedClassName} {...restProps}>
       <NextCardBody className="flex gap-2 justify-center items-center">
         {children}
       </NextCardBody>
