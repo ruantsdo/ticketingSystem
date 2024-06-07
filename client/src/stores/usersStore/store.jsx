@@ -1,15 +1,11 @@
 //React
 import { useContext, useState } from "react";
-
 //Services
 import api from "../../services/api";
-
 //Contexts
 import AuthContext from "../../contexts/auth";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Utils
 import useSocketUtils from "../../utils/socketUtils";
 
@@ -120,6 +116,7 @@ const useUsersStore = () => {
           permissionLevel: data.permission,
           password: data.password,
           created_by: currentUser.name,
+          status: 1,
         })
         .then((response) => {
           if (response.data === "New user created") {
@@ -139,6 +136,70 @@ const useUsersStore = () => {
         "Falha ao cadastrar novo usuário. Tente novamente em alguns instantes"
       );
       console.error("Falha ao criar usuário");
+      console.error(error);
+      return false;
+    } finally {
+      setProcessingUserStore(false);
+    }
+  };
+
+  const createNewUserSolicitation = async (data) => {
+    setProcessingUserStore(true);
+
+    if (
+      !data.cpf ||
+      !data.name ||
+      !data.password ||
+      !data.permission ||
+      !data.services
+    ) {
+      toast.info(`Campos com * são obrigatórios!`);
+      setProcessingUserStore(false);
+      return;
+    }
+
+    if (data.email) {
+      const result = await getUserByEmail(data.email);
+      const users = result.some((user) => {
+        return user.cpf !== data.cpf;
+      });
+      if (users) {
+        toast.info("Este email já está em uso!");
+        setProcessingUserStore(false);
+        return;
+      }
+    }
+
+    try {
+      await api
+        .post("/user/registration", {
+          name: data.name,
+          email: data.email,
+          cpf: data.cpf,
+          services: data.services,
+          permissionLevel: data.permission,
+          password: data.password,
+          created_by: "",
+          status: 0,
+        })
+        .then((response) => {
+          if (response.data === "New user created") {
+            usersUpdatedSignal();
+            toast.success("Sua solicitação foi enviada!");
+          } else if (response.data === "User already exists") {
+            toast.info("Já existe um usuário com esse CPF!");
+          } else {
+            toast.error(
+              "Houve um problema ao cadastrar sua solicitação! Tente novamente em alguns instantes!"
+            );
+          }
+        });
+      return true;
+    } catch (error) {
+      toast.error(
+        "Falha criar sua solicitação. Tente novamente em alguns instantes"
+      );
+      console.error("Falha na solicitação de novo usuário");
       console.error(error);
       return false;
     } finally {
@@ -230,6 +291,7 @@ const useUsersStore = () => {
     getUserByEmail,
     getUserByCPF,
     createNewUser,
+    createNewUserSolicitation,
     updateUser,
     deleteUser,
     processingUserStore,

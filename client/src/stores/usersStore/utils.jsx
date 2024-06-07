@@ -22,6 +22,15 @@ const useUsersUtils = () => {
     const permissionLevels = await getPermissionLevels();
     let filteredPermissionLevels = [];
 
+    if (!currentUser) {
+      filteredPermissionLevels = [
+        { id: permissionLevels[1].id, name: permissionLevels[1].name },
+        { id: permissionLevels[2].id, name: permissionLevels[2].name },
+      ];
+
+      return filteredPermissionLevels;
+    }
+
     if (currentUser.permission_level === 3) {
       filteredPermissionLevels.push({
         id: permissionLevels[1].id,

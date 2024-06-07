@@ -1,132 +1,54 @@
 //React
-import { useContext, useState } from "react";
-
-//Navigation
-import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
 //Components
-import {
-  ThemeSwitcher,
-  Container,
-  Button,
-  Card,
-  Divider,
-  Input,
-} from "../../components";
-
-//Validation
-import { Formik, Form, useFormik } from "formik";
-
-//Icons
-import LoginIcon from "@mui/icons-material/Login";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
-//Services
-import api from "../../services/api";
-
-//Contexts
-import AuthContext from "../../contexts/auth";
-
-//Toast
-import { toast } from "react-toastify";
+import { ThemeSwitcher, Container } from "../../components";
+import LoginForm from "./components/loginForm";
+import RegisterForm from "./components/registerForm";
+//Stores & Utils
+import useServicesStore from "../../stores/servicesStore/store";
+import useUsersUtils from "../../stores/usersStore/utils";
 
 function LoginPage() {
-  const { setCurrentUser } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { getAllServices } = useServicesStore();
+  const { filterPermissionLevels } = useUsersUtils();
 
-  const [isVisible, setIsVisible] = useState(false);
+  const [services, setServices] = useState([]);
+  const [permissions, setPermissions] = useState([]);
 
-  const toggleVisibility = () => setIsVisible(!isVisible);
+  const [registerMode, setRegisterMode] = useState(false);
 
-  const formik = useFormik({
-    initialValues: {
-      cpf: "",
-      password: "",
-    },
-    onSubmit: async (values) => {
-      try {
-        await api
-          .post("/login", {
-            cpf: values.cpf,
-            password: values.password,
-          })
-          .then((response) => {
-            if (response.data.length > 0) {
-              const currentUser = response.data[0];
+  const changeMode = async () => {
+    setRegisterMode(!registerMode);
+  };
 
-              const startDate = new Date();
-              localStorage.setItem("lastDay", JSON.stringify(startDate));
+  const getInitialData = async () => {
+    const [services, permissions] = await Promise.all([
+      getAllServices(),
+      filterPermissionLevels(),
+    ]);
 
-              localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    setServices(services);
+    setPermissions(permissions);
+  };
 
-              setCurrentUser(response.data[0]);
+  useEffect(() => {
+    getInitialData();
 
-              if (currentUser.permission_level === 1) {
-                navigate("/tokenCall/default");
-              } else {
-                navigate("/home");
-              }
-            } else {
-              toast.warn("Verifique suas credenciais e tente novamente!");
-            }
-            return;
-          });
-      } catch (err) {
-        console.log(err);
-        toast.error("Um erro aconteceu! Tente novamente mais tarde!");
-      }
-    },
-  });
+    //eslint-disable-next-line
+  }, []);
 
   return (
     <Container className="h-screen bg-login-background bg-cover">
       <ThemeSwitcher className="absolute top-5 right-3 z-50" />
-      <Card className="place-self-end h-screen bg-opacity-60 dark:bg-opacity-60">
-        <p className="text-3xl">Login</p>
-        <Divider />
-        <Formik initialValues={formik.initialValues}>
-          <Form
-            onSubmit={formik.handleSubmit}
-            className="flex flex-col gap-3 justify-center items-center w-full"
-          >
-            <Input
-              isRequired
-              type="text"
-              label="CPF"
-              maxLength={11}
-              name="cpf"
-              onChange={formik.handleChange}
-              value={formik.values.cpf}
-            />
-            <Input
-              isRequired
-              type={isVisible ? "text" : "password"}
-              label="Senha"
-              name="password"
-              onChange={formik.handleChange}
-              value={formik.values.password}
-              endContent={
-                <button
-                  className="focus:outline-none self-center"
-                  type="button"
-                  onClick={toggleVisibility}
-                >
-                  {isVisible ? (
-                    <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
-                  ) : (
-                    <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                  )}
-                </button>
-              }
-            />
-            <Divider />
-            <Button endContent={<LoginIcon />} type="submit" mode="success">
-              Entrar
-            </Button>
-          </Form>
-        </Formik>
-      </Card>
+      {registerMode ? (
+        <RegisterForm
+          services={services}
+          permissions={permissions}
+          changeMode={changeMode}
+        />
+      ) : (
+        <LoginForm changeMode={changeMode} />
+      )}
     </Container>
   );
 }

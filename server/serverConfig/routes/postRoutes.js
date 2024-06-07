@@ -19,10 +19,20 @@ router.post("/login", (req, res) => {
           response[0].password,
           (error, result) => {
             if (result) {
+              if (response[0].status === 0 && !response[0].updated_at) {
+                res.send({ msg: "Esse usuário ainda não foi validado!" });
+                return;
+              }
+              if (response[0].status === 0 && response[0].updated_at !== "") {
+                res.send({ msg: "Esse usuário está desativado!" });
+                return;
+              }
               res.send(response);
               return;
             }
-            res.send({ msg: "Senha incorreta!" });
+            res.send({
+              msg: "Verifique suas credenciais e tente novamente!",
+            });
           }
         );
       } else {
