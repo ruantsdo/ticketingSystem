@@ -40,7 +40,7 @@ import { useReactToPrint } from "react-to-print";
 function QueueRegistration() {
   const { newTokenSignal } = useSocketUtils();
   const { socket } = useWebSocket();
-  const { getAllServices, getServiceById } = useServicesStore();
+  const { getActiveServices, getServiceById } = useServicesStore();
   const { getTokensByServiceId } = useTokensStore();
   const { currentUser, isAdmin } = useContext(AuthContext);
 
@@ -152,7 +152,7 @@ function QueueRegistration() {
 
   const handleServices = async () => {
     try {
-      const response = await getAllServices();
+      const response = await getActiveServices();
       setServices(response);
     } catch (error) {
       console.error(error);

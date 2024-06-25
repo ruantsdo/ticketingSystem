@@ -173,7 +173,6 @@ function UserManagement() {
   const handleStatusChange = (user) => {
     if (currentTargetStatus === false && user.status === true) {
       setDisconnectMessage("Isso irá desconectar o usuário");
-      console.log("msg");
     } else {
       setDisconnectMessage("");
     }

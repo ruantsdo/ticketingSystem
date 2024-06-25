@@ -26,6 +26,9 @@ import {
   ModalBody,
   ModalFooter,
   Spinner,
+  Select,
+  SelectItem,
+  Switch,
 } from "@nextui-org/react";
 
 //Icons
@@ -33,6 +36,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import AddTaskIcon from "@mui/icons-material/AddTask";
+import SearchIcon from "@mui/icons-material/Search";
+import CachedIcon from "@mui/icons-material/Cached";
 
 //Toast
 import { toast } from "react-toastify";
@@ -51,6 +56,11 @@ function ServicesManagement() {
   const { isAdmin } = useContext(AuthContext);
   const { socket } = useWebSocket();
 
+  const searchOptions = [
+    { key: "name", label: "NOME" },
+    { key: "status", label: "STATUS" },
+  ];
+
   const {
     getAllServices,
     createNewService,
@@ -58,13 +68,19 @@ function ServicesManagement() {
     deleteService,
     processingServicesStore,
   } = useServicesStore();
-  const { findIndexById } = useGetDataUtils();
+  const { findIndexById, removeAccents } = useGetDataUtils();
   const { isOpen, onOpenChange } = useDisclosure();
   const [addServiceIsOpen, setAddServiceIsOpen] = useState(false);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
   const [currentTargetLimit, setCurrentTargetLimit] = useState("");
+  const [currentTargetStatus, setCurrentStatus] = useState(0);
+
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [disconnectMessage, setDisconnectMessage] = useState("");
 
   const [services, setServices] = useState([]);
   const [page, setPage] = useState(1);
@@ -78,8 +94,8 @@ function ServicesManagement() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return services.slice(start, end);
-  }, [page, services]);
+    return filteredServices.slice(start, end);
+  }, [page, filteredServices]);
 
   const handleDeleteService = async (id) => {
     const response = await deleteService(id);
@@ -99,6 +115,7 @@ function ServicesManagement() {
       name: currentTargetName,
       desc: currentTargetDesc,
       limit: currentTargetLimit,
+      status: currentTargetStatus,
     };
 
     const response = await updateService(data);
@@ -129,20 +146,55 @@ function ServicesManagement() {
     onOpenChange(true);
   };
 
+  const handleSearch = () => {
+    const finalSearchValue = removeAccents(searchValue);
+    if (!selectedFilter) {
+      toast.info("O filtro deve ser selecionado antes da pesquisa");
+      return;
+    }
+    if (selectedFilter === "status") {
+      const value = finalSearchValue === "ATIVO" ? 1 : 0;
+      const filtered = filteredServices.filter((item) => {
+        return item.status === value;
+      });
+      setFilteredServices(filtered);
+    } else {
+      const filtered = filteredServices.filter((item) => {
+        const lowerItemValue = removeAccents(item[selectedFilter]);
+        return lowerItemValue.includes(finalSearchValue);
+      });
+      setFilteredServices(filtered);
+    }
+  };
+
+  const handleStatusChange = (service) => {
+    if (currentTargetStatus === false && service.status === true) {
+      setDisconnectMessage(
+        "Isso fará com que não seja mais possível criar novos tickets com esse serviço. Tickets já criados permanecerão ativos"
+      );
+    } else {
+      setDisconnectMessage("");
+    }
+    setCurrentStatus(!currentTargetStatus);
+  };
+
   const updateStates = (index) => {
     setCurrentTargetName(services[index].name);
     setCurrentTargetDesc(services[index].description);
     setCurrentTargetLimit(services[index].limit);
+    setCurrentStatus(services[index].status);
   };
 
   const clearStates = () => {
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetLimit("");
+    setCurrentStatus(0);
   };
 
   const getInitialData = async () => {
     const services = await getAllServices();
+    setFilteredServices(services);
     setServices(services);
   };
 
@@ -163,17 +215,61 @@ function ServicesManagement() {
     <FullContainer>
       <Notification />
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Button
-            isLoading={processingServicesStore}
-            isDisabled={processingServicesStore}
-            mode="success"
-            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
-            startContent={<AddIcon />}
-            onPress={() => setAddServiceIsOpen(true)}
-          >
-            Novo serviço
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
+          <div className="flex w-[80%] items-center">
+            <Input
+              variant="bordered"
+              size="sm"
+              className="w-5/12"
+              label="BUSCAR POR"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Select
+              variant="bordered"
+              size="sm"
+              label="FILTRAR POR"
+              className="w-2/12 ml-2"
+              onSelectionChange={(key) => setSelectedFilter(key.currentKey)}
+            >
+              {searchOptions.map((item) => (
+                <SelectItem key={item.key}>{item.label}</SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="buscar"
+              className="w-[30px] ml-5"
+              onClick={() => handleSearch()}
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="restaurar"
+              className="w-[30px] ml-3"
+              onClick={() => setFilteredServices(services)}
+            >
+              <CachedIcon />
+            </Button>
+          </div>
+          <div className="flex w-[20%] justify-end">
+            <Button
+              isLoading={processingServicesStore}
+              isDisabled={processingServicesStore}
+              mode="success"
+              className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
+              startContent={<AddIcon />}
+              onPress={() => setAddServiceIsOpen(true)}
+            >
+              Novo serviço
+            </Button>
+          </div>
         </div>
         <Table
           aria-label="Lista de serviços"
@@ -203,23 +299,30 @@ function ServicesManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn className="w-1/12">ID</TableColumn>
             <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>LIMITE</TableColumn>
+            <TableColumn>STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
           </TableHeader>
           <TableBody
             items={items}
             emptyContent={
-              services.length > 0 ? (
+              filteredServices.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há serviços cadastrados..."
+                    label={
+                      selectedFilter
+                        ? "A pesquisa não gerou resultados"
+                        : "Ainda não há serviços cadastrados..."
+                    }
                   />
-                  Atualize a página para buscar por atualizações
+                  {selectedFilter
+                    ? ""
+                    : "Atualize a página para buscar por atualizações"}
                 </div>
               )
             }
@@ -229,8 +332,13 @@ function ServicesManagement() {
                 key={item.id}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
-                <TableCell>{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell className="w-1/12">
+                  {!item.limit ? "ILIMITADO" : item.limit}
+                </TableCell>
+                <TableCell className="w-1/12">
+                  {item.status ? "Ativo" : "Desativado"}
+                </TableCell>
                 <TableCell className="w-1/12">
                   {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
@@ -269,6 +377,7 @@ function ServicesManagement() {
 
       <Modal
         isOpen={isOpen}
+        size="lg"
         onOpenChange={onOpenChange}
         onClose={() => clearStates()}
         backdrop="opaque"
@@ -288,6 +397,16 @@ function ServicesManagement() {
                     <h6>Este serviço ainda não foi atualizado</h6>
                   )}
                 </section>
+                <Switch
+                  isSelected={currentTargetStatus}
+                  color="success"
+                  onValueChange={() => {
+                    handleStatusChange(filteredServices[itemKey]);
+                  }}
+                >
+                  {currentTargetStatus ? "Ativo" : "Desativado"}
+                </Switch>
+                <h6>{disconnectMessage}</h6>
               </ModalHeader>
               <Divider />
               <ModalBody>

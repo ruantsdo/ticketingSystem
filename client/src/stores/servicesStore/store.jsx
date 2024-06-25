@@ -37,6 +37,22 @@ const useServicesStore = () => {
     }
   };
 
+  const getActiveServices = async () => {
+    setProcessingServicesStore(true);
+    try {
+      const response = await api.get("/services/query/actives");
+      return response.data;
+    } catch (error) {
+      toast.error(
+        "Falha ao obter lista de serviços. Tente novamente em alguns instantes!"
+      );
+      console.error("Falha ao obter lista de serviços!");
+      console.error(error);
+    } finally {
+      setProcessingServicesStore(false);
+    }
+  };
+
   const getServiceById = async (serviceId) => {
     setProcessingServicesStore(true);
     try {
@@ -99,7 +115,7 @@ const useServicesStore = () => {
       return;
     }
     setProcessingServicesStore(true);
-    const { id, name, desc, limit } = data;
+    const { id, name, desc, limit, status } = data;
 
     if (!CheckNameAvailability(id, name)) return;
     let isSuccess = false;
@@ -112,6 +128,7 @@ const useServicesStore = () => {
           desc: desc,
           limit: limit,
           updated_by: currentUser.name,
+          status: status,
         })
         .then((response) => {
           if (response.data === "success") {
@@ -175,6 +192,7 @@ const useServicesStore = () => {
 
   return {
     getAllServices,
+    getActiveServices,
     getServiceById,
     createNewService,
     updateService,

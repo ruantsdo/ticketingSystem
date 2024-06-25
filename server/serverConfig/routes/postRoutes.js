@@ -404,11 +404,12 @@ router.post("/service/remove", async (req, res) => {
 router.post("/service/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE services SET name = ?, description = ?, `limit` = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+      "UPDATE services SET name = ?, description = ?, `limit` = ?, status = ?, updated_by = ?, updated_at = ? WHERE id = ?",
       [
         req.body.name,
         req.body.desc,
         req.body.limit,
+        req.body.status,
         req.body.updated_by,
         getTime(),
         req.body.id,

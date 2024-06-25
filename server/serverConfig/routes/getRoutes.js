@@ -80,6 +80,16 @@ router.get("/services/query", async (req, res) => {
   }
 });
 
+router.get("/services/query/actives", async (req, res) => {
+  try {
+    await db.query("SELECT * FROM services WHERE status = 1", (err, result) => {
+      res.send(result);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.post("/services/query/name", async (req, res) => {
   const { name, id } = req.body;
   try {
