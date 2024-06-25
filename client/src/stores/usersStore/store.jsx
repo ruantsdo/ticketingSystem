@@ -11,7 +11,7 @@ import useSocketUtils from "../../utils/socketUtils";
 
 const useUsersStore = () => {
   const { currentUser, isAdmin } = useContext(AuthContext);
-  const { usersUpdatedSignal } = useSocketUtils();
+  const { usersUpdatedSignal, disconnectUserSignal } = useSocketUtils();
 
   const [processingUserStore, setProcessingUserStore] = useState(false);
 
@@ -145,6 +145,7 @@ const useUsersStore = () => {
 
   const createNewUserSolicitation = async (data) => {
     setProcessingUserStore(true);
+    let status = false;
 
     if (
       !data.cpf ||
@@ -155,7 +156,7 @@ const useUsersStore = () => {
     ) {
       toast.info(`Campos com * são obrigatórios!`);
       setProcessingUserStore(false);
-      return;
+      return status;
     }
 
     if (data.email) {
@@ -166,7 +167,7 @@ const useUsersStore = () => {
       if (users) {
         toast.info("Este email já está em uso!");
         setProcessingUserStore(false);
-        return;
+        return status;
       }
     }
 
@@ -179,13 +180,14 @@ const useUsersStore = () => {
           services: data.services,
           permissionLevel: data.permission,
           password: data.password,
-          created_by: "",
+          created_by: "SOLICITAÇÃO",
           status: 0,
         })
         .then((response) => {
           if (response.data === "New user created") {
             usersUpdatedSignal();
             toast.success("Sua solicitação foi enviada!");
+            status = true;
           } else if (response.data === "User already exists") {
             toast.info("Já existe um usuário com esse CPF!");
           } else {
@@ -194,7 +196,6 @@ const useUsersStore = () => {
             );
           }
         });
-      return true;
     } catch (error) {
       toast.error(
         "Falha criar sua solicitação. Tente novamente em alguns instantes"
@@ -204,6 +205,7 @@ const useUsersStore = () => {
       return false;
     } finally {
       setProcessingUserStore(false);
+      return status;
     }
   };
 
@@ -222,11 +224,12 @@ const useUsersStore = () => {
           name: data.name,
           email: data.email,
           cpf: data.cpf,
-          level: data.level,
+          level: data.permission,
           updated_by: currentUser.name,
           password: data.password,
           services: data.services,
           passwordChanged: data.passwordChanged,
+          status: data.status,
         })
         .then(async (response) => {
           if (response.data === "success") {
@@ -236,6 +239,10 @@ const useUsersStore = () => {
             toast.error(
               "Falha ao atualizar usuário! Tente novamente am alguns instantes"
             );
+          }
+          if (!data.status) {
+            disconnectUserSignal(data.id);
+            toast.info(`O usuário ${data.name} será desconectado... `);
           }
         });
     } catch (error) {
@@ -271,6 +278,7 @@ const useUsersStore = () => {
         .then((response) => {
           if (response.data === "success") {
             usersUpdatedSignal();
+            disconnectUserSignal(id);
             toast.success("O usuário foi removido!");
           } else if (response.data === "failed") {
             toast.error("Falha ao remover usuário!");

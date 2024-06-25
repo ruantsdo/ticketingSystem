@@ -47,37 +47,43 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   };
 
+  const wipeUserData = () => {
+    setTimeout(() => {
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("lastDay");
+      localStorage.removeItem("currentSession");
+      setIsAdmin(false);
+      setCurrentUser(null);
+
+      redirect("/login");
+      window.location.reload(true);
+    }, 4000);
+  };
+
   const validation = async (response, currentUser) => {
     setIsLoading(true);
 
     if (response === "expired") {
       toast.info("Suas credenciais expiraram...");
       toast.warn("Você deve fazer login novamente...");
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("lastDay");
-      localStorage.removeItem("currentSession");
-      setCurrentUser(null);
-      setIsAdmin(false);
-
-      redirect("/login");
-      window.location.reload(true);
+      wipeUserData();
     } else if (response === "invalid") {
       toast.error("Parece que esse usuário não é mais válido...");
       toast.warn("Tente fazer login novamente...");
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("lastDay");
-      localStorage.removeItem("currentSession");
-      setCurrentUser(null);
-      setIsAdmin(false);
-
-      redirect("/login");
-      window.location.reload(true);
+      wipeUserData();
     } else if (response === "valid") {
       setCurrentUser(currentUser);
       setIsAdmin(currentUser.permission_level > 2 ? true : false);
     }
 
     setIsLoading(false);
+  };
+
+  const disconnectUser = (id) => {
+    if (currentUser.id === id) {
+      toast.warn("Você foi desconectado pelo administrador...");
+      wipeUserData();
+    }
   };
 
   useEffect(() => {
@@ -108,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setIsLoading(false);
     }
+
     // eslint-disable-next-line
   }, []);
 
@@ -119,6 +126,8 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         setIsLoading,
         isAdmin,
+        disconnectUser,
+        wipeUserData,
       }}
     >
       {children}

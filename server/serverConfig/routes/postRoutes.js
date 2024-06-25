@@ -74,7 +74,7 @@ router.post("/user/registration", async (req, res) => {
     [req.body.cpf],
     async (err, result) => {
       if (err) {
-        return res.send("Falied to check users");
+        return res.send("Failed to check users");
       }
 
       if (result.length > 0) {
@@ -143,6 +143,7 @@ router.post("/users/update", async (req, res) => {
     password,
     passwordChanged,
     services,
+    status,
   } = req.body;
 
   let hash;
@@ -155,8 +156,8 @@ router.post("/users/update", async (req, res) => {
 
   try {
     await db.query(
-      "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, updated_at = ?, updated_by = ? WHERE id = ?",
-      [name, email, cpf, level, hash, getTime(), updated_by, id]
+      "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+      [name, email, status, cpf, level, updated_by, getTime(), id]
     );
 
     const response = await UpdateSelectedServices(id, services);

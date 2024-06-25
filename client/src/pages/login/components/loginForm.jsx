@@ -23,12 +23,15 @@ const LoginForm = ({ changeMode }) => {
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
 
+  const [processingLogin, setProcessingLogin] = useState(false);
+
   const formik = useFormik({
     initialValues: {
       cpf: "",
       password: "",
     },
     onSubmit: async (values) => {
+      setProcessingLogin(true);
       try {
         await api
           .post("/login", {
@@ -58,14 +61,16 @@ const LoginForm = ({ changeMode }) => {
       } catch (err) {
         console.log(err);
         toast.error("Um erro aconteceu! Tente novamente mais tarde!");
+      } finally {
+        setProcessingLogin(false);
       }
     },
   });
 
   return (
-    <Card className="bg-darkBackground place-self-end h-screen bg-opacity-70 dark:bg-opacity-70">
-      <p className="text-3xl">Login</p>
-      <Divider />
+    <Card className="bg-darkBackground rounded-none place-self-end h-screen bg-opacity-70 dark:bg-opacity-90">
+      <p className="text-3xl text-white">Login</p>
+      <Divider className="bg-white" />
       <Formik initialValues={formik.initialValues}>
         <Form
           onSubmit={formik.handleSubmit}
@@ -101,19 +106,26 @@ const LoginForm = ({ changeMode }) => {
               </button>
             }
           />
-          <Divider />
-          <Button endContent={<LoginIcon />} type="submit" mode="success">
+          <Divider className="bg-white" />
+          <Button
+            endContent={<LoginIcon />}
+            type="submit"
+            mode="success"
+            isLoading={processingLogin}
+          >
             Entrar
           </Button>
         </Form>
       </Formik>
-      <Divider />
-      <p className="text-xl">Ainda não tem uma conta?</p>
+      <Divider className="bg-white" />
+      <p className="text-xl text-white">Ainda não tem uma conta?</p>
       <Button
         mode="success"
+        className="w-6/12"
         onClick={() => {
           changeMode();
         }}
+        isDisabled={processingLogin}
       >
         Clique aqui e solicite uma
       </Button>

@@ -22,6 +22,7 @@ import {
   Spinner,
   Select,
   SelectItem,
+  Switch,
 } from "@nextui-org/react";
 
 //Icons
@@ -29,6 +30,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import SearchIcon from "@mui/icons-material/Search";
+import CachedIcon from "@mui/icons-material/Cached";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -43,6 +46,7 @@ import useServicesStore from "../../stores/servicesStore/store";
 
 //Utils
 import useUsersUtils from "../../stores/usersStore/utils";
+import useGetDataUtils from "../../utils/getDataUtils";
 
 function UserManagement() {
   const { socket } = useWebSocket();
@@ -54,12 +58,22 @@ function UserManagement() {
     getUserServices,
     processingUserStore,
   } = useUsersStore();
-  const { filterPermissionLevels, isAdmin } = useUsersUtils();
+  const { filterPermissionLevels } = useUsersUtils();
   const { getAllServices } = useServicesStore();
+  const { getPermissionLevels, removeAccents } = useGetDataUtils();
+
+  const searchOptions = [
+    { key: "name", label: "NOME" },
+    { key: "email", label: "EMAIL" },
+    { key: "cpf", label: "CPF" },
+    { key: "permission_level", label: "CARGO" },
+    { key: "status", label: "STATUS" },
+  ];
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [addUserIsOpen, setAddUserIsOpen] = useState(false);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, isAdmin } = useContext(AuthContext);
+  const [disconnectMessage, setDisconnectMessage] = useState("");
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetEmail, setCurrentTargetEmail] = useState("");
@@ -69,13 +83,20 @@ function UserManagement() {
   const [currentTargetNewPassword, setCurrentTargetNewPassword] = useState("");
   const [currentTargetNewPasswordConfirm, setCurrentTargetNewPasswordConfirm] =
     useState("");
+  const [currentTargetStatus, setCurrentTargetStatus] = useState(false);
 
   const [services, setServices] = useState([]);
   const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
   const [users, setUsers] = useState([]);
+  const [permissions, setPermissions] = useState([]);
 
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedPermission, setSelectedPermission] = useState();
+
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [usersStatusCount, setUsersStatusCount] = useState();
 
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
@@ -88,8 +109,8 @@ function UserManagement() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return users.slice(start, end);
-  }, [page, users]);
+    return filteredUsers.slice(start, end);
+  }, [page, filteredUsers]);
 
   const findIndexById = async (key) => {
     for (let i = 0; i < users.length; i++) {
@@ -143,26 +164,89 @@ function UserManagement() {
         : currentTargetPassword,
       passwordChanged: passwordChanged,
       services: selectedServices,
+      status: currentTargetStatus,
     };
 
     await updateUser(data);
   };
 
-  const getInitialData = async (
-    setServices,
-    setFilteredPermissionLevels,
-    setUsers
-  ) => {
+  const handleStatusChange = (user) => {
+    if (currentTargetStatus === false && user.status === true) {
+      setDisconnectMessage("Isso irá desconectar o usuário");
+      console.log("msg");
+    } else {
+      setDisconnectMessage("");
+    }
+    setCurrentTargetStatus(!currentTargetStatus);
+  };
+
+  const handleSearch = () => {
+    const finalSearchValue = removeAccents(searchValue);
+    if (!selectedFilter) {
+      toast.info("O filtro deve ser selecionado antes da pesquisa");
+      return;
+    }
+    if (selectedFilter === "permission_level") {
+      const level = permissions.filter((item) => {
+        return removeAccents(item.name) === finalSearchValue;
+      });
+
+      const filtered = filteredUsers.filter((item) => {
+        return item[selectedFilter] === level.id;
+      });
+      setFilteredUsers(filtered);
+    } else if (selectedFilter === "status") {
+      const value = finalSearchValue === "ATIVO" ? 1 : 0;
+      const filtered = filteredUsers.filter((item) => {
+        return item.status === value;
+      });
+      setFilteredUsers(filtered);
+    } else {
+      const cleanSearchValue = finalSearchValue;
+      const trueSearchValue =
+        cleanSearchValue === "NAO INFORMADO" ? "" : cleanSearchValue;
+      const filtered = filteredUsers.filter((item) => {
+        const lowerItemValue = removeAccents(item[selectedFilter]);
+        return lowerItemValue.includes(trueSearchValue);
+      });
+      setFilteredUsers(filtered);
+    }
+  };
+
+  const countUsersData = () => {
+    const data = { active: 0, unproved: 0, inactive: 0 };
+
+    filteredUsers.map((item) => {
+      if (item.status) {
+        return data.active++;
+      } else if (!item.status && !item.updated_by) {
+        return data.unproved++;
+      } else {
+        return data.inactive++;
+      }
+    });
+
+    setUsersStatusCount(data);
+  };
+
+  const getInitialData = async () => {
     try {
-      const [servicesData, filteredPermissionLevelsData, usersData] =
-        await Promise.all([
-          getAllServices(),
-          filterPermissionLevels(),
-          getUsersList(),
-        ]);
+      const [
+        servicesData,
+        filteredPermissionLevelsData,
+        permissions,
+        usersData,
+      ] = await Promise.all([
+        getAllServices(),
+        filterPermissionLevels(),
+        getPermissionLevels(),
+        getUsersList(),
+      ]);
       setServices(servicesData);
       setFilteredPermissionLevels(filteredPermissionLevelsData);
+      setPermissions(permissions);
       setUsers(usersData);
+      setFilteredUsers(usersData);
     } catch (error) {
       console.error("Erro ao obter dados iniciais:", error);
       throw error;
@@ -179,6 +263,7 @@ function UserManagement() {
     setCurrentTargetCPF(users[id].cpf);
     setCurrentTargetLevel(users[id].permission_level);
     setCurrentTargetPassword(users[id].password);
+    setCurrentTargetStatus(users[id].status);
   };
 
   const clearStates = () => {
@@ -191,10 +276,17 @@ function UserManagement() {
     setCurrentTargetNewPasswordConfirm(null);
     setSelectedServices([]);
     setSelectedPermission(null);
+    setDisconnectMessage("");
   };
 
   useEffect(() => {
-    getInitialData(setServices, setFilteredPermissionLevels, setUsers);
+    countUsersData();
+
+    // eslint-disable-next-line
+  }, [filteredUsers]);
+
+  useEffect(() => {
+    getInitialData();
 
     socket.on("users_updated", async () => {
       await getInitialData(setServices, setFilteredPermissionLevels, setUsers);
@@ -210,16 +302,61 @@ function UserManagement() {
   return (
     <FullContainer>
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Button
-            mode="success"
-            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
-            startContent={<AddIcon />}
-            onPress={() => setAddUserIsOpen(true)}
-          >
-            Novo usuário
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
+          <div className="flex w-[80%] items-center">
+            <Input
+              variant="bordered"
+              size="sm"
+              className="w-5/12"
+              label="BUSCAR POR"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Select
+              variant="bordered"
+              size="sm"
+              label="FILTRAR POR"
+              className="w-2/12 ml-2"
+              onSelectionChange={(key) => setSelectedFilter(key.currentKey)}
+            >
+              {searchOptions.map((item) => (
+                <SelectItem key={item.key}>{item.label}</SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="buscar"
+              className="w-[30px] ml-5"
+              onClick={() => handleSearch()}
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="restaurar"
+              className="w-[30px] ml-3"
+              onClick={() => setFilteredUsers(users)}
+            >
+              <CachedIcon />
+            </Button>
+          </div>
+          <div className="flex w-[20%] justify-end">
+            <Button
+              mode="success"
+              className="sm:max-w-xs border-none shadow-none w-fit"
+              startContent={<AddIcon />}
+              onPress={() => setAddUserIsOpen(true)}
+            >
+              Novo usuário
+            </Button>
+          </div>
         </div>
+
         <Table
           aria-label="Lista de usuários"
           onRowAction={async (key) => {
@@ -228,7 +365,11 @@ function UserManagement() {
           }}
           isStriped
           bottomContent={
-            <div className="flex w-full justify-center">
+            <div className="flex flex-row w-full items-center justify-center">
+              <div className="flex flex-row w-[42%] left-2 absolute justify-start gap-5">
+                <p>Ativos: {usersStatusCount?.active}</p>
+                <p>Inativos: {usersStatusCount?.inactive}</p>
+              </div>
               <Pagination
                 loop
                 isCompact
@@ -241,6 +382,13 @@ function UserManagement() {
                 total={pages}
                 onChange={(page) => setPage(page)}
               />
+              <div className="flex flex-row right-2 absolute w-[42%] justify-end">
+                <p>
+                  {usersStatusCount?.unproved > 0
+                    ? `${usersStatusCount?.unproved} usuários precisam de aprovação`
+                    : "Nenhum usuário precisa de aprovação"}
+                </p>
+              </div>
             </div>
           }
           classNames={{
@@ -249,23 +397,28 @@ function UserManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn className="w-1/12">ID</TableColumn>
             <TableColumn>USUÁRIO</TableColumn>
+            <TableColumn>EMAIL</TableColumn>
+            <TableColumn>CPF</TableColumn>
+            <TableColumn>CARGO</TableColumn>
+            <TableColumn>STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
           </TableHeader>
           <TableBody
             items={items}
             emptyContent={
-              users.length > 0 ? (
+              filteredUsers.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há usuários disponíveis..."
+                    label="Não há usuários disponíveis..."
                   />
-                  Atualize a página para buscar por atualizações...
+                  {searchValue || selectedFilter
+                    ? "A busca não gerou resultados..."
+                    : "Novos usuários serão mostrados assim que estiverem disponíveis"}
                 </div>
               )
             }
@@ -275,8 +428,17 @@ function UserManagement() {
                 key={`${item.id}`}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
-                <TableCell>{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell>
+                  {item.email ? item.email : "NÃO INFORMADO"}
+                </TableCell>
+                <TableCell>{item.cpf}</TableCell>
+                <TableCell>
+                  {permissions[item.permission_level - 1].name}
+                </TableCell>
+                <TableCell className="w-1/12">
+                  {item.status ? "Ativo" : "Desativado"}
+                </TableCell>
                 <TableCell className="w-1/12">
                   {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
@@ -314,6 +476,7 @@ function UserManagement() {
 
       <Modal
         isOpen={isOpen}
+        size="lg"
         onOpenChange={() => {
           onOpenChange();
         }}
@@ -342,6 +505,18 @@ function UserManagement() {
                   ) : (
                     <h6>Este usuário ainda não foi atualizado</h6>
                   )}
+                  <Switch
+                    isSelected={currentTargetStatus}
+                    color="success"
+                    onValueChange={() => {
+                      if (users[itemKey].id !== 1) {
+                        handleStatusChange(users[itemKey]);
+                      }
+                    }}
+                  >
+                    {currentTargetStatus ? "Ativo" : "Desativado"}
+                  </Switch>
+                  <h6>{disconnectMessage}</h6>
                 </section>
               </ModalHeader>
               <Divider />
@@ -388,8 +563,8 @@ function UserManagement() {
 
                 <Select
                   isRequired
-                  isDisabled={users[itemKey].id === 1}
                   isReadOnly={!isAdmin}
+                  isDisabled={users[itemKey].id === 1}
                   variant="underlined"
                   size="sm"
                   className="border-none"
@@ -412,8 +587,8 @@ function UserManagement() {
                     </SelectItem>
                   )}
                 </Select>
-
                 <Select
+                  isRequired
                   isReadOnly={!isAdmin}
                   isDisabled={users[itemKey].id === 1}
                   variant="underlined"
@@ -434,7 +609,6 @@ function UserManagement() {
                   ))}
                 </Select>
               </ModalBody>
-
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button

@@ -212,6 +212,12 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("disconnectUser", (id) => {
+    setTimeout(() => {
+      io.emit("disconnectUser", id);
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("disconnect", () => {
     console.log(`Cliente desconectado: ${socket.id}`);
   });

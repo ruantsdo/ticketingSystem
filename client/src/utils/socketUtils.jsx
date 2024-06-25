@@ -20,11 +20,16 @@ const useSocketUtils = () => {
     socket.emit("new_token");
   };
 
+  const disconnectUserSignal = (id) => {
+    socket.emit("disconnectUser", id);
+  };
+
   return {
     newTokenSignal,
     usersUpdatedSignal,
     locationsUpdatedSignal,
     servicesUpdatedSignal,
+    disconnectUserSignal,
   };
 };
 

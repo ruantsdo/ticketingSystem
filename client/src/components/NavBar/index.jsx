@@ -1,5 +1,5 @@
 // React
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 
 //NextUi
 import {
@@ -25,6 +25,7 @@ import menuItems from "./models/items";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
+import { useWebSocket } from "../../contexts/webSocket";
 
 //Toast
 import { toast } from "react-toastify";
@@ -33,11 +34,9 @@ import { toast } from "react-toastify";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-//Router Dom
-import { redirect } from "react-router-dom";
-
 export default function NavBar() {
-  const { setCurrentUser, currentUser } = useContext(AuthContext);
+  const { wipeUserData, currentUser, disconnectUser } = useContext(AuthContext);
+  const { socket } = useWebSocket();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -69,14 +68,19 @@ export default function NavBar() {
   const logout = () => {
     toast.warn("Você escolheu sair!");
 
-    setCurrentUser(null);
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("lastDay");
-    localStorage.removeItem("currentSession");
-
-    redirect("/login");
-    window.location.reload(true);
+    wipeUserData();
   };
+
+  useEffect(() => {
+    socket.on("disconnectUser", (id) => {
+      disconnectUser(id);
+    });
+
+    return () => {
+      socket.off("disconnectUser");
+    };
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <Navbar
