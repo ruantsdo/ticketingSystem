@@ -25,6 +25,9 @@ import {
   ModalBody,
   ModalFooter,
   Spinner,
+  Select,
+  SelectItem,
+  Switch,
 } from "@nextui-org/react";
 
 //Icons
@@ -32,6 +35,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import AddTaskIcon from "@mui/icons-material/AddTask";
+import SearchIcon from "@mui/icons-material/Search";
+import CachedIcon from "@mui/icons-material/Cached";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
@@ -44,12 +49,10 @@ import { toast } from "react-toastify";
 import useLocationsStore from "../../stores/locationsStore/store";
 
 //Utils
-import useUsersUtils from "../../stores/usersStore/utils";
 import useGetDataUtils from "../../utils/getDataUtils";
 
 function LocationManagement() {
   const { socket } = useWebSocket();
-  const { isAdmin } = useUsersUtils();
   const {
     processingLocationsStore,
     createNewLocation,
@@ -57,9 +60,14 @@ function LocationManagement() {
     removeLocation,
     updateLocation,
   } = useLocationsStore();
-  const { findIndexById } = useGetDataUtils();
+  const { findIndexById, removeAccents } = useGetDataUtils();
 
-  const { currentUser } = useContext(AuthContext);
+  const searchOptions = [
+    { key: "name", label: "NOME" },
+    { key: "status", label: "STATUS" },
+  ];
+
+  const { currentUser, isAdmin } = useContext(AuthContext);
   const [openModal, setOpenModal] = useState(false);
   const [isAdd, setIsAdd] = useState(false);
 
@@ -67,6 +75,12 @@ function LocationManagement() {
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
   const [currentTargetTables, setCurrentTargetTables] = useState(1);
+  const [currentTargetStatus, setCurrentTargetStatus] = useState(0);
+
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [filteredLocations, setFilteredLocations] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(undefined);
 
   const [locations, setLocations] = useState([]);
   const [page, setPage] = useState(1);
@@ -79,8 +93,8 @@ function LocationManagement() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return locations.slice(start, end);
-  }, [page, locations]);
+    return filteredLocations.slice(start, end);
+  }, [page, filteredLocations]);
 
   const handleRemoveLocation = async (id) => {
     await removeLocation(id);
@@ -93,6 +107,7 @@ function LocationManagement() {
       description: currentTargetDesc,
       tables: currentTargetTables,
       updated_by: currentUser.name,
+      status: currentTargetStatus,
     };
 
     const response = await updateLocation(data);
@@ -130,11 +145,34 @@ function LocationManagement() {
     setOpenModal(true);
   };
 
+  const handleSearch = () => {
+    const finalSearchValue = removeAccents(searchValue);
+    if (!selectedFilter) {
+      toast.info("O filtro deve ser selecionado antes da pesquisa");
+      return;
+    }
+    if (selectedFilter === "status") {
+      const value = finalSearchValue === "ATIVO" ? 1 : 0;
+      const filtered = filteredLocations.filter((item) => {
+        return item.status === value;
+      });
+      setFilteredLocations(filtered);
+    } else {
+      const filtered = filteredLocations.filter((item) => {
+        const lowerItemValue = removeAccents(item[selectedFilter]);
+        return lowerItemValue.includes(finalSearchValue);
+      });
+      setFilteredLocations(filtered);
+    }
+  };
+
   const updateStates = (index) => {
-    setCurrentTargetId(locations[index].id);
-    setCurrentTargetName(locations[index].name);
-    setCurrentTargetDesc(locations[index].description);
-    setCurrentTargetTables(locations[index].tables);
+    setCurrentTargetId(filteredLocations[index].id);
+    setCurrentTargetName(filteredLocations[index].name);
+    setCurrentTargetDesc(filteredLocations[index].description);
+    setCurrentTargetTables(filteredLocations[index].tables);
+    setCurrentTargetStatus(filteredLocations[index].status);
+    setCurrentIndex(index);
   };
 
   const clearStates = () => {
@@ -142,11 +180,13 @@ function LocationManagement() {
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetTables("");
+    setCurrentTargetStatus(0);
   };
 
   const getInitialData = async () => {
     const locations = await getLocationsList();
     setLocations(locations);
+    setFilteredLocations(locations);
   };
 
   useEffect(() => {
@@ -168,22 +208,66 @@ function LocationManagement() {
     <FullContainer>
       <Notification />
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Button
-            mode="success"
-            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
-            startContent={<AddIcon />}
-            onPress={() => handleOpenModal()}
-            isLoading={processingLocationsStore}
-            isDisabled={processingLocationsStore}
-          >
-            Novo local
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
+          <div className="flex w-[80%] items-center">
+            <Input
+              variant="bordered"
+              size="sm"
+              className="w-5/12"
+              label="BUSCAR POR"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Select
+              variant="bordered"
+              size="sm"
+              label="FILTRAR POR"
+              className="w-2/12 ml-2"
+              onSelectionChange={(key) => setSelectedFilter(key.currentKey)}
+            >
+              {searchOptions.map((item) => (
+                <SelectItem key={item.key}>{item.label}</SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="buscar"
+              className="w-[30px] ml-5"
+              onClick={() => handleSearch()}
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="restaurar"
+              className="w-[30px] ml-3"
+              onClick={() => setFilteredLocations(locations)}
+            >
+              <CachedIcon />
+            </Button>
+          </div>
+          <div className="flex w-[20%] justify-end">
+            <Button
+              mode="success"
+              className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
+              startContent={<AddIcon />}
+              onPress={() => handleOpenModal()}
+              isLoading={processingLocationsStore}
+              isDisabled={processingLocationsStore || !isAdmin}
+            >
+              Novo local
+            </Button>
+          </div>
         </div>
         <Table
           aria-label="Lista de locais"
           onRowAction={(key) => {
-            handleOpenModal(key);
+            if (isAdmin) handleOpenModal(key);
           }}
           isStriped
           bottomContent={
@@ -208,23 +292,28 @@ function LocationManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn className="w-1/12">ID</TableColumn>
-            <TableColumn>LOCAL</TableColumn>
+            <TableColumn>NOME</TableColumn>
+            <TableColumn>DESCRIÇÃO</TableColumn>
+            <TableColumn className="w-1/12">MESAS</TableColumn>
+            <TableColumn className="w-1/12">STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
           </TableHeader>
           <TableBody
             items={items}
             emptyContent={
-              locations.length > 0 ? (
+              filteredLocations.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há locais cadastrados..."
+                    label={
+                      selectedFilter
+                        ? "A busca não gerou resultados"
+                        : "Ainda não há locais cadastrados..."
+                    }
                   />
-                  Atualize a página para buscar por atualizações...
                 </div>
               )
             }
@@ -234,8 +323,10 @@ function LocationManagement() {
                 key={item.id}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
-                <TableCell>{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell>{item.description}</TableCell>
+                <TableCell>{item.tables}</TableCell>
+                <TableCell>{item.status ? "ATIVO" : "DESATIVADO"}</TableCell>
                 <TableCell className="w-1/12">
                   {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
@@ -284,6 +375,28 @@ function LocationManagement() {
             <>
               <ModalHeader className="flex flex-col gap-1 text-center">
                 {isAdd ? "Adicionar novo local" : "Atualizar local"}
+                {!isAdd && (
+                  <section className="flex flex-col gap-1 justify-center items-center">
+                    {filteredLocations[currentIndex].updated_by ? (
+                      <h6>
+                        Atualizado por:{" "}
+                        {filteredLocations[currentIndex].updated_by} em{" "}
+                        {filteredLocations[currentIndex].updated_at}
+                      </h6>
+                    ) : (
+                      <h6>Este local nunca foi atualizado</h6>
+                    )}
+                    <Switch
+                      isSelected={currentTargetStatus}
+                      color="success"
+                      onValueChange={() => {
+                        setCurrentTargetStatus(!currentTargetStatus);
+                      }}
+                    >
+                      {currentTargetStatus ? "Ativo" : "Desativado"}
+                    </Switch>
+                  </section>
+                )}
               </ModalHeader>
               <Divider />
               <ModalBody>
@@ -343,7 +456,7 @@ function LocationManagement() {
                     }
                   }}
                   isLoading={processingLocationsStore}
-                  isDisabled={processingLocationsStore}
+                  isDisabled={processingLocationsStore || !isAdmin}
                 >
                   {isAdd ? "Cadastrar" : "Atualizar"}
                 </Button>

@@ -12,15 +12,13 @@ import { toast } from "react-toastify";
 
 //Utils
 import useSocketUtils from "../../utils/socketUtils";
-import useUsersUtils from "../usersStore/utils";
 import useLocationsUtils from "./utils";
 
 const useLocationsStore = () => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, isAdmin } = useContext(AuthContext);
 
   const { locationsUpdatedSignal } = useSocketUtils();
   const { CheckNameAvailability } = useLocationsUtils();
-  const { isAdmin } = useUsersUtils();
 
   const [processingLocationsStore, setProcessingLocationsStore] =
     useState(false);
@@ -29,6 +27,20 @@ const useLocationsStore = () => {
     setProcessingLocationsStore(true);
     try {
       const response = await api.get("/location/query");
+      return response.data;
+    } catch (error) {
+      toast.error("Erro ao obter lista de locais!");
+      console.error("Erro ao obter lista de locais!");
+      console.error(error);
+    } finally {
+      setProcessingLocationsStore(false);
+    }
+  };
+
+  const getActivesLocations = async () => {
+    setProcessingLocationsStore(true);
+    try {
+      const response = await api.get("/location/query/actives");
       return response.data;
     } catch (error) {
       toast.error("Erro ao obter lista de locais!");
@@ -74,7 +86,7 @@ const useLocationsStore = () => {
     }
 
     setProcessingLocationsStore(true);
-    const { id, name, description, tables } = data;
+    const { id, name, description, tables, status } = data;
     if (!CheckNameAvailability(id, name)) return;
     let isSuccess = false;
     try {
@@ -85,6 +97,7 @@ const useLocationsStore = () => {
           description: description,
           tables: tables,
           updated_by: currentUser.name,
+          status: status,
         })
         .then((response) => {
           if (response.data === "success") {
@@ -152,6 +165,7 @@ const useLocationsStore = () => {
     processingLocationsStore,
     createNewLocation,
     getLocationsList,
+    getActivesLocations,
     removeLocation,
     updateLocation,
   };

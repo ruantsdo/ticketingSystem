@@ -45,11 +45,17 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Toast
 import { toast } from "react-toastify";
 
+//Stores
+import useLocationsStore from "../../stores/locationsStore/store";
+
 function TokensList() {
   const { socket } = useWebSocket();
 
   const { currentUser } = useContext(AuthContext);
+  const { getActivesLocations } = useLocationsStore();
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const [inService, setInService] = useState(false);
   const [isLocationOpen, setLocationIsOpen] = useState(false);
 
@@ -153,13 +159,8 @@ function TokensList() {
   };
 
   const handleLocations = async () => {
-    try {
-      const response = await api.get("/location/query");
-      const data = response.data;
-      setLocations(data);
-    } catch (error) {
-      console.error(error);
-    }
+    const locations = await getActivesLocations();
+    setLocations(locations);
   };
 
   const handleUserServices = async () => {
