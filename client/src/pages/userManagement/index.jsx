@@ -350,6 +350,7 @@ function UserManagement() {
               className="sm:max-w-xs border-none shadow-none w-fit"
               startContent={<AddIcon />}
               onPress={() => setAddUserIsOpen(true)}
+              isDisabled={processingUserStore || !isAdmin}
             >
               Novo usuário
             </Button>
@@ -359,8 +360,10 @@ function UserManagement() {
         <Table
           aria-label="Lista de usuários"
           onRowAction={async (key) => {
-            await findIndexById(key);
-            onOpen();
+            if (isAdmin) {
+              await findIndexById(key);
+              onOpen();
+            }
           }}
           isStriped
           bottomContent={
@@ -443,6 +446,8 @@ function UserManagement() {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
                       <Button
                         isIconOnly
+                        isDisabled={processingUserStore || !isAdmin}
+                        isLoading={processingUserStore}
                         mode="success"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
@@ -459,7 +464,7 @@ function UserManagement() {
                         onPress={() => {
                           handleDeleteUser(item.id);
                         }}
-                        isDisabled={processingUserStore}
+                        isDisabled={processingUserStore || !isAdmin}
                         isLoading={processingUserStore}
                       >
                         <DeleteForeverIcon fontSize="small" />

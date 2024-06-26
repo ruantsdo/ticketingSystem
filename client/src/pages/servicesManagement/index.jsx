@@ -179,10 +179,10 @@ function ServicesManagement() {
   };
 
   const updateStates = (index) => {
-    setCurrentTargetName(services[index].name);
-    setCurrentTargetDesc(services[index].description);
-    setCurrentTargetLimit(services[index].limit);
-    setCurrentStatus(services[index].status);
+    setCurrentTargetName(filteredServices[index].name);
+    setCurrentTargetDesc(filteredServices[index].description);
+    setCurrentTargetLimit(filteredServices[index].limit);
+    setCurrentStatus(filteredServices[index].status);
   };
 
   const clearStates = () => {
@@ -274,7 +274,7 @@ function ServicesManagement() {
         <Table
           aria-label="Lista de serviços"
           onRowAction={(key) => {
-            handleGetItemKey(key);
+            if (isAdmin) handleGetItemKey(key);
           }}
           isStriped
           bottomContent={
@@ -345,7 +345,7 @@ function ServicesManagement() {
                       <Button
                         isIconOnly
                         isLoading={processingServicesStore}
-                        isDisabled={processingServicesStore}
+                        isDisabled={processingServicesStore || !isAdmin}
                         mode="success"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
@@ -357,7 +357,7 @@ function ServicesManagement() {
                       <Button
                         isIconOnly
                         isLoading={processingServicesStore}
-                        isDisabled={processingServicesStore}
+                        isDisabled={processingServicesStore || !isAdmin}
                         mode="failed"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
