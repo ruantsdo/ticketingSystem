@@ -300,6 +300,7 @@ function ServicesManagement() {
         >
           <TableHeader>
             <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>DESCRIÇÃO</TableColumn>
             <TableColumn>LIMITE</TableColumn>
             <TableColumn>STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
@@ -333,6 +334,9 @@ function ServicesManagement() {
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
                 <TableCell>{item.name}</TableCell>
+                <TableCell>
+                  {item.description ? item.description : "SEM DESCRIÇÃO"}
+                </TableCell>
                 <TableCell className="w-1/12">
                   {!item.limit ? "ILIMITADO" : item.limit}
                 </TableCell>
