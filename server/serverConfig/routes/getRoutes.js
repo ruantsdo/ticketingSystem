@@ -55,6 +55,19 @@ router.get("/location/query", async (req, res) => {
   }
 });
 
+router.get("/location/query/actives", async (req, res) => {
+  try {
+    await db.query(
+      "SELECT * FROM locations WHERE status = 1",
+      (err, result) => {
+        res.send(result);
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.post("/location/query/name", async (req, res) => {
   const { name, id } = req.body;
   const query =

@@ -348,13 +348,14 @@ router.post("/location/remove", async (req, res) => {
 router.post("/location/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+      "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ?, status = ?  WHERE id = ?",
       [
         req.body.name,
         req.body.description,
         req.body.tables,
         req.body.updated_by,
         getTime(),
+        req.body.status,
         req.body.id,
       ]
     );
