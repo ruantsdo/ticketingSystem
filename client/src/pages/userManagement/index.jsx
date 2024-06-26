@@ -399,7 +399,7 @@ function UserManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn>USUÁRIO</TableColumn>
+            <TableColumn>NOME</TableColumn>
             <TableColumn>EMAIL</TableColumn>
             <TableColumn>CPF</TableColumn>
             <TableColumn>CARGO</TableColumn>

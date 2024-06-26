@@ -299,7 +299,7 @@ function ServicesManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>NOME</TableColumn>
             <TableColumn>DESCRIÇÃO</TableColumn>
             <TableColumn>LIMITE</TableColumn>
             <TableColumn>STATUS</TableColumn>
