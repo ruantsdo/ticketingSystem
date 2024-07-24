@@ -17,6 +17,22 @@ router.get("/token/query", async (req, res) => {
   }
 });
 
+router.post("/token/query/by_services_list", async (req, res) => {
+  try {
+    const services = req.body.userServices;
+    const inClause = `(${services.join(",")})`;
+
+    await db.query(
+      `SELECT * FROM tokens WHERE service IN ${inClause}`,
+      (err, result) => {
+        res.send(result);
+      }
+    );
+  } catch (err) {
+    res.send({ msg: "Falha da consulta dos tokens!" });
+  }
+});
+
 router.get("/token/query/byId/:id", async (req, res) => {
   try {
     await db.query(
