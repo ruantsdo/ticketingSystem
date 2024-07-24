@@ -4,6 +4,7 @@ import { useState, useEffect, useContext, useMemo } from "react";
 //Components
 import { Divider, FullContainer, Button, Select } from "../../components";
 import Subtitle from "./components/subtitle";
+import SuggestionCard from "./components/suggestion";
 
 //NextUI
 import {
@@ -47,12 +48,18 @@ import { toast } from "react-toastify";
 
 //Stores
 import useLocationsStore from "../../stores/locationsStore/store";
+import useSocketUtils from "../../utils/socketUtils";
+import useServicesStore from "../../stores/servicesStore/store";
+import useUsersStore from "../../stores/usersStore/store";
 
 function TokensList() {
   const { socket } = useWebSocket();
 
-  const { currentUser } = useContext(AuthContext);
-  const { getActivesLocations } = useLocationsStore();
+  const { currentUser, isAdmin } = useContext(AuthContext);
+  const { getActivesLocations, getLocationsList } = useLocationsStore();
+  const { getAllServices } = useServicesStore();
+  const { getUserServices } = useUsersStore();
+  const { queueUpdateSignal, tokenUpdateSignal } = useSocketUtils();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -61,18 +68,21 @@ function TokensList() {
 
   const [page, setPage] = useState(1);
 
-  const [tokensLength, setTokensLength] = useState(1);
   const [tokens, setTokens] = useState([]);
   const [activeTokens, setActiveTokens] = useState([]);
   const [originalTokens, setOriginalTokens] = useState([]);
   const [itemKey, setItemKey] = useState();
 
   const [showFinished, setShowFinished] = useState(false);
+  const [prioritySuggestion, setPrioritySuggestion] = useState();
+  const [normalSuggestion, setNormalSuggestion] = useState();
 
   const [locations, setLocations] = useState([]);
+  const [activeLocations, setActiveLocations] = useState([]);
   const [currentLocation, setCurrentLocation] = useState("");
   const [locationTable, setLocationTable] = useState([]);
   const [currentTable, setCurrentTable] = useState("");
+  const [userServices, setUserServices] = useState([]);
 
   const [services, setServices] = useState([]);
 
@@ -97,6 +107,11 @@ function TokensList() {
     }
   };
 
+  const handleOpenModal = (tokenId) => {
+    findIndexById(tokenId);
+    onOpen();
+  };
+
   const emitSignalQueueUpdate = (token) => {
     const data = {
       token_id: token.id,
@@ -108,11 +123,7 @@ function TokensList() {
       location: currentLocation,
       table: currentTable,
     };
-    socket.emit("queued_update", data);
-  };
-
-  const emitSignalTokenUpdate = () => {
-    socket.emit("new_token");
+    queueUpdateSignal(data);
   };
 
   const insertOnQueue = async (token) => {
@@ -149,82 +160,11 @@ function TokensList() {
     }
   };
 
-  const handleServices = async () => {
-    try {
-      const response = await api.get("/services/query");
-      setServices(response.data);
-    } catch (error) {
-      console.log("Erro ao obter lista de serviços: " + error);
-    }
-  };
-
-  const handleLocations = async () => {
-    const locations = await getActivesLocations();
-    setLocations(locations);
-  };
-
-  const handleUserServices = async () => {
-    try {
-      const response = await api.get(`/user_services/query/${currentUser.id}`);
-      handleTokens(response.data);
-    } catch (error) {
-      console.log("Falha ao obter serviços do usuário!");
-    }
-  };
-
-  const handleTokens = async (userServices) => {
-    try {
-      const response = await api.get("/token/query");
-      defineFilteredTokens(response.data, userServices);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const defineFilteredTokens = async (data, userServices) => {
-    if (
-      currentUser.permission_level === 3 ||
-      currentUser.permission_level === 2
-    ) {
-      const tokens = data.filter((token) => {
-        return userServices.some(
-          (userService) => userService.service_id === token.service
-        );
-      });
-
-      setOriginalTokens(tokens);
-
-      const activeTokens = tokens.filter((token) => {
-        return token.status.toUpperCase() !== "CONCLUIDO";
-      });
-
-      setActiveTokens(activeTokens);
-      setTokens(activeTokens);
-      setTokensLength(activeTokens.length);
-
-      getSessionContext(activeTokens);
-    } else if (currentUser.permission_level >= 4) {
-      const activeTokens = data.filter((token) => {
-        return token.status.toUpperCase() !== "CONCLUIDO";
-      });
-
-      setOriginalTokens(data);
-
-      setActiveTokens(activeTokens);
-      setTokens(activeTokens);
-      setTokensLength(activeTokens.length);
-
-      getSessionContext(data);
-    }
-  };
-
   const filterTokens = (mode) => {
     if (mode) {
       setTokens(originalTokens);
-      setTokensLength(originalTokens.length);
     } else {
       setTokens(activeTokens);
-      setTokensLength(activeTokens.length);
     }
   };
 
@@ -235,7 +175,7 @@ function TokensList() {
         id: id,
         delayed_by: currentUser.name,
       });
-      emitSignalTokenUpdate();
+      tokenUpdateSignal();
     } catch (error) {
       console.error(error);
     }
@@ -248,30 +188,37 @@ function TokensList() {
         id: id,
         solved_by: currentUser.name,
       });
-      emitSignalTokenUpdate();
+      tokenUpdateSignal();
     } catch (error) {
       console.error(error);
     }
   };
 
   const handleDeleteToken = async (id) => {
+    if (!isAdmin) {
+      toast.info(
+        "Você não tem privilégios suficientes para executar essa ação!"
+      );
+      return;
+    }
+
     try {
       const response = await api.get(`/token/query/byId/${id}`);
       const data = response.data;
 
       if (data[0].status === "EM ATENDIMENTO") {
-        toast.warn("Essa senha está em atendimento!");
-        toast.error("Não é possível excluir essa senha no momento!");
+        toast.warn("Essa ficha está em atendimento!");
+        toast.error("Não é possível excluir essa ficha no momento!");
         return;
       }
 
       try {
         await api.post(`/token/remove/byId/${id}`).then((response) => {
           if (response.data === "success") {
-            toast.success("A senha foi removida!");
-            emitSignalTokenUpdate();
+            toast.success("A ficha foi removida!");
+            tokenUpdateSignal();
           } else {
-            toast.error("Houve um problema na remoção da senha!");
+            toast.error("Houve um problema na remoção da ficha!");
           }
         });
       } catch (error) {
@@ -283,7 +230,7 @@ function TokensList() {
   };
 
   const countTables = (definedLocation) => {
-    const location = locations.find(
+    const location = activeLocations.find(
       (location) => location.id === definedLocation
     );
     count(location.tables);
@@ -331,16 +278,137 @@ function TokensList() {
     return currentService.name;
   };
 
+  const getInitialData = async () => {
+    try {
+      const [services, locations, userServices, activeLocations] =
+        await Promise.all([
+          getAllServices(),
+          getLocationsList(),
+          getUserServices(currentUser.id),
+          getActivesLocations(),
+        ]);
+      setServices(services);
+      setLocations(locations);
+      setUserServices(userServices);
+      setActiveLocations(activeLocations);
+    } catch (error) {
+      console.log("Falha ao obter dados iniciais");
+      console.error(error);
+    }
+  };
+
+  const getFilteredTokens = async () => {
+    if (currentUser.permission_level >= 4) {
+      const response = await api.get("/token/query");
+      const fullTokens = response.data;
+      if (fullTokens.length <= 0) return [];
+      const activeTokens = fullTokens.filter((token) => {
+        return token.status.toUpperCase() !== "CONCLUIDO";
+      });
+
+      setOriginalTokens(fullTokens);
+      getTokenSuggestion(fullTokens);
+
+      setActiveTokens(activeTokens);
+      setTokens(activeTokens);
+
+      getSessionContext(fullTokens);
+
+      return;
+    }
+
+    const serviceIDs = userServices.map((item) => item.service_id);
+
+    const response = await api.post("/token/query/by_services_list", {
+      userServices: serviceIDs,
+    });
+    const filteredTokens = response.data;
+
+    if (filteredTokens.length <= 0) return;
+
+    const activeTokens = filteredTokens.filter((token) => {
+      return token.status.toUpperCase() !== "CONCLUIDO";
+    });
+    setOriginalTokens(filteredTokens);
+    getTokenSuggestion(filteredTokens);
+
+    setActiveTokens(activeTokens);
+    setTokens(activeTokens);
+
+    getSessionContext(filteredTokens);
+  };
+
+  const getTokenSuggestion = (tokens) => {
+    const priorityToken = tokens.find((token) => {
+      if (
+        token.priority === 1 &&
+        token.status !== "CONCLUIDO" &&
+        token.status !== "EM ATENDIMENTO"
+      ) {
+        return token;
+      }
+      return null;
+    });
+
+    const normalToken = tokens.find((token) => {
+      if (
+        token.priority === 0 &&
+        token.status !== "CONCLUIDO" &&
+        token.status !== "EM ATENDIMENTO"
+      ) {
+        return token;
+      }
+      return null;
+    });
+
+    let priorityTokenService = "";
+    let normalTokenService = "";
+
+    if (services.length > 0) {
+      if (priorityToken) {
+        priorityTokenService = getCurrentServiceName(priorityToken.service);
+      } else {
+        priorityTokenService =
+          "Não há fichas de prioridade para serem sugeridas no momento!";
+      }
+      if (normalToken) {
+        normalTokenService = getCurrentServiceName(normalToken.service);
+      } else {
+        normalTokenService = "Não há fichas para serem sugeridas no momento!";
+      }
+    }
+
+    setPrioritySuggestion(
+      <SuggestionCard
+        targetId={priorityToken ? priorityToken.id : null}
+        target={priorityToken ? priorityToken : null}
+        service={priorityTokenService}
+        handleOpenModal={handleOpenModal}
+      />
+    );
+    setNormalSuggestion(
+      <SuggestionCard
+        targetId={normalToken ? normalToken.id : null}
+        target={normalToken ? normalToken : null}
+        service={normalTokenService}
+        handleOpenModal={handleOpenModal}
+      />
+    );
+  };
+
   useEffect(() => {
-    handleServices();
-    handleUserServices();
-    handleLocations();
+    getInitialData();
     // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
+    getFilteredTokens();
+    // eslint-disable-next-line
+  }, [userServices]);
+
+  useEffect(() => {
     socket.on("new_token", () => {
-      handleUserServices();
+      getFilteredTokens();
     });
 
     socket.on("midNight", () => {
@@ -380,7 +448,7 @@ function TokensList() {
                 open !== isLocationOpen && setLocationIsOpen(open)
               }
             >
-              {locations.map((item) => (
+              {activeLocations.map((item) => (
                 <SelectItem key={item.id}>{item.name}</SelectItem>
               ))}
             </Select>
@@ -406,8 +474,7 @@ function TokensList() {
         <Table
           aria-label="Lista de fichas disponíveis para você"
           onRowAction={(key) => {
-            findIndexById(key);
-            onOpen();
+            handleOpenModal(key);
           }}
           isStriped
           bottomContent={
@@ -456,7 +523,7 @@ function TokensList() {
           <TableBody
             items={items}
             emptyContent={
-              tokensLength > 0 ? (
+              tokens.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
@@ -534,6 +601,10 @@ function TokensList() {
             )}
           </TableBody>
         </Table>
+        <div className="flex flex-row w-full gap-1 mt-1">
+          {prioritySuggestion}
+          {normalSuggestion}
+        </div>
       </div>
 
       <Modal
