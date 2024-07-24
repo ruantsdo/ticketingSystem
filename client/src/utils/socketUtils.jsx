@@ -24,12 +24,22 @@ const useSocketUtils = () => {
     socket.emit("disconnectUser", id);
   };
 
+  const queueUpdateSignal = (data) => {
+    socket.emit("queued_update", data);
+  };
+
+  const tokenUpdateSignal = (id) => {
+    socket.emit("new_token");
+  };
+
   return {
     newTokenSignal,
     usersUpdatedSignal,
     locationsUpdatedSignal,
     servicesUpdatedSignal,
     disconnectUserSignal,
+    queueUpdateSignal,
+    tokenUpdateSignal,
   };
 };
 
