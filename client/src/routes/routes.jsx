@@ -9,6 +9,7 @@ import LoginPage from "../pages/login";
 import LocationManagement from "../pages/locationsManagement";
 import RedirectPage from "../pages/redirect";
 import Reports from "../pages/reports";
+import Settings from "../pages/settings";
 
 export {
   Home,
@@ -22,4 +23,5 @@ export {
   LocationManagement,
   RedirectPage,
   Reports,
+  Settings,
 };

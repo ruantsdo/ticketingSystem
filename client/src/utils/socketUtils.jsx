@@ -28,8 +28,12 @@ const useSocketUtils = () => {
     socket.emit("queued_update", data);
   };
 
-  const tokenUpdateSignal = (id) => {
+  const tokenUpdateSignal = () => {
     socket.emit("new_token");
+  };
+
+  const videoUpdateSignal = () => {
+    socket.emit("video_update");
   };
 
   return {
@@ -40,6 +44,7 @@ const useSocketUtils = () => {
     disconnectUserSignal,
     queueUpdateSignal,
     tokenUpdateSignal,
+    videoUpdateSignal,
   };
 };
 

@@ -16,6 +16,7 @@ import {
   LocationManagement,
   RedirectPage,
   Reports,
+  Settings,
 } from "./routes";
 
 //Contexts
@@ -38,6 +39,7 @@ const AppRoutes = () => {
           <Route path="/service/management" element={<ServicesManagement />} />
           <Route path="/location/management" element={<LocationManagement />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
 
           <Route path="*" element={<RedirectPage />} />
         </Routes>

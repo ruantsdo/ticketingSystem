@@ -47,6 +47,12 @@ const menuItems = [
     address: "/tokenCall/alternative",
     level: 5,
   },
+  {
+    name: "Configurações",
+    color: "foreground",
+    address: "/settings",
+    level: 5,
+  },
 ];
 
 export default menuItems;

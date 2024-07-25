@@ -7,7 +7,7 @@ import RegisterForm from "./components/registerForm";
 //Stores & Utils
 import useServicesStore from "../../stores/servicesStore/store";
 import useUsersUtils from "../../stores/usersStore/utils";
-
+//Contexts
 import { useWebSocket } from "../../contexts/webSocket";
 
 function LoginPage() {
