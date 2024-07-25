@@ -8,9 +8,13 @@ import RegisterForm from "./components/registerForm";
 import useServicesStore from "../../stores/servicesStore/store";
 import useUsersUtils from "../../stores/usersStore/utils";
 
+import { useWebSocket } from "../../contexts/webSocket";
+
 function LoginPage() {
-  const { getAllServices } = useServicesStore();
+  const { getActiveServices } = useServicesStore();
   const { filterPermissionLevels } = useUsersUtils();
+
+  const { socket } = useWebSocket();
 
   const [services, setServices] = useState([]);
   const [permissions, setPermissions] = useState([]);
@@ -23,7 +27,7 @@ function LoginPage() {
 
   const getInitialData = async () => {
     const [services, permissions] = await Promise.all([
-      getAllServices(),
+      getActiveServices(),
       filterPermissionLevels(),
     ]);
 
@@ -33,9 +37,18 @@ function LoginPage() {
 
   useEffect(() => {
     getInitialData();
-
     //eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    socket.on("services_updated", () => {
+      getInitialData();
+    });
+
+    return () => {
+      socket.off("services_updated");
+    };
+  });
 
   return (
     <Container className="h-screen bg-login-background bg-cover">
