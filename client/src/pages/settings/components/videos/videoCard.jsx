@@ -1,6 +1,112 @@
+//React
+import { useEffect, useState, useContext } from "react";
+//Stores
+import useFileStore from "../../../../stores/videosStore/videos";
+//Components
+import { Card } from "@nextui-org/react";
+import { Button } from "../../../../components/";
+import {
+  Modal,
+  ModalContent,
+  ModalBody,
+  useDisclosure,
+} from "@nextui-org/react";
+
+//Contexts
+import AuthContext from "../../../../contexts/auth";
+//Icons
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import HideImageIcon from "@mui/icons-material/HideImage";
+
 const VideoCard = ({ videoName }) => {
+  const { isAdmin } = useContext(AuthContext);
+  const { getVideoThumb, processingFileStore, deleteVideo } = useFileStore();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const [imageUrl, setImageUrl] = useState("");
+
+  const currentVideo = `http://${process.env.REACT_APP_VIDEOS_SERVER_IP}:${process.env.REACT_APP_VIDEOS_SERVER_PORT}/${videoName}`;
+
+  const handleThumbVideo = async () => {
+    const response = await getVideoThumb(videoName);
+    setImageUrl(response);
+  };
+
+  function cleanName(name) {
+    const partes = name.split(".");
+    if (partes.length > 1) {
+      return partes.slice(0, -1).join(".");
+    } else {
+      return name;
+    }
+  }
+
+  useEffect(() => {
+    handleThumbVideo();
+    //eslint-disable-next-line
+  }, []);
+
   return (
-    <div className="w-[90%] h-10 bg-background text-black">{videoName}</div>
+    <Card className="flex flex-row w-full h-36 justify-around items-center bg-cardBackground dark:bg-darkBackground transition-all mb-3 p-2">
+      <div className="flex items-center justify-around rounded-lg w-[20%] h-[85%] bg-bg-darkBackground dark:bg-cardBackground">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={videoName}
+            className="w-full h-full rounded-lg ima"
+          />
+        ) : (
+          <HideImageIcon
+            fontSize="large"
+            className="text-white dark:text-black"
+          />
+        )}
+      </div>
+      <div className="flex items-center w-[60%] h-[90%] text-black dark:text-white">
+        <p className="font-semibold">{cleanName(videoName)}</p>
+      </div>
+      <div className="flex h-[90%] items-center gap-5">
+        <Button
+          mode="success"
+          className="w-5 h-[60%] rounded-lg"
+          onPress={() => onOpen()}
+          isLoading={processingFileStore}
+          isDisabled={processingFileStore || !isAdmin}
+        >
+          <VisibilityIcon fontSize="small" />
+        </Button>
+        <Button
+          mode="failed"
+          className="w-5 h-[60%] rounded-lg"
+          onPress={() => {
+            deleteVideo(videoName);
+          }}
+          isLoading={processingFileStore}
+          isDisabled={processingFileStore || !isAdmin}
+        >
+          <DeleteForeverIcon fontSize="small" />
+        </Button>
+      </div>
+
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        className="w-[80%] h-[90%]"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <ModalBody className="flex items-center justify-center w-full h-[50%] bg-black rounded-lg">
+              <video
+                src={currentVideo}
+                controls
+                className="w-[99.9%] h-[99.9%]"
+              />
+            </ModalBody>
+          )}
+        </ModalContent>
+      </Modal>
+    </Card>
   );
 };
 
