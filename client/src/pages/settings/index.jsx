@@ -1,35 +1,39 @@
-//React
-import { useEffect, useState } from "react";
-//Stores
-import useFileStore from "../../stores/videosStore/videos";
 //Components
-import VideoCard from "./components/videos/videoCard";
+import VideoManagement from "./components/videos";
+import { NavBar, Notification } from "../../components";
+//NextUi
+import { Tabs, Tab } from "@nextui-org/tabs";
+//Icons
+import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
 
 function Settings() {
-  const { getFullVideosList } = useFileStore();
-
-  const [videosList, setVideosList] = useState();
-
-  const handleVideosList = async () => {
-    const response = await getFullVideosList();
-    setVideosList(response);
-  };
-
-  useEffect(() => {
-    handleVideosList();
-    //eslint-disable-next-line
-  }, []);
-
   return (
-    <div>
-      <p>Config Page</p>
-      {videosList && (
-        <>
-          {videosList.map((item) => (
-            <VideoCard videoName={item} key={item.id || item} /> // Added key prop for better performance
-          ))}
-        </>
-      )}
+    <div
+      className="flex flex-col w-screen min-h-screen bg-background dark:bg-darkBackground text-textColor
+                       dark:text-darkTextColor items-center transition-all overflow-auto"
+    >
+      <Notification />
+      <NavBar />
+      <div className="w-full">
+        <Tabs
+          aria-label="Options"
+          color="primary"
+          variant="bordered"
+          className="flex pb-5 pt-5"
+        >
+          <Tab
+            key="videos"
+            title={
+              <div className="flex items-center space-x-2">
+                <OndemandVideoIcon />
+                <span>Videos</span>
+              </div>
+            }
+          >
+            <VideoManagement />
+          </Tab>
+        </Tabs>
+      </div>
     </div>
   );
 }
