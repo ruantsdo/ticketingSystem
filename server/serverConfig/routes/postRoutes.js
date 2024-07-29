@@ -4,6 +4,26 @@ const db = require("../dbConnection");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const { cleanName, generateThumbnail } = require("../../utils/videos");
+
+const videosFolder = "./videos";
+const thumbsFolder = "./videoThumbs";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, videosFolder);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Buffer.from(file.originalname, "latin1").toString("utf8"));
+  },
+});
+
+const upload = multer({ storage });
+
 router.post("/login", (req, res) => {
   db.query(
     "SELECT * FROM users WHERE cpf = ?",
@@ -421,6 +441,50 @@ router.post("/service/update", async (req, res) => {
   } catch (err) {
     res.send("failed");
   }
+});
+
+router.post("/uploadVideo", upload.single("video"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  const fileName = req.body.fileName;
+  await generateThumbnail(fileName);
+
+  res.status(200).json({ message: "Upload bem-sucedido", file: req.file });
+});
+
+router.delete("/deleteVideo/:videoName", (req, res) => {
+  const videoName = req.params.videoName;
+  const videoPath = path.join(videosFolder, videoName);
+  const cleanVideoName = cleanName(videoName);
+  const thumbnailPath = path.join(thumbsFolder, `${cleanVideoName}-Thumb.png`);
+
+  fs.access(videoPath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ error: "Arquivo de vídeo não encontrado" });
+    }
+
+    fs.unlink(videoPath, (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "Erro ao apagar o arquivo de vídeo" });
+      }
+
+      fs.access(thumbnailPath, fs.constants.F_OK, (err) => {
+        if (!err) {
+          fs.unlink(thumbnailPath, (err) => {
+            if (err) {
+              console.error("Erro ao apagar a thumbnail:", err);
+            }
+          });
+        }
+      });
+
+      res.status(200).json({ message: "Arquivo de vídeo apagado com sucesso" });
+    });
+  });
 });
 
 module.exports = router;

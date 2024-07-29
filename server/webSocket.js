@@ -206,6 +206,12 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("video_update", () => {
+    setTimeout(() => {
+      io.emit("video_update");
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("midNight", () => {
     setTimeout(() => {
       io.emit("midNight");

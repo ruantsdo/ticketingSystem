@@ -9,6 +9,7 @@ const { createBackup } = require("./serverConfig/backups");
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 cron.schedule("0 0 * * *", async () => {
   createBackup();

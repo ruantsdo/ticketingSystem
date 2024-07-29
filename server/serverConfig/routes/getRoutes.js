@@ -2,10 +2,13 @@ const express = require("express");
 const router = express.Router();
 const db = require("../dbConnection");
 const fs = require("fs");
+const path = require("path");
 
 const { getTables } = require("../backups");
+const { cleanName } = require("../../utils/videos");
 
 const videosFolder = "./videos";
+const thumbsFolder = "./videoThumbs";
 
 router.get("/token/query", async (req, res) => {
   try {
@@ -347,6 +350,20 @@ router.get("/getHistoric", (req, res) => {
     }
 
     res.send(result);
+  });
+});
+
+router.get("/thumbnail/:videoName", (req, res) => {
+  const videoName = req.params.videoName;
+  const cleanVideoName = cleanName(videoName);
+  const thumbnailPath = path.join(thumbsFolder, `${cleanVideoName}-Thumb.png`);
+
+  fs.access(thumbnailPath, fs.constants.F_OK, (err) => {
+    if (err) {
+      res.status(404).json({ error: "Thumbnail não encontrada" });
+    } else {
+      res.sendFile(path.resolve(thumbnailPath));
+    }
   });
 });
 
