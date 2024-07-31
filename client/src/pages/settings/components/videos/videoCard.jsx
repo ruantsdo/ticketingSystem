@@ -48,13 +48,13 @@ const VideoCard = ({ videoName }) => {
   }, []);
 
   return (
-    <Card className="flex flex-row w-full h-36 justify-around items-center bg-cardBackground dark:bg-darkBackground transition-all mb-3 p-2">
-      <div className="flex items-center justify-around rounded-lg w-[20%] h-[85%] bg-bg-darkBackground dark:bg-cardBackground">
+    <Card className="flex flex-row w-[80%] h-36 gap-2 pl-5 pr-5 bg-transparent justify-around items-center border-1 rounded-lg border-darkBackground dark:border-background">
+      <div className="flex items-center justify-around rounded-lg w-[30%] h-[90%]">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={videoName}
-            className="w-full h-full rounded-lg ima"
+            className="w-fit h-fit max-w-full max-h-full rounded-lg"
           />
         ) : (
           <HideImageIcon

@@ -33,7 +33,7 @@ function VideoManagement() {
     if (!videosList.length) return null;
 
     return (
-      <div className="w-[90%]">
+      <div className="flex flex-col w-full gap-5 justify-around items-center">
         {videosList.map((item) => (
           <VideoCard videoName={item} key={item} />
         ))}
