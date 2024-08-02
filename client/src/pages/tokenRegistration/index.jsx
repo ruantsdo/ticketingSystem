@@ -1,5 +1,11 @@
 //React
-import React, { useState, useEffect, useContext } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useContext,
+  forwardRef,
+} from "react";
 
 //Components
 import {
@@ -38,6 +44,7 @@ import useSocketUtils from "../../utils/socketUtils";
 import { useReactToPrint } from "react-to-print";
 
 function QueueRegistration() {
+  const receiptRef = useRef();
   const { newTokenSignal } = useSocketUtils();
   const { socket } = useWebSocket();
   const { getActiveServices, getServiceById } = useServicesStore();
@@ -164,17 +171,15 @@ function QueueRegistration() {
     return str.match(regex).join("\n");
   };
 
-  const receiptRef = React.useRef();
-
   const handlePrint = useReactToPrint({
     content: () => receiptRef.current,
   });
 
-  const ReceiptComponent = React.forwardRef(({ data }, ref) => {
+  const ReceiptComponent = forwardRef(({ data }, ref) => {
     return (
       <div ref={ref} className="text-center text-darkBackground">
         <h1 className="underline">{process.env.REACT_APP_COMPANY_NAME}</h1>
-        <h1 className="text-5xl mt-2 mb-1">
+        <h1 className="text-5xl mt-2">
           {tokenData.service &&
             splitStringIntoLines(
               services.find((service) => service.id === tokenData.service)
@@ -182,9 +187,12 @@ function QueueRegistration() {
               10
             )}
         </h1>
-        <h1 className="text-5xl mb-2"> [ {tokenData?.position} ] </h1>
+        <h1 className="text-5xl mt-2 mb-2"> [ {tokenData?.position} ] </h1>
+
+        <h1 className="mt-1 mb-1">{tokenData.requested_by}</h1>
+
         {tokenData?.priority === 1 ? (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-evenly">
             <h6 className="text-start">PRIORIDADE</h6>
             <h5 className="text-end">{tokenData?.created_at}</h5>
           </div>

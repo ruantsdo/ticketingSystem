@@ -8,10 +8,13 @@ import AuthContext from "../../contexts/auth";
 import { toast } from "react-toastify";
 //Utils
 import useSocketUtils from "../../utils/socketUtils";
+//Stores
+import useSettingsStore from "../settingsStore/store";
 
 const useUsersStore = () => {
   const { currentUser, isAdmin } = useContext(AuthContext);
   const { usersUpdatedSignal, disconnectUserSignal } = useSocketUtils();
+  const { getFullSettings } = useSettingsStore();
 
   const [processingUserStore, setProcessingUserStore] = useState(false);
 
@@ -145,6 +148,10 @@ const useUsersStore = () => {
 
   const createNewUserSolicitation = async (data) => {
     setProcessingUserStore(true);
+
+    const settings = await getFullSettings();
+    const autoAprove = settings.autoAprove;
+
     let status = false;
 
     if (
@@ -181,12 +188,16 @@ const useUsersStore = () => {
           permissionLevel: data.permission,
           password: data.password,
           created_by: "SOLICITAÇÃO",
-          status: 0,
+          status: autoAprove,
         })
         .then((response) => {
           if (response.data === "New user created") {
             usersUpdatedSignal();
-            toast.success("Sua solicitação foi enviada!");
+            if (autoAprove) {
+              toast.success("Conta criada!");
+            } else {
+              toast.success("Sua solicitação foi enviada!");
+            }
             status = true;
           } else if (response.data === "User already exists") {
             toast.info("Já existe um usuário com esse CPF!");

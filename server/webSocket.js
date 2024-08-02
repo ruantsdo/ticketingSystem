@@ -212,6 +212,36 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("settings_update", () => {
+    setTimeout(() => {
+      io.emit("settings_update");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("requireCurrentVolume", () => {
+    setTimeout(() => {
+      io.emit("requireCurrentVolume");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("sendCurrentVolume", (currentVolume) => {
+    setTimeout(() => {
+      io.emit("sendCurrentVolume", currentVolume);
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("adjustCurrentVolume", (currentVolume) => {
+    setTimeout(() => {
+      io.emit("adjustCurrentVolume", currentVolume);
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("resetTokenCallScreen", () => {
+    setTimeout(() => {
+      io.emit("resetTokenCallScreen");
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("midNight", () => {
     setTimeout(() => {
       io.emit("midNight");

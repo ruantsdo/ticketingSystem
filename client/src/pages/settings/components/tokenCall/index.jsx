@@ -1,5 +1,5 @@
 //React
-import { useState } from "react";
+import { useEffect, useState } from "react";
 //NextUi
 import { Slider } from "@nextui-org/react";
 //Components
@@ -8,15 +8,78 @@ import { Button } from "../../../../components";
 import SaveIcon from "@mui/icons-material/Save";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+//Stores
+import { useSettingsStore } from "../../../../stores/";
+import { toast } from "react-toastify";
+//Contexts
+import { useWebSocket } from "../../../../contexts/webSocket";
+//Utils
+import useSocketUtils from "../../../../utils/socketUtils";
 
 const TokenCallSettings = () => {
-  const [currentVolume, setCurrentVolume] = useState(0.15);
-  const [defaultVolume, setDefaultVolume] = useState(0.05);
+  const { socket } = useWebSocket();
+  const { processingSettingsStore, updateDefaultVolume, getFullSettings } =
+    useSettingsStore();
+
+  const {
+    requireCurrentVolumeSignal,
+    updateCurrentVolumeSignal,
+    resetTokenCallScreenSignal,
+  } = useSocketUtils();
+
+  const [defaultVolume, setDefaultVolume] = useState(0);
+  const [currentVolume, setCurrentVolume] = useState(0);
+
+  const handleGetSettings = async () => {
+    const response = await getFullSettings();
+    setDefaultVolume(response.defaultVolume);
+  };
+
+  const handleUpdateDefaultVolume = async () => {
+    await updateDefaultVolume(defaultVolume);
+    updateCurrentVolume();
+  };
+
+  const updateCurrentVolume = () => {
+    updateCurrentVolumeSignal(currentVolume);
+  };
+
+  const handleResetScreen = () => {
+    resetTokenCallScreenSignal();
+  };
+
+  useEffect(() => {
+    handleGetSettings();
+    requireCurrentVolumeSignal();
+    //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    socket.on("sendCurrentVolume", (receivedCurrentVolume) => {
+      if (!receivedCurrentVolume) {
+        toast.info(
+          "Não houve resposta de nenhuma tela ativa. Mostrando valor padrão."
+        );
+        return;
+      }
+      setCurrentVolume(receivedCurrentVolume);
+    });
+
+    return () => {
+      socket.off("sendCurrentVolume");
+    };
+  });
 
   return (
     <div className="flex flex-col w-full items-center gap-3">
-      <Button mode="success" className="w-40 h-12 rounded-lg">
-        <SaveIcon fontSize="small" /> Salvar configuração
+      <Button
+        mode="success"
+        className="w-40 h-12 rounded-lg"
+        isDisabled={processingSettingsStore}
+        isLoading={processingSettingsStore}
+        onClick={() => handleUpdateDefaultVolume()}
+      >
+        <SaveIcon /> Salvar configuração
       </Button>
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
         <p className="text-lg font-medium">Ajuste de volume</p>
@@ -67,7 +130,11 @@ const TokenCallSettings = () => {
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
         <p className="text-lg font-medium">Forçar limpeza de tela</p>
         <p>Restaura as telas de chamado para o estado vazio inicial.</p>
-        <Button mode="failed" className="w-32 h-12 rounded-lg">
+        <Button
+          mode="failed"
+          className="w-32 h-12 rounded-lg"
+          onClick={() => handleResetScreen()}
+        >
           <SaveIcon /> Restaurar
         </Button>
       </div>

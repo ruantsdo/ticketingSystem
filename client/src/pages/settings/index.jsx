@@ -11,8 +11,12 @@ import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
 import SecurityIcon from "@mui/icons-material/Security";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import SettingsIcon from "@mui/icons-material/Settings";
+//Stores
+import useSettingsStore from "../../stores/settingsStore/store";
 
 function Settings() {
+  const { processingSettingsStore } = useSettingsStore();
+
   return (
     <div className="flex flex-col w-screen min-h-screen bg-background dark:bg-darkBackground items-center transition-all overflow-auto">
       <Notification />
@@ -23,6 +27,7 @@ function Settings() {
           color="primary"
           variant="solid"
           className="flex mt-5 self-center border-1 rounded-xl border-darkBackground dark:border-background shadow-lg"
+          isDisabled={processingSettingsStore}
         >
           <Tab
             key="auth"

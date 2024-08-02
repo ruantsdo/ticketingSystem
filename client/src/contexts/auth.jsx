@@ -1,12 +1,9 @@
 //React
 import React, { createContext, useEffect, useState } from "react";
-
 //Services
 import api from "../services/api";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Router Dom
 import { redirect } from "react-router-dom";
 
@@ -26,6 +23,18 @@ export const AuthProvider = ({ children }) => {
     const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
 
     return daysDifference >= daysToCheck;
+  };
+
+  const verifySettings = async () => {
+    try {
+      const response = await api.get(`/verifySettings`);
+      return response.data;
+    } catch (error) {
+      toast.error("Falha ao obter configurações");
+      console.error("Falha ao obter configurações");
+      console.error(error);
+      return false;
+    }
   };
 
   const verifyCredentials = async (currentUser) => {
@@ -79,6 +88,45 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   };
 
+  const checkDailyLogin = async () => {
+    const settings = await verifySettings();
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const lastDay = JSON.parse(localStorage.getItem("lastDay"));
+
+    if (currentUser) {
+      if (!lastDay) {
+        const startDate = new Date();
+        localStorage.setItem("lastDay", JSON.stringify(startDate));
+        verifyCredentials(currentUser);
+        return;
+      }
+    } else {
+      setIsLoading(false);
+      return;
+    }
+
+    if (isDatePassed(lastDay)) {
+      //A day has passed since the last check
+      if (settings.forceDailyLogin) {
+        toast.info("É preciso fazer login novamente!");
+        wipeUserData();
+        return;
+      }
+
+      const startDate = new Date();
+      localStorage.setItem("lastDay", JSON.stringify(startDate));
+
+      verifyCredentials(currentUser).finally(() => {
+        setIsLoading(false);
+      });
+    } else {
+      //Not a day has passed since the last check
+      setCurrentUser(currentUser);
+      setIsAdmin(currentUser.permission_level > 2 ? true : false);
+      setIsLoading(false);
+    }
+  };
+
   const disconnectUser = (id) => {
     if (currentUser.id === id) {
       toast.warn("Você foi desconectado pelo administrador...");
@@ -87,33 +135,35 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const lastDay = JSON.parse(localStorage.getItem("lastDay"));
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    checkDailyLogin();
 
-    if (currentUser) {
-      if (!lastDay) {
-        const startDate = new Date();
-        localStorage.setItem("lastDay", JSON.stringify(startDate));
-        verifyCredentials(currentUser);
-      } else {
-        if (isDatePassed(lastDay)) {
-          //A day has passed since the last check
-          const startDate = new Date();
-          localStorage.setItem("lastDay", JSON.stringify(startDate));
+    // const lastDay = JSON.parse(localStorage.getItem("lastDay"));
+    // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-          verifyCredentials(currentUser).finally(() => {
-            setIsLoading(false);
-          });
-        } else {
-          //Not a day has passed since the last check
-          setCurrentUser(currentUser);
-          setIsAdmin(currentUser.permission_level > 2 ? true : false);
-          setIsLoading(false);
-        }
-      }
-    } else {
-      setIsLoading(false);
-    }
+    // if (currentUser) {
+    //   if (!lastDay) {
+    //     const startDate = new Date();
+    //     localStorage.setItem("lastDay", JSON.stringify(startDate));
+    //     verifyCredentials(currentUser);
+    //   } else {
+    //     if (isDatePassed(lastDay)) {
+    //       //A day has passed since the last check
+    //       const startDate = new Date();
+    //       localStorage.setItem("lastDay", JSON.stringify(startDate));
+
+    //       verifyCredentials(currentUser).finally(() => {
+    //         setIsLoading(false);
+    //       });
+    //     } else {
+    //       //Not a day has passed since the last check
+    //       setCurrentUser(currentUser);
+    //       setIsAdmin(currentUser.permission_level > 2 ? true : false);
+    //       setIsLoading(false);
+    //     }
+    //   }
+    // } else {
+    //   setIsLoading(false);
+    // }
 
     // eslint-disable-next-line
   }, []);

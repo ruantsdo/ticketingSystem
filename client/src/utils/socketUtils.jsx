@@ -36,6 +36,26 @@ const useSocketUtils = () => {
     socket.emit("video_update");
   };
 
+  const settingsUpdateSignal = () => {
+    socket.emit("settings_update");
+  };
+
+  const updateCurrentVolumeSignal = (currentVolume) => {
+    socket.emit("adjustCurrentVolume", currentVolume);
+  };
+
+  const requireCurrentVolumeSignal = () => {
+    socket.emit("requireCurrentVolume");
+  };
+
+  const sendCurrentVolumeSignal = (currentVolume) => {
+    socket.emit("sendCurrentVolume", currentVolume);
+  };
+
+  const resetTokenCallScreenSignal = () => {
+    socket.emit("resetTokenCallScreen");
+  };
+
   return {
     newTokenSignal,
     usersUpdatedSignal,
@@ -45,6 +65,11 @@ const useSocketUtils = () => {
     queueUpdateSignal,
     tokenUpdateSignal,
     videoUpdateSignal,
+    settingsUpdateSignal,
+    updateCurrentVolumeSignal,
+    resetTokenCallScreenSignal,
+    requireCurrentVolumeSignal,
+    sendCurrentVolumeSignal,
   };
 };
 

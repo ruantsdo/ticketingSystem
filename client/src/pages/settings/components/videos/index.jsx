@@ -1,7 +1,7 @@
 //React
 import { useEffect, useMemo, useState } from "react";
 //Stores
-import useFileStore from "../../../../stores/videosStore/videos";
+import useFileStore from "../../../../stores/videosStore/store";
 //Components
 import VideoCard from "./videoCard";
 import { Button } from "../../../../components";

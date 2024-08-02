@@ -7,17 +7,20 @@ import RegisterForm from "./components/registerForm";
 //Stores & Utils
 import useServicesStore from "../../stores/servicesStore/store";
 import useUsersUtils from "../../stores/usersStore/utils";
+import useSettingsStore from "../../stores/settingsStore/store";
 //Contexts
 import { useWebSocket } from "../../contexts/webSocket";
 
 function LoginPage() {
   const { getActiveServices } = useServicesStore();
   const { filterPermissionLevels } = useUsersUtils();
+  const { getFullSettings } = useSettingsStore();
 
   const { socket } = useWebSocket();
 
   const [services, setServices] = useState([]);
   const [permissions, setPermissions] = useState([]);
+  const [settings, setSettings] = useState([]);
 
   const [registerMode, setRegisterMode] = useState(false);
 
@@ -26,13 +29,20 @@ function LoginPage() {
   };
 
   const getInitialData = async () => {
-    const [services, permissions] = await Promise.all([
+    const [services, permissions, settings] = await Promise.all([
       getActiveServices(),
       filterPermissionLevels(),
+      getFullSettings(),
     ]);
 
     setServices(services);
     setPermissions(permissions);
+    setSettings(settings);
+  };
+
+  const handleGetSettings = async () => {
+    const response = await getFullSettings();
+    setSettings(response);
   };
 
   useEffect(() => {
@@ -45,8 +55,13 @@ function LoginPage() {
       getInitialData();
     });
 
+    socket.on("settings_update", () => {
+      handleGetSettings();
+    });
+
     return () => {
       socket.off("services_updated");
+      socket.off("settings_update");
     };
   });
 
@@ -58,9 +73,14 @@ function LoginPage() {
           services={services}
           permissions={permissions}
           changeMode={changeMode}
+          registerForm={settings.registerForm}
+          autoAprove={settings.autoAprove}
         />
       ) : (
-        <LoginForm changeMode={changeMode} />
+        <LoginForm
+          changeMode={changeMode}
+          registerForm={settings.registerForm}
+        />
       )}
     </Container>
   );

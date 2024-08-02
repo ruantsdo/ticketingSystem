@@ -9,6 +9,7 @@ const path = require("path");
 const fs = require("fs");
 
 const { cleanName, generateThumbnail } = require("../../utils/videos");
+const { ensureDirectoryExistence } = require("../../utils/videos");
 
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
@@ -448,6 +449,8 @@ router.post("/uploadVideo", upload.single("video"), async (req, res) => {
     return res.status(400).json({ error: "Nenhum arquivo enviado" });
   }
 
+  ensureDirectoryExistence(videosFolder);
+
   const fileName = req.body.fileName;
   await generateThumbnail(fileName);
 
@@ -485,6 +488,53 @@ router.delete("/deleteVideo/:videoName", (req, res) => {
       res.status(200).json({ message: "Arquivo de vídeo apagado com sucesso" });
     });
   });
+});
+
+router.post("/settings/update", async (req, res) => {
+  const { autoAprove, forceDailyLogin, registerForm, userId } = req.body;
+
+  try {
+    const isAdmin = await db.query(
+      "SELECT permission_level from users WHERE id = ?",
+      [userId]
+    );
+
+    if (isAdmin < 4) {
+      return res.status(403).send("Ação não autorizada!");
+    }
+
+    await db.query(
+      "UPDATE settings SET autoAprove = ?, forceDailyLogin = ?, registerForm = ? WHERE id = 1",
+      [autoAprove, forceDailyLogin, registerForm]
+    );
+    res.send("Configurações atualizadas");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao atualizar configurações");
+  }
+});
+
+router.post("/settings/update/defaultVolume", async (req, res) => {
+  const { defaultVolume, userId } = req.body;
+
+  try {
+    const isAdmin = await db.query(
+      "SELECT permission_level from users WHERE id = ?",
+      [userId]
+    );
+
+    if (isAdmin < 4) {
+      return res.status(403).send("Ação não autorizada!");
+    }
+
+    await db.query("UPDATE settings SET defaultVolume = ? WHERE id = 1", [
+      defaultVolume,
+    ]);
+    res.send("Configurações atualizadas");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao atualizar configurações");
+  }
 });
 
 module.exports = router;

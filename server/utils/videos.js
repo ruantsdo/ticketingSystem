@@ -24,14 +24,10 @@ function ensureDirectoryExistence(dirPath) {
 
 function generateThumbnail(videoName) {
   return new Promise((resolve, reject) => {
-    const videoPath = path.join(__dirname, "../videos", videoName);
-    const imagePath = path.join(
-      __dirname,
-      "../videoThumbs",
-      `${cleanName(videoName)}-Thumb.png`
-    );
-    const width = 1024;
-    const height = 1024;
+    const videoPath = path.join(VIDEO_DIR, videoName);
+    const imagePath = path.join(THUMB_DIR, `${cleanName(videoName)}-Thumb.png`);
+
+    ensureDirectoryExistence(THUMB_DIR);
 
     if (!fs.existsSync(videoPath)) {
       return reject(new Error("Arquivo de vídeo não encontrado"));
@@ -47,14 +43,15 @@ function generateThumbnail(videoName) {
       })
       .screenshots({
         count: 1,
-        folder: path.dirname(imagePath),
+        folder: THUMB_DIR,
         filename: path.basename(imagePath),
-        size: `${width}x${height}`,
+        size: `${THUMB_WIDTH}x${THUMB_HEIGHT}`,
       });
   });
 }
 
 module.exports = {
+  ensureDirectoryExistence,
   generateThumbnail,
   cleanName,
 };

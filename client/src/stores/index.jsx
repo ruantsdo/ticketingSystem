@@ -3,6 +3,7 @@ import useUsersStore from "./usersStore/store";
 import useServicesStore from "./servicesStore/store";
 import useLocationsStore from "./locationsStore/store";
 import useTokensStore from "./tokensStore/store";
+import useSettingsStore from "./settingsStore/store";
 /* Utils */
 import useUsersUtils from "./usersStore/utils";
 import useServicesUtils from "./servicesStore/utils";
@@ -16,4 +17,5 @@ export {
   useLocationsStore,
   useLocationsUtils,
   useTokensStore,
+  useSettingsStore,
 };

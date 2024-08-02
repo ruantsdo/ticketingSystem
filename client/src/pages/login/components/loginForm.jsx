@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 //Toast
 import { toast } from "react-toastify";
 
-const LoginForm = ({ changeMode }) => {
+const LoginForm = ({ changeMode, registerForm }) => {
   const { setCurrentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -117,18 +117,22 @@ const LoginForm = ({ changeMode }) => {
           </Button>
         </Form>
       </Formik>
-      <Divider className="bg-white" />
-      <p className="text-xl text-white">Ainda não tem uma conta?</p>
-      <Button
-        mode="success"
-        className="w-6/12"
-        onClick={() => {
-          changeMode();
-        }}
-        isDisabled={processingLogin}
-      >
-        Clique aqui e solicite uma
-      </Button>
+      {registerForm ? (
+        <>
+          <Divider className="bg-white" />
+          <p className="text-xl text-white">Ainda não tem uma conta?</p>
+          <Button
+            mode="success"
+            className="w-6/12"
+            onClick={() => {
+              changeMode();
+            }}
+            isDisabled={processingLogin}
+          >
+            Clique aqui e solicite uma
+          </Button>
+        </>
+      ) : null}
     </Card>
   );
 };

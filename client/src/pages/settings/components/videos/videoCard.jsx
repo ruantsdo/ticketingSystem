@@ -1,7 +1,7 @@
 //React
 import { useEffect, useState, useContext } from "react";
 //Stores
-import useFileStore from "../../../../stores/videosStore/videos";
+import useFileStore from "../../../../stores/videosStore/store";
 //Components
 import { Card } from "@nextui-org/react";
 import { Button } from "../../../../components/";

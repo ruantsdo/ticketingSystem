@@ -1,8 +1,6 @@
 import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
-
 //React
 import { useCallback, useEffect, useState, useRef } from "react";
-
 //NextUI
 import {
   Table,
@@ -13,27 +11,27 @@ import {
   TableColumn,
   Spinner,
 } from "@nextui-org/react";
-
 //Contexts
 import { useWebSocket } from "../../contexts/webSocket";
-
 //Components
 import Clock from "./components/clock";
 import Menu from "./components/menu";
-
 //Icons
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ReplayIcon from "@mui/icons-material/Replay";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Hooks
 import getDataHooks from "../../Hooks/getData";
 import useUtilsHooks from "../../Hooks/utilsHooks";
-
 //Stores
-import { useServicesStore, useLocationsStore } from "../../stores";
+import {
+  useServicesStore,
+  useLocationsStore,
+  useSettingsStore,
+} from "../../stores";
+//Utils
+import useSocketUtils from "../../utils/socketUtils";
 
 function TokenCallAlternative() {
   const { socket } = useWebSocket();
@@ -41,6 +39,8 @@ function TokenCallAlternative() {
   const { getLocationsList } = useLocationsStore();
   const { getVideosList } = getDataHooks();
   const { getTargetServiceName, getTargetLocationName } = useUtilsHooks();
+  const { getFullSettings } = useSettingsStore();
+  const { sendCurrentVolumeSignal } = useSocketUtils();
 
   const [callQueue, setCallQueue] = useState([]);
   const [lastsTokens, setLastsTokens] = useState([]);
@@ -53,6 +53,9 @@ function TokenCallAlternative() {
   const [videosList, setVideosList] = useState([]);
   const [videoLoaded, setVideoLoaded] = useState(false);
 
+  const [defaultVolume, setDefaultVolume] = useState(0);
+  const [currentVolume, setCurrentVolume] = useState(0);
+
   const [displayInfo, setDisplayInfo] = useState({
     token: "Nenhuma senha foi chamada ainda...",
     location: "",
@@ -62,10 +65,26 @@ function TokenCallAlternative() {
 
   const maxListLength = Math.ceil(window.innerHeight / 180); //Define how many rows the tables have based on screen resolution
   const delayBeforeSpeech = 5000; //Delay before start speak
-  const videoVolume = 5; //brute value
-  const initialVideoVolume = videoVolume / 100;
+  const initialVideoVolume = defaultVolume;
 
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const clearData = () => {
+    videoRef.current.volume = 0;
+    toast.info("A tela será limpa dentro de 5 segundos");
+    setTimeout(() => {
+      setDisplayInfo({
+        token: "Nenhuma senha foi chamada ainda...",
+        location: "",
+        table: "",
+        name: "",
+      });
+      setCurrentVolume(defaultVolume);
+      setLastsTokens([]);
+      setCallQueue([]);
+      videoRef.current.volume = defaultVolume;
+    }, 5000);
+  };
 
   const handleVideosList = async () => {
     const data = await getVideosList();
@@ -81,6 +100,12 @@ function TokenCallAlternative() {
   const handleLocationsList = async () => {
     const data = await getLocationsList();
     setLocations(data);
+  };
+
+  const handleSettings = async () => {
+    const response = await getFullSettings();
+    setDefaultVolume(response.defaultVolume);
+    setCurrentVolume(response.defaultVolume);
   };
 
   const onVideoEnd = (data) => {
@@ -136,7 +161,7 @@ function TokenCallAlternative() {
     );
 
     const textToSpeak = `Atenção ${data.requested_by}, senha ${currentService} ${data.position},
-    por favor dirija-se à ${currentLocation}, ${data.table}`;
+      por favor dirija-se à ${currentLocation}, ${data.table}`;
 
     setDisplayInfo({
       token: `${currentService} - ${data.position}`,
@@ -186,24 +211,36 @@ function TokenCallAlternative() {
     });
   };
 
+  const getInitialData = async () => {
+    await Promise.all([
+      handleServicesList(),
+      handleLocationsList(),
+      handleVideosList(),
+      handleSettings(),
+    ]);
+  };
+
   useEffect(() => {
-    handleServicesList();
-    handleLocationsList();
-    handleVideosList();
+    getInitialData();
     // eslint-disable-next-line
-  }, []); //Get initial data
+  }, []);
+
+  useEffect(() => {
+    if (!videoRef || !currentVolume) return;
+    videoRef.current.volume = currentVolume;
+  }, [videoRef, currentVolume]);
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("ended", handleVideosList);
-      videoRef.current.volume = initialVideoVolume;
+      videoRef.current.volume = currentVolume || initialVideoVolume;
     }
 
     return () => {
       if (videoRef.current) {
         videoRef.current.removeEventListener("ended", handleVideosList);
         // eslint-disable-next-line
-        videoRef.current.volume = initialVideoVolume;
+        videoRef.current.volume = currentVolume || initialVideoVolume;
       }
     };
     // eslint-disable-next-line
@@ -229,6 +266,28 @@ function TokenCallAlternative() {
       }
     });
 
+    socket.on("requireCurrentVolume", () => {
+      sendCurrentVolumeSignal(currentVolume);
+    });
+
+    socket.on("video_update", () => {
+      handleVideosList();
+    });
+
+    socket.on("adjustCurrentVolume", (currentVolume) => {
+      videoRef.current.volume = currentVolume;
+      setCurrentVolume(currentVolume);
+    });
+
+    socket.on("resetTokenCallScreen", () => {
+      toast.warning(
+        "As informações do display serão limpas dentro de 5 segundos!"
+      );
+      setTimeout(() => {
+        clearData();
+      }, 5000);
+    });
+
     socket.on("midNight", () => {
       toast.warning("A sessão atual será limpa e atualizada em 5 segundos!");
       setTimeout(() => {
@@ -240,6 +299,10 @@ function TokenCallAlternative() {
       socket.off("services_updated");
       socket.off("locations_updated");
       socket.off("queued_update");
+      socket.off("adjustCurrentVolume");
+      socket.off("resetTokenCallScreen");
+      socket.off("requireCurrentVolume");
+      socket.off("video_update");
       socket.off("midNight");
     };
   }); //Initialize socket connections

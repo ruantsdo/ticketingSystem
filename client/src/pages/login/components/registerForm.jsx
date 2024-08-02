@@ -1,5 +1,5 @@
 //React
-import { useState } from "react";
+import { useEffect, useState } from "react";
 //Components
 import { Button, Card, Divider, Input } from "../../../components";
 import {
@@ -18,7 +18,13 @@ import { Select, SelectItem } from "@nextui-org/react";
 import useUsersStore from "../../../stores/usersStore/store";
 import { toast } from "react-toastify";
 
-const RegisterForm = ({ services, permissions, changeMode }) => {
+const RegisterForm = ({
+  services,
+  permissions,
+  changeMode,
+  registerForm,
+  autoAprove,
+}) => {
   const { createNewUserSolicitation, processingUserStore } = useUsersStore();
 
   const [name, setName] = useState("");
@@ -49,8 +55,19 @@ const RegisterForm = ({ services, permissions, changeMode }) => {
     };
 
     const response = await createNewUserSolicitation(data);
-    if (response) setModalIsOpen(true);
+    if (response && autoAprove) {
+      changeMode();
+      return;
+    } else if (response) {
+      setModalIsOpen(true);
+    }
   };
+
+  useEffect(() => {
+    if (!registerForm) changeMode();
+
+    //eslint-disable-next-line
+  }, [registerForm]);
 
   return (
     <>
@@ -202,7 +219,7 @@ const RegisterForm = ({ services, permissions, changeMode }) => {
         </Button>
       </Card>
 
-      <Modal isOpen={modalIsOpen} onOpenChange={setModalIsOpen}>
+      <Modal isOpen={modalIsOpen && !autoAprove} onOpenChange={setModalIsOpen}>
         <ModalContent>
           {(onClose) => (
             <>
