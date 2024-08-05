@@ -8,7 +8,7 @@ import BackupTableIcon from "@mui/icons-material/BackupTable";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import SyncIcon from "@mui/icons-material/Sync";
 
-const Maintenance = () => {
+const BackUps = () => {
   return (
     <div className="flex flex-col w-full items-center gap-3">
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
@@ -81,4 +81,4 @@ const Maintenance = () => {
   );
 };
 
-export default Maintenance;
+export default BackUps;

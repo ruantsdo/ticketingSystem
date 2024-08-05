@@ -2,7 +2,7 @@
 import VideoManagement from "./components/videos";
 import AuthSettings from "./components/auth";
 import TokenCallSettings from "./components/tokenCall";
-import Maintenance from "./components/maintenance";
+import Backups from "./components/backups";
 import { NavBar, Notification } from "../../components";
 //NextUi
 import { Tabs, Tab } from "@nextui-org/tabs";
@@ -11,6 +11,7 @@ import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
 import SecurityIcon from "@mui/icons-material/Security";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 //Stores
 import useSettingsStore from "../../stores/settingsStore/store";
 
@@ -52,7 +53,18 @@ function Settings() {
             <TokenCallSettings />
           </Tab>
           <Tab
-            key="settings"
+            key="backup"
+            title={
+              <div className="flex items-center space-x-2 text-textColor dark:text-darkTextColor">
+                <SettingsBackupRestoreIcon />
+                <span>Backups</span>
+              </div>
+            }
+          >
+            <Backups />
+          </Tab>
+          <Tab
+            key="Manutenção"
             title={
               <div className="flex items-center space-x-2 text-textColor dark:text-darkTextColor">
                 <SettingsIcon />
@@ -60,7 +72,7 @@ function Settings() {
               </div>
             }
           >
-            <Maintenance />
+            <backUps />
           </Tab>
           <Tab
             key="videos"
