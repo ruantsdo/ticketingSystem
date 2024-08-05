@@ -1,6 +1,6 @@
 import NotificationAudio from "../../assets/audios/tokenNotification.mp3";
 //React
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useContext } from "react";
 //NextUI
 import {
   Table,
@@ -12,10 +12,12 @@ import {
   Spinner,
 } from "@nextui-org/react";
 //Contexts
+import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 //Components
 import Clock from "./components/clock";
 import Menu from "./components/menu";
+import { Notification } from "../../components";
 //Icons
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ReplayIcon from "@mui/icons-material/Replay";
@@ -34,6 +36,7 @@ import {
 import useSocketUtils from "../../utils/socketUtils";
 
 function TokenCallDefault() {
+  const { currentUser } = useContext(AuthContext);
   const { socket } = useWebSocket();
   const { getAllServices } = useServicesStore();
   const { getLocationsList } = useLocationsStore();
@@ -65,13 +68,13 @@ function TokenCallDefault() {
 
   const maxListLength = Math.ceil(window.innerHeight / 180); //Define how many rows the tables have based on screen resolution
   const delayBeforeSpeech = 5000; //Delay before start speak
-  const initialVideoVolume = defaultVolume;
+  const initialVideoVolume = 0;
 
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const clearData = () => {
     videoRef.current.volume = 0;
-    toast.info("A tela será limpa dentro de 5 segundos");
+    toast.warning("A tela será limpa dentro de 5 segundos");
     setTimeout(() => {
       setDisplayInfo({
         token: "Nenhuma senha foi chamada ainda...",
@@ -104,6 +107,7 @@ function TokenCallDefault() {
 
   const handleSettings = async () => {
     const response = await getFullSettings();
+    if (!response) return;
     setDefaultVolume(response.defaultVolume);
     setCurrentVolume(response.defaultVolume);
   };
@@ -267,25 +271,26 @@ function TokenCallDefault() {
     });
 
     socket.on("requireCurrentVolume", () => {
-      sendCurrentVolumeSignal(currentVolume);
+      const data = {
+        id: currentUser.id,
+        name: currentUser.name,
+        currentVolume: videoRef.current.volume,
+      };
+      sendCurrentVolumeSignal(data);
     });
 
     socket.on("video_update", () => {
       handleVideosList();
     });
 
-    socket.on("adjustCurrentVolume", (currentVolume) => {
-      videoRef.current.volume = currentVolume;
-      setCurrentVolume(currentVolume);
+    socket.on("adjustCurrentVolume", (data) => {
+      if (currentUser.id !== data.id) return;
+      videoRef.current.volume = data.currentVolume;
+      setCurrentVolume(data.currentVolume);
     });
 
     socket.on("resetTokenCallScreen", () => {
-      toast.warning(
-        "As informações do display serão limpas dentro de 5 segundos!"
-      );
-      setTimeout(() => {
-        clearData();
-      }, 5000);
+      clearData();
     });
 
     socket.on("midNight", () => {
@@ -330,6 +335,7 @@ function TokenCallDefault() {
 
   return (
     <div className="flex flex-row p-1 gap-1 w-screen h-screen bg-background dark:bg-darkBackground justify-evenly transition-all delay-0 overflow-auto">
+      <Notification />
       <div className="flex flex-col justify-around w-6/12 h-full gap-1 font-mono">
         <div className="flex flex-col justify-around w-full h-full border-1 border-divider dark:darkDivider rounded-lg items-center">
           <p className="text-4xl mt-3.5 lg:mt-0 underline">SENHA ATUAL</p>

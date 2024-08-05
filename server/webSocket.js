@@ -224,15 +224,15 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
-  socket.on("sendCurrentVolume", (currentVolume) => {
+  socket.on("sendCurrentVolume", (data) => {
     setTimeout(() => {
-      io.emit("sendCurrentVolume", currentVolume);
+      io.emit("sendCurrentVolume", data);
     }, SOCKET_TIMEOUT);
   });
 
-  socket.on("adjustCurrentVolume", (currentVolume) => {
+  socket.on("adjustCurrentVolume", (data) => {
     setTimeout(() => {
-      io.emit("adjustCurrentVolume", currentVolume);
+      io.emit("adjustCurrentVolume", data);
     }, SOCKET_TIMEOUT);
   });
 

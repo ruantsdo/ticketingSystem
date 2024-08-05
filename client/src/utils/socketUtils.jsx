@@ -40,16 +40,16 @@ const useSocketUtils = () => {
     socket.emit("settings_update");
   };
 
-  const updateCurrentVolumeSignal = (currentVolume) => {
-    socket.emit("adjustCurrentVolume", currentVolume);
+  const updateCurrentVolumeSignal = (data) => {
+    socket.emit("adjustCurrentVolume", data);
   };
 
   const requireCurrentVolumeSignal = () => {
     socket.emit("requireCurrentVolume");
   };
 
-  const sendCurrentVolumeSignal = (currentVolume) => {
-    socket.emit("sendCurrentVolume", currentVolume);
+  const sendCurrentVolumeSignal = (data) => {
+    socket.emit("sendCurrentVolume", data);
   };
 
   const resetTokenCallScreenSignal = () => {

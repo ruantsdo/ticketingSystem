@@ -1,9 +1,9 @@
 //React
 import { useEffect, useState } from "react";
 //NextUi
-import { Slider } from "@nextui-org/react";
+import { SelectItem, Slider } from "@nextui-org/react";
 //Components
-import { Button } from "../../../../components";
+import { Button, Select } from "../../../../components";
 //Icons
 import SaveIcon from "@mui/icons-material/Save";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
@@ -27,8 +27,19 @@ const TokenCallSettings = () => {
     resetTokenCallScreenSignal,
   } = useSocketUtils();
 
+  const [screenData, setScreenData] = useState([]);
   const [defaultVolume, setDefaultVolume] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0);
+  const [targetId, setTargetId] = useState(null);
+  const [targetIndex, setTargetIndex] = useState(null);
+
+  const handleSelectionChange = (e) => {
+    const index = e.target.value;
+    setTargetIndex(index);
+
+    setTargetId(screenData[index].id);
+    setCurrentVolume(screenData[index].currentVolume);
+  };
 
   const handleGetSettings = async () => {
     const response = await getFullSettings();
@@ -41,7 +52,11 @@ const TokenCallSettings = () => {
   };
 
   const updateCurrentVolume = () => {
-    updateCurrentVolumeSignal(currentVolume);
+    const data = {
+      id: targetId,
+      currentVolume: currentVolume,
+    };
+    updateCurrentVolumeSignal(data);
   };
 
   const handleResetScreen = () => {
@@ -49,20 +64,22 @@ const TokenCallSettings = () => {
   };
 
   useEffect(() => {
+    setScreenData([]);
     handleGetSettings();
     requireCurrentVolumeSignal();
     //eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    socket.on("sendCurrentVolume", (receivedCurrentVolume) => {
-      if (!receivedCurrentVolume) {
+    socket.on("sendCurrentVolume", (data) => {
+      if (!data.id) {
         toast.info(
           "Não houve resposta de nenhuma tela ativa. Mostrando valor padrão."
         );
         return;
+      } else {
+        setScreenData([...screenData, data]);
       }
-      setCurrentVolume(receivedCurrentVolume);
     });
 
     return () => {
@@ -83,6 +100,23 @@ const TokenCallSettings = () => {
       </Button>
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
         <p className="text-lg font-medium">Ajuste de volume</p>
+        <Select
+          size="sm"
+          label={
+            screenData.length > 0
+              ? "Indique a tela desejada"
+              : "Não há telas para ativas"
+          }
+          variant="bordered"
+          selectedKeys={targetIndex}
+          className="max-w-xs"
+          onChange={handleSelectionChange}
+          isDisabled={!screenData.length > 0}
+        >
+          {screenData.map((screen, index) => (
+            <SelectItem key={index}>{screen.name}</SelectItem>
+          ))}
+        </Select>
         <p>
           Controla o volume atual em todas as telas de chamado. (Não altera o
           valor padrão)
