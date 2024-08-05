@@ -8,8 +8,6 @@ import AuthContext from "../../contexts/auth";
 import { toast } from "react-toastify";
 //Utils
 import useSocketUtils from "../../utils/socketUtils";
-//Router Dom
-import { redirect } from "react-router-dom";
 
 const useSettingsStore = () => {
   const { isAdmin, currentUser } = useContext(AuthContext);
@@ -18,13 +16,6 @@ const useSettingsStore = () => {
   const [processingSettingsStore, setProcessingSettingsStore] = useState(false);
 
   const getFullSettings = async () => {
-    if (!isAdmin && currentUser) {
-      toast.info("Você não tem permissão para acessar essa área!");
-      redirect("/home");
-      window.location.reload(true);
-      return;
-    }
-
     setProcessingSettingsStore(true);
 
     try {
