@@ -42,6 +42,7 @@ const Backups = () => {
     }
 
     await handleRestoreBackup(file);
+    setFile(null);
   };
 
   return (
@@ -134,9 +135,15 @@ const Backups = () => {
                 accept=".sql"
                 onChange={handleFileChange}
               />
-              <Button mode="success" className="w-24" onClick={handleRestore}>
+              <Button
+                mode="success"
+                className="w-24"
+                onClick={handleRestore}
+                isDisabled={processingSettingsStore}
+                isLoading={processingSettingsStore}
+              >
                 <CloudUploadIcon />
-                Enviar
+                {processingSettingsStore ? "Aplicando backup ..." : "Enviar"}
               </Button>
             </ModalBody>
           )}
