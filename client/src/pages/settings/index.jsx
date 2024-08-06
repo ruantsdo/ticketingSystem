@@ -3,6 +3,7 @@ import VideoManagement from "./components/videos";
 import AuthSettings from "./components/auth";
 import TokenCallSettings from "./components/tokenCall";
 import Backups from "./components/backups";
+import Maintenance from "./components/maintenance";
 import { NavBar, Notification } from "../../components";
 //NextUi
 import { Tabs, Tab } from "@nextui-org/tabs";
@@ -72,7 +73,7 @@ function Settings() {
               </div>
             }
           >
-            <backUps />
+            <Maintenance />
           </Tab>
           <Tab
             key="videos"

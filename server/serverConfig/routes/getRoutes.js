@@ -3,12 +3,19 @@ const router = express.Router();
 const db = require("../dbConnection");
 const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
 
 const { getTables } = require("../backups");
-const { cleanName } = require("../../utils/videos");
+const { cleanName, ensureDirectoryExistence } = require("../../utils/videos");
+const {
+  DATABASE_USER,
+  DATABASE_PASSWORD,
+  DATABASE_NAME,
+} = require("../variables");
 
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
+const backupFolder = "./backups";
 
 router.get("/token/query", async (req, res) => {
   try {
@@ -379,6 +386,126 @@ router.get("/verifySettings", (req, res) => {
       res.send(result[0]);
     }
   );
+});
+
+router.get("/backup/:tableName", (req, res) => {
+  const tableName = req.params.tableName;
+  const backupFile = path.join(backupFolder, `${tableName}_backup.sql`);
+
+  ensureDirectoryExistence(backupFolder);
+
+  let dumpCommand;
+
+  if (tableName === "users") {
+    dumpCommand = `mysqldump -u ${DATABASE_USER} -p${DATABASE_PASSWORD} ${DATABASE_NAME} ${tableName} user_services > ${backupFile}`;
+  } else {
+    dumpCommand = `mysqldump -u ${DATABASE_USER} -p${DATABASE_PASSWORD} ${DATABASE_NAME} ${tableName} > ${backupFile}`;
+  }
+
+  exec(dumpCommand, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Erro ao criar backup: ${error.message}`);
+      return res.status(500).json({ error: "Erro ao criar backup" });
+    }
+    if (
+      stderr &&
+      !stderr.includes(
+        "Using a password on the command line interface can be insecure."
+      )
+    ) {
+      console.error(`Erro: ${stderr}`);
+      return res.status(500).json({ error: stderr });
+    }
+
+    res.download(backupFile, `${tableName}_backup.sql`, (err) => {
+      if (err) {
+        console.error("Erro ao enviar o arquivo:", err);
+        return res.status(500).json({ error: "Erro ao enviar o arquivo" });
+      }
+
+      fs.unlink(backupFile, (err) => {
+        if (err) {
+          console.error("Erro ao apagar o arquivo de backup:", err);
+        }
+      });
+    });
+  });
+});
+
+router.get("/clearTable/:tableName", async (req, res) => {
+  const tableName = req.params.tableName;
+
+  let command;
+  let secondCommand;
+
+  if (tableName === "users" || tableName === "services") {
+    if (tableName === "users") {
+      command = `DELETE FROM ${tableName} WHERE id != ?`;
+    } else {
+      command = `DELETE FROM ${tableName}`;
+    }
+    secondCommand = `DELETE FROM user_services`;
+  } else {
+    command = `TRUNCATE TABLE ${tableName}`;
+  }
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.query("SET FOREIGN_KEY_CHECKS=0", (err) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+
+    if (tableName === "users" || tableName === "services") {
+      await new Promise((resolve, reject) => {
+        db.query(secondCommand, (err) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+
+      await new Promise((resolve, reject) => {
+        db.query(command, [1], (err) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+
+      res
+        .status(200)
+        .send("Tabela users e dependente user_services limpas com sucesso!");
+    } else {
+      await new Promise((resolve, reject) => {
+        db.query(command, (err) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+
+      res.status(200).send(`Tabela ${tableName} limpa com sucesso!`);
+    }
+
+    await new Promise((resolve, reject) => {
+      db.query("SET FOREIGN_KEY_CHECKS=1", (err) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+  } catch (err) {
+    console.error("Erro ao limpar tabela:", err);
+    res.status(500).send("Falha ao limpar tabela!");
+  }
 });
 
 module.exports = router;

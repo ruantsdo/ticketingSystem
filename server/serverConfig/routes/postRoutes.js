@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../dbConnection");
+const { exec } = require("child_process");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -10,9 +11,15 @@ const fs = require("fs");
 
 const { cleanName, generateThumbnail } = require("../../utils/videos");
 const { ensureDirectoryExistence } = require("../../utils/videos");
+const {
+  DATABASE_USER,
+  DATABASE_PASSWORD,
+  DATABASE_NAME,
+} = require("../variables");
 
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
+const tempFolder = "./temp";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -24,6 +31,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+const tempUpload = multer({ dest: tempFolder });
 
 router.post("/login", (req, res) => {
   db.query(
@@ -535,6 +543,43 @@ router.post("/settings/update/defaultVolume", async (req, res) => {
     console.error(err);
     res.status(500).send("Erro ao atualizar configurações");
   }
+});
+
+router.post("/restoreBackup", tempUpload.single("backup"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  ensureDirectoryExistence(tempFolder);
+
+  const backupFile = req.file.path;
+
+  const restoreCommand = `mysql -u ${DATABASE_USER} -p${DATABASE_PASSWORD} ${DATABASE_NAME} < ${backupFile}`;
+
+  exec(restoreCommand, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Erro ao restaurar backup: ${error.message}`);
+      return res.status(500).json({ error: "Erro ao restaurar backup" });
+    }
+
+    if (
+      stderr &&
+      !stderr.includes(
+        "Using a password on the command line interface can be insecure."
+      )
+    ) {
+      console.error(`Erro: ${stderr}`);
+      return res.status(500).json({ error: stderr });
+    }
+
+    res.status(200).json({ message: "Restaurado com sucesso" });
+
+    fs.unlink(backupFile, (err) => {
+      if (err) {
+        console.error("Erro ao apagar o arquivo de backup:", err);
+      }
+    });
+  });
 });
 
 module.exports = router;
