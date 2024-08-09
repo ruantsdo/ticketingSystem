@@ -9,7 +9,7 @@ const {
 
 const mysql = require("mysql");
 
-const pool = mysql.createPool({
+let pool = mysql.createPool({
   connectionLimit: MAX_CONNECTIONS,
   host: DATABASE_HOST,
   port: DATABASE_PORT,
@@ -27,4 +27,25 @@ pool.getConnection((err, connection) => {
   }
 });
 
-module.exports = pool;
+function resetPool() {
+  return new Promise((resolve, reject) => {
+    pool.end((err) => {
+      if (err) {
+        return reject(err);
+      }
+      console.log("Pool de conexões encerrado.");
+      pool = mysql.createPool({
+        connectionLimit: MAX_CONNECTIONS,
+        host: DATABASE_HOST,
+        port: DATABASE_PORT,
+        database: DATABASE_NAME,
+        user: DATABASE_USER,
+        password: DATABASE_PASSWORD,
+      });
+      console.log("Novo pool de conexões criado.");
+      resolve();
+    });
+  });
+}
+
+module.exports = { pool, resetPool };

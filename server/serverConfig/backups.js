@@ -151,7 +151,7 @@ async function getTables() {
 
 async function createBackup() {
   console.log("===================================");
-  console.log("Iniciando rotina de backup diário!");
+  console.log("Iniciando rotina de backup das fichas!");
   console.log("===================================");
 
   const success = await createAndInsertHistoricTable();
@@ -165,7 +165,7 @@ async function createBackup() {
   }
 
   console.log("===================================");
-  console.log("Rotina de backup diário encerrada!");
+  console.log("Rotina de backup encerrada!");
   console.log("===================================");
 
   console.log("===================================");
@@ -183,7 +183,7 @@ async function createBackup() {
   }
 
   console.log("===================================");
-  console.log("As rotinas diárias foram concluídas!");
+  console.log("As rotina foi concluída!");
   console.log("===================================");
 }
 

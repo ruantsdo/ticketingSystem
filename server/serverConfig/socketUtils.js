@@ -15,4 +15,14 @@ async function midNightSignal() {
   }
 }
 
-module.exports = { midNightSignal };
+async function disconnectAllUsers() {
+  try {
+    await socket.emit("disconnectAllUsers");
+    return true;
+  } catch (error) {
+    console.log("Falha ao emitir sinal: " + error);
+    return false;
+  }
+}
+
+module.exports = { midNightSignal, disconnectAllUsers };

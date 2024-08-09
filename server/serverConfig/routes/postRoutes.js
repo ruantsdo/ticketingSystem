@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../dbConnection");
+const { pool } = require("../dbConnection");
 const { exec } = require("child_process");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -17,6 +17,7 @@ const {
   DATABASE_NAME,
 } = require("../variables");
 
+const db = pool;
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
 const tempFolder = "./temp";

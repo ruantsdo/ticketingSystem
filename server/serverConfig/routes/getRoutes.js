@@ -1,21 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../dbConnection");
+const { pool, resetPool } = require("../dbConnection");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
-const { getTables } = require("../backups");
+const { createBackup, getTables } = require("../backups");
 const { cleanName, ensureDirectoryExistence } = require("../../utils/videos");
+const { midNightSignal, disconnectAllUsers } = require("../socketUtils");
 const {
   DATABASE_USER,
   DATABASE_PASSWORD,
   DATABASE_NAME,
 } = require("../variables");
 
+const db = pool;
+
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
 const backupFolder = "./backups";
+const databaseStructurePath = "./databaseStructure/createDatabaseStructure.sql";
 
 router.get("/token/query", async (req, res) => {
   try {
@@ -506,6 +510,56 @@ router.get("/clearTable/:tableName", async (req, res) => {
     console.error("Erro ao limpar tabela:", err);
     res.status(500).send("Falha ao limpar tabela!");
   }
+});
+
+router.get("/backupCurrentTokens", async (req, res) => {
+  try {
+    await createBackup();
+    await midNightSignal();
+    res.status(200).send("Backup concluído!");
+  } catch (err) {
+    console.error("Erro na criação do backup:", err);
+    res.status(500).send("Falha criar backup.");
+  }
+});
+
+router.get("/resetPool", async (req, res) => {
+  try {
+    await resetPool();
+    res.status(200).send("Pool de conexões foi redefinido com sucesso.");
+  } catch (err) {
+    console.error("Erro ao redefinir o pool de conexões:", err);
+    res.status(500).send("Falha ao redefinir o pool de conexões.");
+  }
+});
+
+router.get("/restoreDatabase", (req, res) => {
+  const restoreCommand = `mysql -u ${DATABASE_USER} -p${DATABASE_PASSWORD} ${DATABASE_NAME} < ${databaseStructurePath}`;
+
+  if (!fs.existsSync(databaseStructurePath)) {
+    console.error(`Arquivo de backup não encontrado: ${databaseStructurePath}`);
+    return res.status(404).json({ error: "Arquivo de backup não encontrado" });
+  }
+
+  exec(restoreCommand, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Erro ao restaurar backup: ${error.message}`);
+      return res.status(500).json({ error: "Erro ao restaurar backup" });
+    }
+
+    if (
+      stderr &&
+      !stderr.includes(
+        "Using a password on the command line interface can be insecure."
+      )
+    ) {
+      console.error(`Erro: ${stderr}`);
+      return res.status(500).json({ error: stderr });
+    }
+
+    disconnectAllUsers();
+    res.status(200).json({ message: "Restaurado com sucesso" });
+  });
 });
 
 module.exports = router;

@@ -248,6 +248,12 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("disconnectAllUsers", () => {
+    setTimeout(() => {
+      io.emit("disconnectAllUsers");
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("disconnectUser", (id) => {
     setTimeout(() => {
       io.emit("disconnectUser", id);
