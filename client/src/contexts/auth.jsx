@@ -136,35 +136,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkDailyLogin();
-
-    // const lastDay = JSON.parse(localStorage.getItem("lastDay"));
-    // const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
-    // if (currentUser) {
-    //   if (!lastDay) {
-    //     const startDate = new Date();
-    //     localStorage.setItem("lastDay", JSON.stringify(startDate));
-    //     verifyCredentials(currentUser);
-    //   } else {
-    //     if (isDatePassed(lastDay)) {
-    //       //A day has passed since the last check
-    //       const startDate = new Date();
-    //       localStorage.setItem("lastDay", JSON.stringify(startDate));
-
-    //       verifyCredentials(currentUser).finally(() => {
-    //         setIsLoading(false);
-    //       });
-    //     } else {
-    //       //Not a day has passed since the last check
-    //       setCurrentUser(currentUser);
-    //       setIsAdmin(currentUser.permission_level > 2 ? true : false);
-    //       setIsLoading(false);
-    //     }
-    //   }
-    // } else {
-    //   setIsLoading(false);
-    // }
-
     // eslint-disable-next-line
   }, []);
 
