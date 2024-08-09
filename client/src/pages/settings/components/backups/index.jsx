@@ -37,7 +37,7 @@ const Backups = () => {
 
   const handleRestore = async () => {
     if (!file) {
-      toast.error("Por favor, selecione um arquivo primeiro.");
+      toast.warning("Por favor, selecione um arquivo primeiro.");
       return;
     }
 

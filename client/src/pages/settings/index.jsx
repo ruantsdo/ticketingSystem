@@ -20,7 +20,7 @@ function Settings() {
   const { processingSettingsStore } = useSettingsStore();
 
   return (
-    <div className="flex flex-col w-screen min-h-screen bg-background dark:bg-darkBackground items-center transition-all overflow-auto">
+    <div className="flex flex-col max-w-screen min-h-screen bg-background dark:bg-darkBackground items-center transition-all overflow-auto">
       <Notification />
       <NavBar />
       <div className="flex flex-col w-full">

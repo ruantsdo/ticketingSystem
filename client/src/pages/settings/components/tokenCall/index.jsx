@@ -8,6 +8,7 @@ import { Button, Select } from "../../../../components";
 import SaveIcon from "@mui/icons-material/Save";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import RestorePageIcon from "@mui/icons-material/RestorePage";
 //Stores
 import { useSettingsStore } from "../../../../stores/";
 import { toast } from "react-toastify";
@@ -169,7 +170,7 @@ const TokenCallSettings = () => {
           className="w-32 h-12 rounded-lg"
           onClick={() => handleResetScreen()}
         >
-          <SaveIcon /> Restaurar
+          <RestorePageIcon /> Restaurar
         </Button>
       </div>
     </div>

@@ -143,6 +143,52 @@ const useSettingsStore = () => {
     }
   };
 
+  const backupCurrentTokens = async () => {
+    setProcessingSettingsStore(true);
+
+    try {
+      await api.get(`/backupCurrentTokens`);
+      toast.success("Backup concluído!");
+      toast.info("Você pode encontra-los na tela de relatórios");
+    } catch (error) {
+      toast.error("Falha ao fazer o backup!");
+      console.error("Falha ao fazer o backup!");
+      console.error(error);
+    } finally {
+      setProcessingSettingsStore(false);
+    }
+  };
+
+  const resetPool = async () => {
+    setProcessingSettingsStore(true);
+
+    try {
+      await api.get(`/resetPool`);
+      toast.success("Pool de conexões foi redefinido com sucesso.");
+    } catch (error) {
+      toast.error("Falha ao redefinir o pool de conexões.");
+      console.error("Falha ao redefinir o pool de conexões.");
+      console.error(error);
+    } finally {
+      setProcessingSettingsStore(false);
+    }
+  };
+
+  const restoreDatabase = async () => {
+    setProcessingSettingsStore(true);
+
+    try {
+      await api.get(`/restoreDatabase`);
+      toast.success("Banco de dados restaurado!");
+    } catch (error) {
+      toast.error("Falha ao restaurar banco de dados.");
+      console.error("Falha ao restaurar banco de dados.");
+      console.error(error);
+    } finally {
+      setProcessingSettingsStore(false);
+    }
+  };
+
   return {
     processingSettingsStore,
     getFullSettings,
@@ -151,6 +197,9 @@ const useSettingsStore = () => {
     handleCreateBackup,
     handleRestoreBackup,
     handleClearTable,
+    backupCurrentTokens,
+    resetPool,
+    restoreDatabase,
   };
 };
 

@@ -56,6 +56,10 @@ const useSocketUtils = () => {
     socket.emit("resetTokenCallScreen");
   };
 
+  const disconnectAllUsersSignal = () => {
+    socket.emit("disconnectAllUsers");
+  };
+
   return {
     newTokenSignal,
     usersUpdatedSignal,
@@ -70,6 +74,7 @@ const useSocketUtils = () => {
     resetTokenCallScreenSignal,
     requireCurrentVolumeSignal,
     sendCurrentVolumeSignal,
+    disconnectAllUsersSignal,
   };
 };
 

@@ -1,6 +1,5 @@
 // React
 import { useState, useContext, useEffect } from "react";
-
 //NextUi
 import {
   Navbar,
@@ -14,29 +13,25 @@ import {
   Button,
   Tooltip,
 } from "@nextui-org/react";
-
 //Components
 import { ThemeSwitcher } from "../";
 import AdmShortcuts from "./components/admShortcuts";
 import UserShortcuts from "./components/userShortcuts";
-
 //Models
 import menuItems from "./models/items";
-
 //Contexts
 import AuthContext from "../../contexts/auth";
-import { useWebSocket } from "../../contexts/webSocket";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Icons
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+//Contexts
+import { useWebSocket } from "../../contexts/webSocket";
 
 export default function NavBar() {
-  const { wipeUserData, currentUser, disconnectUser } = useContext(AuthContext);
   const { socket } = useWebSocket();
+  const { wipeUserData, disconnectUser, currentUser } = useContext(AuthContext);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -67,7 +62,6 @@ export default function NavBar() {
 
   const logout = () => {
     toast.warn("Você escolheu sair!");
-
     wipeUserData();
   };
 
@@ -76,8 +70,14 @@ export default function NavBar() {
       disconnectUser(id);
     });
 
+    socket.on("disconnectAllUsers", () => {
+      toast.warn("Você foi desconectado pelo administrador...");
+      wipeUserData();
+    });
+
     return () => {
       socket.off("disconnectUser");
+      socket.off("disconnectAllUsers");
     };
     // eslint-disable-next-line
   }, []);
