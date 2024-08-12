@@ -1,13 +1,13 @@
 //React
 import { useEffect, useState } from "react";
-//NextUi
-import { Switch } from "@nextui-org/react";
 //Components
+import { Switch } from "@nextui-org/react";
 import { Button } from "../../../../components";
 //Icons
 import SaveIcon from "@mui/icons-material/Save";
 //Stores
 import useSettingsStore from "../../../../stores/settingsStore/store";
+//Toast
 import { toast } from "react-toastify";
 
 const AuthSettings = () => {
@@ -30,13 +30,13 @@ const AuthSettings = () => {
   };
 
   const handleUpdateSettings = async () => {
-    const data = {
+    const settingsData = {
       autoAprove: autoAprove,
       forceDailyLogin: forceLogin,
       registerForm: selfRegister,
     };
 
-    await updateSettings(data);
+    await updateSettings(settingsData);
   };
 
   const handleAutoAprove = () => {
