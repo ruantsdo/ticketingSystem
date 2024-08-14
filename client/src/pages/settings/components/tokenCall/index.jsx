@@ -11,7 +11,6 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import RestorePageIcon from "@mui/icons-material/RestorePage";
 //Stores
 import { useSettingsStore } from "../../../../stores/";
-import { toast } from "react-toastify";
 //Contexts
 import { useWebSocket } from "../../../../contexts/webSocket";
 //Utils
