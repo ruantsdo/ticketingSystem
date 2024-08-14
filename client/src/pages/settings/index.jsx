@@ -15,9 +15,11 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 //Stores
 import useSettingsStore from "../../stores/settingsStore/store";
+import useFileStore from "../../stores/videosStore/store";
 
 function Settings() {
   const { processingSettingsStore } = useSettingsStore();
+  const { processingFileStore } = useFileStore();
 
   return (
     <div className="flex flex-col max-w-screen min-h-screen bg-background dark:bg-darkBackground items-center transition-all overflow-auto">
@@ -29,7 +31,7 @@ function Settings() {
           color="primary"
           variant="solid"
           className="flex mt-5 self-center border-1 rounded-xl border-darkBackground dark:border-background shadow-lg"
-          isDisabled={processingSettingsStore}
+          isDisabled={processingFileStore || processingSettingsStore}
         >
           <Tab
             key="auth"

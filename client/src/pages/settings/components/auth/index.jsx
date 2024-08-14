@@ -60,7 +60,7 @@ const AuthSettings = () => {
         isDisabled={processingSettingsStore}
         isLoading={processingSettingsStore}
       >
-        <SaveIcon /> Salvar configuração
+        {!processingSettingsStore && <SaveIcon />} Salvar configuração
       </Button>
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
         <p className="text-lg font-medium">Auto aprovar usuários</p>

@@ -83,7 +83,13 @@ function VideoManagement() {
         isLoading={processingFileStore}
         isDisabled={processingFileStore}
       >
-        <AddIcon fontSize="small" /> Enviar novo video
+        {processingFileStore ? (
+          "Carregado..."
+        ) : (
+          <>
+            <AddIcon fontSize="small" /> Enviar novo video
+          </>
+        )}
       </Button>
       {renderedVideos}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -99,10 +105,17 @@ function VideoManagement() {
                 type="file"
                 accept="video/mp4,video/webm,video/ogg"
                 onChange={handleFileChange}
+                disabled={processingFileStore}
               />
               <Button mode="success" className="w-24" onClick={handleUpload}>
-                <CloudUploadIcon />
-                Enviar
+                {processingFileStore ? (
+                  "Carregando..."
+                ) : (
+                  <>
+                    <CloudUploadIcon />
+                    Enviar
+                  </>
+                )}
               </Button>
             </ModalBody>
           )}

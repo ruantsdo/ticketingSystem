@@ -73,12 +73,7 @@ const TokenCallSettings = () => {
 
   useEffect(() => {
     socket.on("sendCurrentVolume", (data) => {
-      if (!data.id) {
-        toast.info(
-          "Não houve resposta de nenhuma tela ativa. Mostrando valor padrão."
-        );
-        return;
-      } else {
+      if (data.id) {
         setScreenData([...screenData, data]);
       }
     });

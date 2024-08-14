@@ -61,7 +61,7 @@ const Backups = () => {
                 isLoading={processingSettingsStore}
                 isDisabled={processingSettingsStore}
               >
-                {item.icon}
+                {!processingSettingsStore && item.icon}
                 {item.label}
               </Button>
             );
@@ -85,7 +85,7 @@ const Backups = () => {
           isLoading={processingSettingsStore}
           isDisabled={processingSettingsStore}
         >
-          <SyncIcon /> Restaurar
+          {!processingSettingsStore && <SyncIcon />} Restaurar
         </Button>
       </div>
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
@@ -106,7 +106,7 @@ const Backups = () => {
                 isLoading={processingSettingsStore}
                 isDisabled={processingSettingsStore}
               >
-                {item.icon}
+                {!processingSettingsStore && item.icon}
                 {item.label}
               </Button>
             );
