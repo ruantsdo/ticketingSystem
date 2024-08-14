@@ -49,12 +49,12 @@ const VideoCard = ({ videoName }) => {
 
   return (
     <Card className="flex flex-row w-[80%] h-36 gap-2 pl-5 pr-5 bg-transparent justify-around items-center border-1 rounded-lg border-darkBackground dark:border-background">
-      <div className="flex items-center justify-around rounded-lg w-[30%] h-[90%]">
+      <div className="flex items-center justify-around rounded-lg w-[300px] h-[90%]">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={videoName}
-            className="w-fit h-fit max-w-full max-h-full rounded-lg"
+            className="max-w-full max-h-full rounded-lg"
           />
         ) : (
           <HideImageIcon
