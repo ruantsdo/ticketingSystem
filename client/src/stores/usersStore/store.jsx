@@ -264,6 +264,8 @@ const useUsersStore = () => {
               toast.error(
                 "Falha ao atualizar usuário! Tente novamente am alguns instantes"
               );
+            } else if (response.data === "User already exists") {
+              toast.warn("Este CPF já está em uso!");
             }
             if (!data.status) {
               disconnectUserSignal(data.id);

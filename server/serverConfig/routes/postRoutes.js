@@ -187,17 +187,31 @@ router.post("/users/update", async (req, res) => {
 
   try {
     await db.query(
-      "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ? WHERE id = ?",
-      [name, email, status, cpf, level, updated_by, getTime(), id]
+      "SELECT cpf FROM users WHERE cpf = ? AND id != ?",
+      [cpf, id],
+      async (err, result) => {
+        if (err) {
+          return res.send("Failed to check users");
+        }
+
+        if (result.length > 0) {
+          return res.send("User already exists");
+        } else {
+          await db.query(
+            "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+            [name, email, status, cpf, level, updated_by, getTime(), id]
+          );
+
+          const response = await UpdateSelectedServices(id, services);
+
+          if (response) {
+            res.send("success");
+          } else {
+            res.send("failed");
+          }
+        }
+      }
     );
-
-    const response = await UpdateSelectedServices(id, services);
-
-    if (response) {
-      res.send("success");
-    } else {
-      res.send("failed");
-    }
   } catch (err) {
     res.send("failed");
   }

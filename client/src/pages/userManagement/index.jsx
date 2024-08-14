@@ -135,14 +135,14 @@ function UserManagement() {
     };
 
     if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
-      createNewUser(data);
+      await createNewUser(data);
     } else {
       toast.info("As senhas devem ser iguais!");
     }
   };
 
   const handleDeleteUser = async (id) => {
-    deleteUser(id);
+    await deleteUser(id);
   };
 
   const handleUpdateUser = async (id) => {
@@ -641,8 +641,9 @@ function UserManagement() {
                     mode="success"
                     className="w-10"
                     onPress={async () => {
-                      await handleUpdateUser(users[itemKey].id);
-                      onClose();
+                      await handleUpdateUser(users[itemKey].id).then(() => {
+                        onClose();
+                      });
                     }}
                     isDisabled={processingUserStore}
                     isLoading={processingUserStore}
