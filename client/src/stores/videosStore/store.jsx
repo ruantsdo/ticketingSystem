@@ -2,8 +2,9 @@
 import { useContext, useState } from "react";
 //Services
 import api from "../../services/api";
-//Contexts
+//Contexts - Providers
 import AuthContext from "../../contexts/auth";
+import { useConfirmIdentity } from "../../providers/confirmIdentity";
 //Toast
 import { toast } from "react-toastify";
 //Utils
@@ -11,6 +12,8 @@ import useSocketUtils from "../../utils/socketUtils";
 
 const useFileStore = () => {
   const { isAdmin } = useContext(AuthContext);
+  const { requestAuth } = useConfirmIdentity();
+
   const { videoUpdateSignal } = useSocketUtils();
 
   const [processingFileStore, setProcessingFileStore] = useState(false);
@@ -52,46 +55,59 @@ const useFileStore = () => {
   };
 
   const uploadVideo = async (file) => {
-    setProcessingFileStore(true);
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Este usuário não tem as permissões necessárias");
+        return;
+      }
+      setProcessingFileStore(true);
 
-    const formData = new FormData();
-    formData.append("video", file);
-    formData.append("fileName", file.name);
+      const formData = new FormData();
+      formData.append("video", file);
+      formData.append("fileName", file.name);
 
-    try {
-      const response = await api.post("/uploadVideo", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      videoUpdateSignal();
-      toast.success("Upload bem-sucedido!");
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao fazer upload do vídeo:", error);
-      toast.error(
-        "Falha ao fazer upload do vídeo. Tente novamente mais tarde."
-      );
-      return null;
-    } finally {
-      setProcessingFileStore(false);
-    }
+      try {
+        const response = await api.post("/uploadVideo", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        videoUpdateSignal();
+        toast.success("Upload bem-sucedido!");
+        return response.data;
+      } catch (error) {
+        console.error("Erro ao fazer upload do vídeo:", error);
+        toast.error(
+          "Falha ao fazer upload do vídeo. Tente novamente mais tarde."
+        );
+        return null;
+      } finally {
+        setProcessingFileStore(false);
+      }
+    });
   };
 
   const deleteVideo = async (videoName) => {
-    setProcessingFileStore(true);
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Este usuário não tem as permissões necessárias");
+        return;
+      }
 
-    try {
-      await api.delete(`/deleteVideo/${videoName}`);
-      toast.info("Video removido");
-      videoUpdateSignal();
-    } catch (error) {
-      console.log("Falha ao remover video");
-      console.log(error);
-      toast.error("Falha ao remover video. Tente novamente mais tarde!");
-    } finally {
-      setProcessingFileStore(false);
-    }
+      setProcessingFileStore(true);
+
+      try {
+        await api.delete(`/deleteVideo/${videoName}`);
+        toast.info("Video removido");
+        videoUpdateSignal();
+      } catch (error) {
+        console.log("Falha ao remover video");
+        console.log(error);
+        toast.error("Falha ao remover video. Tente novamente mais tarde!");
+      } finally {
+        setProcessingFileStore(false);
+      }
+    });
   };
 
   return {

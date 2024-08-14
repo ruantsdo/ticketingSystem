@@ -1,11 +1,9 @@
 //React
 import { useState, useEffect, useContext, useMemo } from "react";
-
 //Components
 import { Divider, FullContainer, Button, Select } from "../../components";
 import Subtitle from "./components/subtitle";
 import SuggestionCard from "./components/suggestion";
-
 //NextUI
 import {
   Table,
@@ -26,7 +24,6 @@ import {
   Spinner,
   Checkbox,
 } from "@nextui-org/react";
-
 //Icons
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -35,17 +32,14 @@ import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-
 //Services
 import api from "../../services/api";
-
-//Contexts
+//Contexts - Providers
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
-
+import { useConfirmIdentity } from "../../providers/confirmIdentity";
 //Toast
 import { toast } from "react-toastify";
-
 //Stores
 import useLocationsStore from "../../stores/locationsStore/store";
 import useSocketUtils from "../../utils/socketUtils";
@@ -55,7 +49,9 @@ import useUsersStore from "../../stores/usersStore/store";
 function TokensList() {
   const { socket } = useWebSocket();
 
-  const { currentUser, isAdmin } = useContext(AuthContext);
+  const { currentUser } = useContext(AuthContext);
+  const { requestAuth } = useConfirmIdentity();
+
   const { getActivesLocations, getLocationsList } = useLocationsStore();
   const { getAllServices } = useServicesStore();
   const { getUserServices } = useUsersStore();
@@ -195,38 +191,37 @@ function TokensList() {
   };
 
   const handleDeleteToken = async (id) => {
-    if (!isAdmin) {
-      toast.info(
-        "Você não tem privilégios suficientes para executar essa ação!"
-      );
-      return;
-    }
-
-    try {
-      const response = await api.get(`/token/query/byId/${id}`);
-      const data = response.data;
-
-      if (data[0].status === "EM ATENDIMENTO") {
-        toast.warn("Essa ficha está em atendimento!");
-        toast.error("Não é possível excluir essa ficha no momento!");
+    requestAuth(async (userLevel) => {
+      if (userLevel < 3) {
+        toast.warn("Este usuário não tem as permissões necessárias");
         return;
       }
-
       try {
-        await api.post(`/token/remove/byId/${id}`).then((response) => {
-          if (response.data === "success") {
-            toast.success("A ficha foi removida!");
-            tokenUpdateSignal();
-          } else {
-            toast.error("Houve um problema na remoção da ficha!");
-          }
-        });
+        const response = await api.get(`/token/query/byId/${id}`);
+        const data = response.data;
+
+        if (data[0].status === "EM ATENDIMENTO") {
+          toast.warn("Essa ficha está em atendimento!");
+          toast.error("Não é possível excluir essa ficha no momento!");
+          return;
+        }
+
+        try {
+          await api.post(`/token/remove/byId/${id}`).then((response) => {
+            if (response.data === "success") {
+              toast.success("A ficha foi removida!");
+              tokenUpdateSignal();
+            } else {
+              toast.error("Houve um problema na remoção da ficha!");
+            }
+          });
+        } catch (error) {
+          console.log("Delete Token Error: " + error);
+        }
       } catch (error) {
-        console.log("Delete Token Error: " + error);
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    });
   };
 
   const countTables = (definedLocation) => {
@@ -601,6 +596,7 @@ function TokensList() {
             )}
           </TableBody>
         </Table>
+        <p className="text-xl font-semibold mt-2">Sugestões</p>
         <div className="flex flex-row w-full gap-1 mt-1">
           {prioritySuggestion}
           {normalSuggestion}

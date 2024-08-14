@@ -1,6 +1,5 @@
 //React
 import { useState, useEffect } from "react";
-
 //Components
 import { Button, FullContainer, Select } from "../../components/";
 import {
@@ -10,35 +9,31 @@ import {
   SelectItems,
   DatePickerModal,
 } from "./components";
-
 //NextUi
 import { CircularProgress, SelectItem, Input, Card } from "@nextui-org/react";
-
 //Graphics
 import Graph01 from "./components/graphics/graphic01";
 import Graph02 from "./components/graphics/graphic02";
-
 //Hooks
 import getDataHooks from "../../Hooks/getData";
 import { handleGenerateReport } from "../../Hooks/generateReportXLXS";
-
 //Icons
 import SearchIcon from "@mui/icons-material/Search";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import DownloadIcon from "@mui/icons-material/Download";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Models
 import { headers } from "./components/models/reportHeaders";
-
 //TimePicker
 import moment from "moment";
 import "moment/locale/pt-br";
+//Providers
+import { useConfirmIdentity } from "../../providers/confirmIdentity";
 
 function Reports() {
   const { getHistoric } = getDataHooks();
+  const { requestAuth } = useConfirmIdentity();
 
   const currentDate = moment();
   const defaultStartDate = currentDate.startOf("day").toDate();
@@ -233,25 +228,31 @@ function Reports() {
   };
 
   const handleCreateReport = async () => {
-    const content = tokens.map((item) => {
-      return {
-        ID: item.id,
-        POSIÇÃO: item.position,
-        SERVIÇO: item.service,
-        PRIORIDADE: item.priority === 1 ? "Prioridade" : "Normal",
-        "SOLICITADO POR": item.requested_by,
-        "CRIADO POR": item.created_by,
-        "CRIADO EM": item.created_at,
-        "RESOLVIDO POR": item.solved_by,
-        "RESOLVIDO EM": item.solved_at,
-        "ATRASADO POR": item.delayed_by,
-        "ATRASADO EM": item.delayed_at,
-        STATUS: item.status,
-        DESCRIÇÃO: item.description,
-      };
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Este usuário não tem as permissões necessárias");
+        return;
+      }
+      const content = tokens.map((item) => {
+        return {
+          ID: item.id,
+          POSIÇÃO: item.position,
+          SERVIÇO: item.service,
+          PRIORIDADE: item.priority === 1 ? "Prioridade" : "Normal",
+          "SOLICITADO POR": item.requested_by,
+          "CRIADO POR": item.created_by,
+          "CRIADO EM": item.created_at,
+          "RESOLVIDO POR": item.solved_by,
+          "RESOLVIDO EM": item.solved_at,
+          "ATRASADO POR": item.delayed_by,
+          "ATRASADO EM": item.delayed_at,
+          STATUS: item.status,
+          DESCRIÇÃO: item.description,
+        };
+      });
+      const finalSheetName = `${sheetName}${sheetNameDate}`;
+      await handleGenerateReport({ headers, content, finalSheetName });
     });
-    const finalSheetName = `${sheetName}${sheetNameDate}`;
-    await handleGenerateReport({ headers, content, finalSheetName });
   };
 
   const handleFilterTokensByDateInterval = () => {
