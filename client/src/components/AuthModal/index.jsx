@@ -5,9 +5,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
   Input,
 } from "@nextui-org/react";
+import { Button } from "../";
 //Controller
 import useModalController from "../../utils/confirmIdentityController";
 //Provider

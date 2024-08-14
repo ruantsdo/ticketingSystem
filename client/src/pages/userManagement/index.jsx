@@ -368,7 +368,7 @@ function UserManagement() {
           isStriped
           bottomContent={
             <div className="flex flex-row w-full items-center justify-center">
-              <div className="flex flex-row w-[42%] left-2 absolute justify-start gap-5">
+              <div className="flex flex-row w-[42%] left-0 ml-3 absolute gap-5">
                 <p>Ativos: {usersStatusCount?.active}</p>
                 <p>Inativos: {usersStatusCount?.inactive}</p>
               </div>
@@ -384,7 +384,7 @@ function UserManagement() {
                 total={pages}
                 onChange={(page) => setPage(page)}
               />
-              <div className="flex flex-row right-2 absolute w-[42%] justify-end">
+              <div className="flex flex-row right-2 absolute w-[42%] mr-3 justify-end">
                 <p>
                   {usersStatusCount?.unproved > 0
                     ? `${usersStatusCount?.unproved} usuários precisam de aprovação`
