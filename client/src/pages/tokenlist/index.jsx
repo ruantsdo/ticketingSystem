@@ -70,8 +70,8 @@ function TokensList() {
   const [itemKey, setItemKey] = useState();
 
   const [showFinished, setShowFinished] = useState(false);
-  const [prioritySuggestion, setPrioritySuggestion] = useState();
-  const [normalSuggestion, setNormalSuggestion] = useState();
+  const [prioritySuggestion, setPrioritySuggestion] = useState(null);
+  const [normalSuggestion, setNormalSuggestion] = useState(null);
 
   const [locations, setLocations] = useState([]);
   const [activeLocations, setActiveLocations] = useState([]);
@@ -196,6 +196,7 @@ function TokensList() {
         toast.warn("Este usuário não tem as permissões necessárias");
         return;
       }
+
       try {
         const response = await api.get(`/token/query/byId/${id}`);
         const data = response.data;
@@ -302,8 +303,8 @@ function TokensList() {
       });
 
       setOriginalTokens(fullTokens);
-      getTokenSuggestion(fullTokens);
 
+      getTokenSuggestion(activeTokens);
       setActiveTokens(activeTokens);
       setTokens(activeTokens);
 
@@ -317,41 +318,39 @@ function TokensList() {
     const response = await api.post("/token/query/by_services_list", {
       userServices: serviceIDs,
     });
+
     const filteredTokens = response.data;
 
-    if (filteredTokens.length <= 0) return;
+    if (filteredTokens.length <= 0) return [];
 
     const activeTokens = filteredTokens.filter((token) => {
       return token.status.toUpperCase() !== "CONCLUIDO";
     });
-    setOriginalTokens(filteredTokens);
-    getTokenSuggestion(filteredTokens);
+
+    getTokenSuggestion(activeTokens);
 
     setActiveTokens(activeTokens);
+
     setTokens(activeTokens);
+
+    setOriginalTokens(filteredTokens);
 
     getSessionContext(filteredTokens);
   };
 
   const getTokenSuggestion = (tokens) => {
     const priorityToken = tokens.find((token) => {
-      if (
-        token.priority === 1 &&
-        token.status !== "CONCLUIDO" &&
-        token.status !== "EM ATENDIMENTO"
-      ) {
-        return token;
+      if (token.priority === 1) {
+        if (token.status !== "CONCLUIDO" && token.status !== "EM ATENDIMENTO")
+          return token;
       }
       return null;
     });
 
     const normalToken = tokens.find((token) => {
-      if (
-        token.priority === 0 &&
-        token.status !== "CONCLUIDO" &&
-        token.status !== "EM ATENDIMENTO"
-      ) {
-        return token;
+      if (token.priority === 0) {
+        if (token.status !== "CONCLUIDO" && token.status !== "EM ATENDIMENTO")
+          return token;
       }
       return null;
     });
@@ -373,22 +372,34 @@ function TokensList() {
       }
     }
 
-    setPrioritySuggestion(
-      <SuggestionCard
-        targetId={priorityToken ? priorityToken.id : null}
-        target={priorityToken ? priorityToken : null}
-        service={priorityTokenService}
-        handleOpenModal={handleOpenModal}
-      />
-    );
-    setNormalSuggestion(
-      <SuggestionCard
-        targetId={normalToken ? normalToken.id : null}
-        target={normalToken ? normalToken : null}
-        service={normalTokenService}
-        handleOpenModal={handleOpenModal}
-      />
-    );
+    const findIndex = (id) => {
+      setItemKey(tokens.findIndex((t) => t.id === id));
+      onOpen();
+    };
+
+    if (priorityToken) {
+      setPrioritySuggestion(
+        <SuggestionCard
+          target={priorityToken}
+          service={priorityTokenService}
+          handleOpenModal={() => findIndex(priorityToken.id)}
+        />
+      );
+    } else {
+      setPrioritySuggestion(null);
+    }
+
+    if (normalToken) {
+      setNormalSuggestion(
+        <SuggestionCard
+          target={normalToken}
+          service={normalTokenService}
+          handleOpenModal={() => findIndex(normalToken.id)}
+        />
+      );
+    } else {
+      setNormalSuggestion(null);
+    }
   };
 
   useEffect(() => {
@@ -596,11 +607,15 @@ function TokensList() {
             )}
           </TableBody>
         </Table>
-        <p className="text-xl font-semibold mt-2">Sugestões</p>
-        <div className="flex flex-row w-full gap-1 mt-1">
-          {prioritySuggestion}
-          {normalSuggestion}
-        </div>
+        {(prioritySuggestion || normalSuggestion) && (
+          <>
+            <p className="text-xl font-semibold mt-2">Sugestões</p>
+            <div className="flex flex-row w-full gap-1 mt-1">
+              {prioritySuggestion}
+              {normalSuggestion}
+            </div>
+          </>
+        )}
       </div>
 
       <Modal
@@ -772,9 +787,6 @@ function TokensList() {
                 ) : (
                   <>
                     <Button
-                      isDisabled={
-                        currentUser.permission_level > 2 ? false : true
-                      }
                       className="bg-transparent text-failed w-15"
                       onPress={() => {
                         handleDeleteToken(tokens[itemKey].id);

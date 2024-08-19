@@ -10,16 +10,16 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 
 const SuggestionCard = ({ ...props }) => {
-  const { targetId, target, service, handleOpenModal } = props;
+  const { target, service, handleOpenModal } = props;
 
-  if (targetId) {
+  if (target.id) {
     return (
       <Card
         isPressable
         className="flex flex-col w-4/12 h-44 hover:cursor-pointer
                  hover:opacity-90 hover:ring-2 rounded-lg
                  hover:shadow-md hover:scale-[101%] transition-all"
-        onPress={() => handleOpenModal(targetId)}
+        onPress={handleOpenModal}
       >
         <div className="flex flex-col text-start indent-2">
           <p className="text-xl">Solicitante:</p>
