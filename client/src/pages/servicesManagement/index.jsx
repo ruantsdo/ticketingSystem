@@ -101,6 +101,8 @@ function ServicesManagement() {
     const response = await deleteService(id);
     if (response) {
       clearStates();
+      onOpenChange(false);
+      setAddServiceIsOpen(false);
     }
   };
 
@@ -119,7 +121,10 @@ function ServicesManagement() {
     };
 
     const response = await updateService(data);
-    if (response) onOpenChange(false);
+    if (response) {
+      onOpenChange(false);
+      setAddServiceIsOpen(false);
+    }
   };
 
   const handleCreateNewService = async () => {
@@ -135,7 +140,10 @@ function ServicesManagement() {
     };
 
     const response = await createNewService(data);
-    if (response) setAddServiceIsOpen(false);
+    if (response) {
+      onOpenChange(false);
+      setAddServiceIsOpen(false);
+    }
   };
 
   const handleGetItemKey = async (id) => {

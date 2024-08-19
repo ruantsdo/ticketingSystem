@@ -136,6 +136,8 @@ function UserManagement() {
 
     if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
       await createNewUser(data);
+      onOpenChange(false);
+      setAddUserIsOpen(false);
     } else {
       toast.info("As senhas devem ser iguais!");
     }
@@ -148,6 +150,8 @@ function UserManagement() {
     };
 
     await deleteUser(data);
+    onOpenChange(false);
+    setAddUserIsOpen(false);
   };
 
   const handleUpdateUser = async (id) => {
@@ -174,6 +178,8 @@ function UserManagement() {
     };
 
     await updateUser(data);
+    onOpenChange(false);
+    setAddUserIsOpen(false);
   };
 
   const handleStatusChange = (user) => {
