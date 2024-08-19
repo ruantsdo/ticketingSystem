@@ -21,12 +21,18 @@ const useModalController = () => {
 
       if (response.data.length > 0) {
         const user = response.data[0];
-        if (user.permission_level < 4 || user.status !== 1) {
+        if (user.permission_level < 3 || user.status !== 1) {
           toast.warn("Este Usuário não pode fazer essa operação!");
           return 0;
         }
 
-        return user.permission_level;
+        const data = {
+          id: user.id,
+          level: user.permission_level,
+          status: user.status,
+        };
+
+        return data;
       } else {
         toast.error("A validação falhou! Verifique suas credenciais ...");
         return 0;

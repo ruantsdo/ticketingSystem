@@ -38,8 +38,10 @@ const useUsersUtils = () => {
       });
     } else if (currentUser.permission_level === 4) {
       filteredPermissionLevels = [
+        { id: permissionLevels[0].id, name: permissionLevels[0].name },
         { id: permissionLevels[1].id, name: permissionLevels[1].name },
         { id: permissionLevels[2].id, name: permissionLevels[2].name },
+        { id: permissionLevels[3].id, name: permissionLevels[3].name },
       ];
     } else if (currentUser.permission_level === 5) {
       filteredPermissionLevels = permissionLevels;

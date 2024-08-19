@@ -12,9 +12,9 @@ export const ConfirmIdentityProvider = ({ children }) => {
     setAuthModalOpen(true);
   };
 
-  const handleAuthSuccess = (returnValue) => {
+  const handleAuthSuccess = (userLevel, userId, userStatus) => {
     if (onAuthSuccess) {
-      onAuthSuccess(returnValue);
+      onAuthSuccess(userLevel, userId, userStatus);
     }
     setAuthModalOpen(false);
   };

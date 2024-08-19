@@ -218,6 +218,11 @@ router.post("/users/update", async (req, res) => {
 });
 
 router.post("/users/remove", async (req, res) => {
+  if (req.body.id === 1) {
+    res.send("failed");
+    return;
+  }
+
   try {
     await db.query("DELETE FROM user_services WHERE user_id = ?", [
       req.body.id,

@@ -30,7 +30,13 @@ const AuthModal = () => {
     const response = await confirmIdentity(data);
 
     if (response) {
-      await handleAuthSuccess(response);
+      const { level, id, status } = response;
+
+      const userLevel = level;
+      const userId = id;
+      const userStatus = status;
+
+      await handleAuthSuccess(userLevel, userId, userStatus);
       handleCloseModal();
     }
   };

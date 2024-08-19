@@ -230,31 +230,66 @@ const useUsersStore = () => {
   };
 
   const updateUser = async (data) => {
-    if (!isAdmin && data.id !== currentUser.id) {
+    const {
+      id,
+      name,
+      email,
+      cpf,
+      permission,
+      password,
+      services,
+      passwordChanged,
+      status,
+      currentLevel,
+    } = data;
+
+    if (!isAdmin && id !== currentUser.id) {
       toast.info("Você não tem privilégios para realizar essa ação!");
       return;
     }
 
-    requestAuth(async (userLevel) => {
+    requestAuth(async (userLevel, userId) => {
       if (userLevel < 4) {
         toast.info("Este usuário não tem as permissões necessárias!");
         return;
       }
+
+      if (id === 1 && userId !== 1) {
+        toast.info(
+          "Você tem não privilégios suficientes para alterar este usuário!"
+        );
+        return;
+      }
+
+      if (currentLevel > userLevel) {
+        toast.info(
+          "Você tem não privilégios suficientes para alterar este usuário!"
+        );
+        return;
+      }
+
+      if (currentLevel === userLevel && id !== userId) {
+        if (userId !== 1) {
+          toast.info("Este usuário não pode ser alterado por você!");
+          return;
+        }
+      }
+
       setProcessingUserStore(true);
 
       try {
         await api
           .post("/users/update", {
-            id: data.id,
-            name: data.name,
-            email: data.email,
-            cpf: data.cpf,
-            level: data.permission,
+            id: id,
+            name: name,
+            email: email,
+            cpf: cpf,
+            level: permission,
             updated_by: currentUser.name,
-            password: data.password,
-            services: data.services,
-            passwordChanged: data.passwordChanged,
-            status: data.status,
+            password: password,
+            services: services,
+            passwordChanged: passwordChanged,
+            status: status,
           })
           .then(async (response) => {
             if (response.data === "success") {
@@ -269,7 +304,7 @@ const useUsersStore = () => {
             }
             if (!data.status) {
               disconnectUserSignal(data.id);
-              toast.info(`O usuário ${data.name} será desconectado... `);
+              toast.info(`O usuário "${data.name}" será desconectado... `);
             }
           });
       } catch (error) {
@@ -284,7 +319,9 @@ const useUsersStore = () => {
     });
   };
 
-  const deleteUser = async (id) => {
+  const deleteUser = async (data) => {
+    const { id, currentLevel } = data;
+
     if (!isAdmin) {
       toast.info("Você não tem privilégios para realizar essa ação!");
       return;
@@ -296,18 +333,31 @@ const useUsersStore = () => {
       return;
     }
 
-    requestAuth(async (userLevel) => {
-      if (userLevel < 4) {
-        toast.info("Este usuário não tem as permissões necessárias!");
-        return;
-      }
-      setProcessingUserStore(true);
-
+    requestAuth(async (userLevel, userId) => {
       if (id === 1) {
         toast.warn("Esse usuário não pode ser removido!");
         setProcessingUserStore(false);
         return;
       }
+
+      if (userLevel < 4) {
+        toast.info("Este usuário não tem as permissões necessárias!");
+        return;
+      }
+
+      if (currentLevel > userLevel) {
+        toast.info(
+          "Você tem não privilégios suficientes para alterar este usuário!"
+        );
+        return;
+      }
+
+      if (currentLevel === userLevel && userId !== 1) {
+        toast.info("Este usuário não pode ser alterado por você!");
+        return;
+      }
+
+      setProcessingUserStore(true);
 
       try {
         await api
@@ -319,6 +369,7 @@ const useUsersStore = () => {
               usersUpdatedSignal();
               disconnectUserSignal(id);
               toast.success("O usuário foi removido!");
+              toast.info("O usuário será desconectado!");
             } else if (response.data === "failed") {
               toast.error("Falha ao remover usuário!");
             }

@@ -141,8 +141,13 @@ function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    await deleteUser(id);
+  const handleDeleteUser = async (id, level) => {
+    const data = {
+      id: id,
+      currentLevel: level,
+    };
+
+    await deleteUser(data);
   };
 
   const handleUpdateUser = async (id) => {
@@ -157,7 +162,7 @@ function UserManagement() {
       name: currentTargetName,
       email: currentTargetEmail,
       cpf: currentTargetCPF,
-      permission: currentTargetLevel,
+      permission: selectedPermission,
       updated_by: currentUser.name,
       password: currentTargetNewPassword
         ? currentTargetNewPassword
@@ -165,6 +170,7 @@ function UserManagement() {
       passwordChanged: passwordChanged,
       services: selectedServices,
       status: currentTargetStatus,
+      currentLevel: currentTargetLevel,
     };
 
     await updateUser(data);
@@ -260,6 +266,7 @@ function UserManagement() {
     setCurrentTargetName(users[id].name);
     setCurrentTargetEmail(users[id].email);
     setCurrentTargetCPF(users[id].cpf);
+    setSelectedPermission(users[id].permission_level);
     setCurrentTargetLevel(users[id].permission_level);
     setCurrentTargetPassword(users[id].password);
     setCurrentTargetStatus(users[id].status);
@@ -462,7 +469,7 @@ function UserManagement() {
                         mode="failed"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
-                          handleDeleteUser(item.id);
+                          handleDeleteUser(item.id, item.permission_level);
                         }}
                         isDisabled={processingUserStore || !isAdmin}
                         isLoading={processingUserStore}
@@ -577,9 +584,9 @@ function UserManagement() {
                   label="Nível de permissão"
                   placeholder="Nível de permissão desta pessoa"
                   name="permissionLevel"
-                  selectedKeys={String(currentTargetLevel)}
+                  selectedKeys={String(selectedPermission)}
                   onSelectionChange={(values) => {
-                    setCurrentTargetLevel(values.currentKey);
+                    setSelectedPermission(values.currentKey);
                   }}
                 >
                   {(filteredPermissionLevels) => (
@@ -618,7 +625,10 @@ function UserManagement() {
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={async () => {
-                    await handleDeleteUser(users[itemKey].id);
+                    await handleDeleteUser(
+                      users[itemKey].id,
+                      users[itemKey].permission_level
+                    );
                     onClose();
                   }}
                   startContent={<DeleteForeverIcon />}
