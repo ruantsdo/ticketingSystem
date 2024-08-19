@@ -2,13 +2,7 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 
 //Components
-import {
-  Divider,
-  FullContainer,
-  Button,
-  Notification,
-  Input,
-} from "../../components";
+import { Divider, FullContainer, Button, Input } from "../../components";
 
 //NextUI
 import {
@@ -221,7 +215,6 @@ function ServicesManagement() {
 
   return (
     <FullContainer>
-      <Notification />
       <div className="flex flex-col w-full sm:w-[95%]">
         <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
           <div className="flex w-[80%] items-center">
