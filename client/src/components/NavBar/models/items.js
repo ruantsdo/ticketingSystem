@@ -3,7 +3,7 @@ const menuItems = [
     name: "Gerenciar usuários",
     color: "foreground",
     address: "/user/management",
-    level: 3,
+    level: 4,
   },
   {
     name: "Gerenciar serviços",
