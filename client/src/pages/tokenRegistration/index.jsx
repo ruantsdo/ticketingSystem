@@ -143,12 +143,12 @@ function QueueRegistration() {
         return true;
       }
 
-      if (service.data[0].limit > token.data.length && token.data.length >= 0) {
-        setAvailability(false);
+      if (service.data[0].limit >= token.data.length) {
+        setAvailability(true);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return true;
       } else {
-        setAvailability(true);
+        setAvailability(false);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return false;
       }
