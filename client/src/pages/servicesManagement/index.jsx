@@ -130,8 +130,8 @@ function ServicesManagement() {
     };
 
     await createNewService(data);
-    clearStates();
     setAddServiceIsOpen(false);
+    clearStates();
   };
 
   const handleGetItemKey = async (id) => {
@@ -377,7 +377,7 @@ function ServicesManagement() {
       <Modal
         isOpen={updateServiceIsOpen}
         size="lg"
-        onOpenChange={setUpdateServiceIsOpen(!updateServiceIsOpen)}
+        onOpenChange={() => setUpdateServiceIsOpen(!updateServiceIsOpen)}
         onClose={() => clearStates()}
         backdrop="opaque"
       >
@@ -486,7 +486,7 @@ function ServicesManagement() {
 
       <Modal
         isOpen={addServiceIsOpen}
-        onOpenChange={setAddServiceIsOpen(!addServiceIsOpen)}
+        onOpenChange={() => setAddServiceIsOpen(!addServiceIsOpen)}
         onClose={() => clearStates()}
       >
         <ModalContent>
