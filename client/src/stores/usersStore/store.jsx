@@ -141,14 +141,12 @@ const useUsersStore = () => {
               );
             }
           });
-        return true;
       } catch (error) {
         toast.error(
           "Falha ao cadastrar novo usuário. Tente novamente em alguns instantes"
         );
         console.error("Falha ao criar usuário");
         console.error(error);
-        return false;
       } finally {
         setProcessingUserStore(false);
       }
@@ -294,17 +292,18 @@ const useUsersStore = () => {
           .then(async (response) => {
             if (response.data === "success") {
               usersUpdatedSignal();
-              toast.success("Usuário atualizado!");
+              toast.success(`O usuário "${data.name}" foi atualizado!`);
+
+              if (!status) {
+                disconnectUserSignal(data.id);
+                toast.info(`O usuário será desconectado...`);
+              }
             } else if (response.data === "failed") {
               toast.error(
                 "Falha ao atualizar usuário! Tente novamente am alguns instantes"
               );
             } else if (response.data === "User already exists") {
               toast.warn("Este CPF já está em uso!");
-            }
-            if (!data.status) {
-              disconnectUserSignal(data.id);
-              toast.info(`O usuário "${data.name}" será desconectado... `);
             }
           });
       } catch (error) {
