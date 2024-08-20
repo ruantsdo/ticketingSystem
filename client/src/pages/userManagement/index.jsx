@@ -83,6 +83,7 @@ function UserManagement() {
   const [currentTargetNewPasswordConfirm, setCurrentTargetNewPasswordConfirm] =
     useState("");
   const [currentTargetStatus, setCurrentTargetStatus] = useState(false);
+  const [currentUserStatus, setCurrentUserStatus] = useState(false);
 
   const [services, setServices] = useState([]);
   const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
@@ -172,6 +173,7 @@ function UserManagement() {
       services: selectedServices,
       status: currentTargetStatus,
       currentLevel: currentTargetLevel,
+      currentStatus: currentUserStatus,
     };
 
     await updateUser(data);
@@ -272,6 +274,7 @@ function UserManagement() {
     setCurrentTargetLevel(users[id].permission_level);
     setCurrentTargetPassword(users[id].password);
     setCurrentTargetStatus(users[id].status);
+    setCurrentUserStatus(users[id].status);
   };
 
   const clearStates = () => {

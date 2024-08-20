@@ -239,6 +239,7 @@ const useUsersStore = () => {
       passwordChanged,
       status,
       currentLevel,
+      currentStatus,
     } = data;
 
     if (!isAdmin && id !== currentUser.id) {
@@ -292,10 +293,10 @@ const useUsersStore = () => {
           .then(async (response) => {
             if (response.data === "success") {
               usersUpdatedSignal();
-              toast.success(`O usuário "${data.name}" foi atualizado!`);
+              toast.success(`O usuário "${name}" foi atualizado!`);
 
-              if (!status) {
-                disconnectUserSignal(data.id);
+              if (!status && currentStatus) {
+                disconnectUserSignal(id);
                 toast.info(`O usuário será desconectado...`);
               }
             } else if (response.data === "failed") {
