@@ -105,8 +105,8 @@ function LocationManagement() {
       status: currentTargetStatus,
     };
 
-    const response = await updateLocation(data);
-    if (response) setOpenModal(false);
+    await updateLocation(data);
+    setOpenModal(false);
   };
 
   const handleAddNewLocation = async () => {
@@ -122,8 +122,8 @@ function LocationManagement() {
       created_by: currentUser.name,
     };
 
-    const response = await createNewLocation(data);
-    if (response) setOpenModal(false);
+    await createNewLocation(data);
+    setOpenModal(false);
   };
 
   const handleOpenModal = async (key) => {

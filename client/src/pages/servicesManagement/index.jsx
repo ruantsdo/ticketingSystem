@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
@@ -63,8 +62,8 @@ function ServicesManagement() {
     processingServicesStore,
   } = useServicesStore();
   const { findIndexById, removeAccents } = useGetDataUtils();
-  const { isOpen, onOpenChange } = useDisclosure();
   const [addServiceIsOpen, setAddServiceIsOpen] = useState(false);
+  const [updateServiceIsOpen, setUpdateServiceIsOpen] = useState(false);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
@@ -92,12 +91,10 @@ function ServicesManagement() {
   }, [page, filteredServices]);
 
   const handleDeleteService = async (id) => {
-    const response = await deleteService(id);
-    if (response) {
-      clearStates();
-      onOpenChange(false);
-      setAddServiceIsOpen(false);
-    }
+    await deleteService(id);
+
+    clearStates();
+    setUpdateServiceIsOpen(false);
   };
 
   const handleUpdateService = async (id) => {
@@ -114,11 +111,10 @@ function ServicesManagement() {
       status: currentTargetStatus,
     };
 
-    const response = await updateService(data);
-    if (response) {
-      onOpenChange(false);
-      setAddServiceIsOpen(false);
-    }
+    await updateService(data);
+
+    clearStates();
+    setUpdateServiceIsOpen(false);
   };
 
   const handleCreateNewService = async () => {
@@ -133,11 +129,9 @@ function ServicesManagement() {
       limit: currentTargetLimit ? currentTargetLimit : 0,
     };
 
-    const response = await createNewService(data);
-    if (response) {
-      onOpenChange(false);
-      setAddServiceIsOpen(false);
-    }
+    await createNewService(data);
+    clearStates();
+    setAddServiceIsOpen(false);
   };
 
   const handleGetItemKey = async (id) => {
@@ -145,7 +139,7 @@ function ServicesManagement() {
     if (!String(key)) return;
     updateStates(key);
     setItemKey(key);
-    onOpenChange(true);
+    setUpdateServiceIsOpen(true);
   };
 
   const handleSearch = () => {
@@ -381,9 +375,9 @@ function ServicesManagement() {
       </div>
 
       <Modal
-        isOpen={isOpen}
+        isOpen={updateServiceIsOpen}
         size="lg"
-        onOpenChange={onOpenChange}
+        onOpenChange={setUpdateServiceIsOpen(!updateServiceIsOpen)}
         onClose={() => clearStates()}
         backdrop="opaque"
       >
@@ -492,10 +486,8 @@ function ServicesManagement() {
 
       <Modal
         isOpen={addServiceIsOpen}
-        onOpenChange={() => {
-          clearStates();
-          setAddServiceIsOpen(!addServiceIsOpen);
-        }}
+        onOpenChange={setAddServiceIsOpen(!addServiceIsOpen)}
+        onClose={() => clearStates()}
       >
         <ModalContent>
           {(onClose) => (

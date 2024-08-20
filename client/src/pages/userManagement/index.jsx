@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
@@ -70,8 +69,8 @@ function UserManagement() {
     { key: "status", label: "STATUS" },
   ];
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [addUserIsOpen, setAddUserIsOpen] = useState(false);
+  const [editUserIsOpen, setEditUserIsOpen] = useState(false);
   const { currentUser, isAdmin } = useContext(AuthContext);
   const [disconnectMessage, setDisconnectMessage] = useState("");
 
@@ -136,7 +135,6 @@ function UserManagement() {
 
     if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
       await createNewUser(data);
-      onOpenChange(false);
       setAddUserIsOpen(false);
     } else {
       toast.info("As senhas devem ser iguais!");
@@ -150,8 +148,7 @@ function UserManagement() {
     };
 
     await deleteUser(data);
-    onOpenChange(false);
-    setAddUserIsOpen(false);
+    setEditUserIsOpen(false);
   };
 
   const handleUpdateUser = async (id) => {
@@ -178,8 +175,7 @@ function UserManagement() {
     };
 
     await updateUser(data);
-    onOpenChange(false);
-    setAddUserIsOpen(false);
+    setEditUserIsOpen(false);
   };
 
   const handleStatusChange = (user) => {
@@ -375,7 +371,7 @@ function UserManagement() {
           onRowAction={async (key) => {
             if (isAdmin) {
               await findIndexById(key);
-              onOpen();
+              setEditUserIsOpen(true);
             }
           }}
           isStriped
@@ -465,7 +461,7 @@ function UserManagement() {
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
                           findIndexById(item.id);
-                          onOpen();
+                          setEditUserIsOpen(true);
                         }}
                       >
                         <EditIcon fontSize="small" />
@@ -474,8 +470,11 @@ function UserManagement() {
                         isIconOnly
                         mode="failed"
                         className="w-5 rounded-full scale-80"
-                        onPress={() => {
-                          handleDeleteUser(item.id, item.permission_level);
+                        onPress={async () => {
+                          await handleDeleteUser(
+                            item.id,
+                            item.permission_level
+                          );
                         }}
                         isDisabled={processingUserStore || !isAdmin}
                         isLoading={processingUserStore}
@@ -492,10 +491,10 @@ function UserManagement() {
       </div>
 
       <Modal
-        isOpen={isOpen}
+        isOpen={editUserIsOpen}
         size="lg"
         onOpenChange={() => {
-          onOpenChange();
+          setEditUserIsOpen(!editUserIsOpen);
         }}
         onClose={() =>
           setTimeout(() => {
@@ -634,8 +633,7 @@ function UserManagement() {
                     await handleDeleteUser(
                       users[itemKey].id,
                       users[itemKey].permission_level
-                    );
-                    onClose();
+                    ).then(() => setEditUserIsOpen(false));
                   }}
                   startContent={<DeleteForeverIcon />}
                   isDisabled={processingUserStore}
