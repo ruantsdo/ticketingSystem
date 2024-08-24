@@ -178,6 +178,7 @@ function UserManagement() {
 
     await updateUser(data);
     setEditUserIsOpen(false);
+    clearStates();
   };
 
   const handleStatusChange = (user) => {
