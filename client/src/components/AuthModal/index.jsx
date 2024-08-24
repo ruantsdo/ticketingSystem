@@ -94,6 +94,7 @@ const AuthModal = () => {
               />
               <Input
                 isRequired
+                type="password"
                 label="Senha"
                 name="password"
                 onChange={formik.handleChange}
