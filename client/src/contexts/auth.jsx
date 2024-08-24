@@ -108,6 +108,9 @@ export const AuthProvider = ({ children }) => {
     if (isDatePassed(lastDay)) {
       //A day has passed since the last check
       if (settings.forceDailyLogin) {
+        if (currentUser.permission_level === 1) {
+          return;
+        }
         toast.info("É preciso fazer login novamente!");
         wipeUserData();
         return;
