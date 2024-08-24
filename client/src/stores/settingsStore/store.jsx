@@ -13,7 +13,11 @@ import useSocketUtils from "../../utils/socketUtils";
 const useSettingsStore = () => {
   const { isAdmin, currentUser } = useContext(AuthContext);
   const { requestAuth } = useConfirmIdentity();
-  const { settingsUpdateSignal } = useSocketUtils();
+  const {
+    settingsUpdateSignal,
+    disconnectAllUsersSignal,
+    updateCurrentVolumeSignal,
+  } = useSocketUtils();
 
   const [processingSettingsStore, setProcessingSettingsStore] = useState(false);
 
@@ -45,7 +49,7 @@ const useSettingsStore = () => {
       }
 
       setProcessingSettingsStore(true);
-      const { autoAprove, forceDailyLogin, registerForm } = data;
+      const { autoAprove, forceDailyLogin, registerForm, canLogin } = data;
 
       try {
         await api
@@ -54,6 +58,7 @@ const useSettingsStore = () => {
             autoAprove: autoAprove,
             forceDailyLogin: forceDailyLogin,
             registerForm: registerForm,
+            canLogin: canLogin,
           })
           .then((response) => {
             settingsUpdateSignal();
@@ -207,28 +212,6 @@ const useSettingsStore = () => {
     });
   };
 
-  const resetPool = async () => {
-    requestAuth(async (userLevel) => {
-      if (userLevel < 5) {
-        toast.warn("Esse usuário não tem as permissões necessárias");
-        return;
-      }
-
-      setProcessingSettingsStore(true);
-
-      try {
-        await api.get(`/resetPool`);
-        toast.success("Pool de conexões foi redefinido com sucesso.");
-      } catch (error) {
-        toast.error("Falha ao redefinir o pool de conexões.");
-        console.error("Falha ao redefinir o pool de conexões.");
-        console.error(error);
-      } finally {
-        setProcessingSettingsStore(false);
-      }
-    });
-  };
-
   const restoreDatabase = async () => {
     requestAuth(async (userLevel) => {
       if (userLevel < 5) {
@@ -251,6 +234,48 @@ const useSettingsStore = () => {
     });
   };
 
+  const disconnectAllUsers = async () => {
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Esse usuário não tem as permissões necessárias");
+        return;
+      }
+
+      setProcessingSettingsStore(true);
+
+      try {
+        await disconnectAllUsersSignal;
+        toast.success("Todos os usuários conectados serão desconectados!");
+      } catch (error) {
+        toast.error("Falha ao desconectar usuários.");
+        console.error(error);
+      } finally {
+        setProcessingSettingsStore(false);
+      }
+    });
+  };
+
+  const updateCurrentVolume = (data) => {
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Esse usuário não tem as permissões necessárias");
+        return;
+      }
+
+      setProcessingSettingsStore(true);
+
+      try {
+        await updateCurrentVolumeSignal(data);
+        toast.success("volume ajustado!");
+      } catch (error) {
+        toast.error("Falha ao ajustar volume.");
+        console.error(error);
+      } finally {
+        setProcessingSettingsStore(false);
+      }
+    });
+  };
+
   return {
     processingSettingsStore,
     getFullSettings,
@@ -260,8 +285,9 @@ const useSettingsStore = () => {
     handleRestoreBackup,
     handleClearTable,
     backupCurrentTokens,
-    resetPool,
     restoreDatabase,
+    disconnectAllUsers,
+    updateCurrentVolume,
   };
 };
 

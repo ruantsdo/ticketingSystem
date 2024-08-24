@@ -80,6 +80,7 @@ function LoginPage() {
         <LoginForm
           changeMode={changeMode}
           registerForm={settings.registerForm}
+          canLogin={settings.canLogin}
         />
       )}
     </Container>

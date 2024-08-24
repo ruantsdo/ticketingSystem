@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 //Toast
 import { toast } from "react-toastify";
 
-const LoginForm = ({ changeMode, registerForm }) => {
+const LoginForm = ({ changeMode, registerForm, canLogin }) => {
   const { setCurrentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -42,6 +42,13 @@ const LoginForm = ({ changeMode, registerForm }) => {
           .then((response) => {
             if (response.data.length > 0) {
               const currentUser = response.data[0];
+
+              if (!canLogin) {
+                if (currentUser.permission_level < 4) {
+                  toast.warn("O sistema está em  manutenção no momento!");
+                  return;
+                }
+              }
 
               const startDate = new Date();
               localStorage.setItem("lastDay", JSON.stringify(startDate));
@@ -111,10 +118,10 @@ const LoginForm = ({ changeMode, registerForm }) => {
           <Button
             endContent={<LoginIcon />}
             type="submit"
-            mode="success"
+            mode={canLogin ? "success" : "failed"}
             isLoading={processingLogin}
           >
-            Entrar
+            {canLogin ? "Entrar" : "Sistema em manutenção"}
           </Button>
         </Form>
       </Formik>

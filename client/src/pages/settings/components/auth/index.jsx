@@ -14,6 +14,7 @@ const AuthSettings = () => {
   const { processingSettingsStore, updateSettings, getFullSettings } =
     useSettingsStore();
 
+  const [canLogin, setCanLogin] = useState(true);
   const [autoAprove, setAutoAprove] = useState(false);
   const [forceLogin, setForceLogin] = useState(false);
   const [selfRegister, setSelfRegister] = useState(false);
@@ -24,6 +25,7 @@ const AuthSettings = () => {
       toast.error("Falha ao obter configurações.");
       return;
     }
+    setCanLogin(response.canLogin);
     setAutoAprove(response.autoAprove);
     setForceLogin(response.forceDailyLogin);
     setSelfRegister(response.registerForm);
@@ -31,6 +33,7 @@ const AuthSettings = () => {
 
   const handleUpdateSettings = async () => {
     const settingsData = {
+      canLogin: canLogin,
       autoAprove: autoAprove,
       forceDailyLogin: forceLogin,
       registerForm: selfRegister,
@@ -62,6 +65,24 @@ const AuthSettings = () => {
       >
         {!processingSettingsStore && <SaveIcon />} Salvar configuração
       </Button>
+      <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
+        <p className="text-lg font-medium">Permitir login</p>
+        <p>Quando desativado não será possível fazer novos login no sistema.</p>
+        <p>
+          NÃO IMPEDE ADMINISTRADORES OU CONTAS 'MASTER' DE ENTRAR NO SISTEMA.
+        </p>
+        <div className="bg-darkBackground dark:bg-background border-1 border-background dark:border-darkBackground w-44 p-3 rounded-lg">
+          <Switch
+            isSelected={canLogin}
+            onValueChange={setCanLogin}
+            color="success"
+          >
+            <p className="text-darkTextColor dark:text-textColor">
+              {canLogin ? "Ativado" : "Desativado"}
+            </p>
+          </Switch>
+        </div>
+      </div>
       <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
         <p className="text-lg font-medium">Auto aprovar usuários</p>
         <p>
