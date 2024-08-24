@@ -9,43 +9,32 @@ const {
 
 const mysql = require("mysql");
 
-let pool = mysql.createPool({
-  connectionLimit: MAX_CONNECTIONS,
-  host: DATABASE_HOST,
-  port: DATABASE_PORT,
-  database: DATABASE_NAME,
-  user: DATABASE_USER,
-  password: DATABASE_PASSWORD,
-});
+let pool;
 
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log("Conexão com o banco de dados foi estabelecida com sucesso...");
-    connection.release();
-  }
-});
+function createPool() {
+  pool = mysql.createPool({
+    connectionLimit: MAX_CONNECTIONS,
+    host: DATABASE_HOST,
+    port: DATABASE_PORT,
+    database: DATABASE_NAME,
+    user: DATABASE_USER,
+    password: DATABASE_PASSWORD,
+  });
 
-function resetPool() {
-  return new Promise((resolve, reject) => {
-    pool.end((err) => {
-      if (err) {
-        return reject(err);
-      }
-      console.log("Pool de conexões encerrado.");
-      pool = mysql.createPool({
-        connectionLimit: MAX_CONNECTIONS,
-        host: DATABASE_HOST,
-        port: DATABASE_PORT,
-        database: DATABASE_NAME,
-        user: DATABASE_USER,
-        password: DATABASE_PASSWORD,
-      });
-      console.log("Novo pool de conexões criado.");
-      resolve();
-    });
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log("A conexão com o banco de dados foi estabelecida...");
+      connection.release();
+    }
   });
 }
 
-module.exports = { pool, resetPool };
+const getPoolReference = () => {
+  return pool;
+};
+
+createPool();
+
+module.exports = { getPoolReference };

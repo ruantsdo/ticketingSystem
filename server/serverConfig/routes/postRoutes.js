@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { pool } = require("../dbConnection");
+const { getPoolReference } = require("../dbConnection");
 const { exec } = require("child_process");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -17,7 +17,7 @@ const {
   DATABASE_NAME,
 } = require("../variables");
 
-const db = pool;
+let db = getPoolReference();
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
 const tempFolder = "./temp";
@@ -198,8 +198,8 @@ router.post("/users/update", async (req, res) => {
           return res.send("User already exists");
         } else {
           await db.query(
-            "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ? WHERE id = ?",
-            [name, email, status, cpf, level, updated_by, getTime(), id]
+            "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ?, password = ? WHERE id = ?",
+            [name, email, status, cpf, level, updated_by, getTime(), hash, id]
           );
 
           const response = await UpdateSelectedServices(id, services);
@@ -519,7 +519,8 @@ router.delete("/deleteVideo/:videoName", (req, res) => {
 });
 
 router.post("/settings/update", async (req, res) => {
-  const { autoAprove, forceDailyLogin, registerForm, userId } = req.body;
+  const { autoAprove, forceDailyLogin, registerForm, canLogin, userId } =
+    req.body;
 
   try {
     const isAdmin = await db.query(
@@ -532,8 +533,8 @@ router.post("/settings/update", async (req, res) => {
     }
 
     await db.query(
-      "UPDATE settings SET autoAprove = ?, forceDailyLogin = ?, registerForm = ? WHERE id = 1",
-      [autoAprove, forceDailyLogin, registerForm]
+      "UPDATE settings SET autoAprove = ?, forceDailyLogin = ?, registerForm = ?, canLogin = ? WHERE id = 1",
+      [autoAprove, forceDailyLogin, registerForm, canLogin]
     );
     res.send("Configurações atualizadas");
   } catch (err) {

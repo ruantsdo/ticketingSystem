@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { pool, resetPool } = require("../dbConnection");
+const { getPoolReference } = require("../dbConnection");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
@@ -14,7 +14,7 @@ const {
   DATABASE_NAME,
 } = require("../variables");
 
-const db = pool;
+let db = getPoolReference();
 
 const videosFolder = "./videos";
 const thumbsFolder = "./videoThumbs";
@@ -380,7 +380,7 @@ router.get("/thumbnail/:videoName", (req, res) => {
 
 router.get("/verifySettings", (req, res) => {
   db.query(
-    "SELECT autoAprove, forceDailyLogin, registerForm, defaultVolume from settings WHERE id = 1",
+    "SELECT autoAprove, forceDailyLogin, registerForm, canLogin, defaultVolume from settings WHERE id = 1",
     (err, result) => {
       if (err) {
         res.status(500).send("Falha ao obter configurações atuais!");
@@ -520,16 +520,6 @@ router.get("/backupCurrentTokens", async (req, res) => {
   } catch (err) {
     console.error("Erro na criação do backup:", err);
     res.status(500).send("Falha criar backup.");
-  }
-});
-
-router.get("/resetPool", async (req, res) => {
-  try {
-    await resetPool();
-    res.status(200).send("Pool de conexões foi redefinido com sucesso.");
-  } catch (err) {
-    console.error("Erro ao redefinir o pool de conexões:", err);
-    res.status(500).send("Falha ao redefinir o pool de conexões.");
   }
 });
 
