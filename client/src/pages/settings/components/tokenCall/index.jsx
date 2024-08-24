@@ -18,14 +18,15 @@ import useSocketUtils from "../../../../utils/socketUtils";
 
 const TokenCallSettings = () => {
   const { socket } = useWebSocket();
-  const { processingSettingsStore, updateDefaultVolume, getFullSettings } =
-    useSettingsStore();
-
   const {
-    requireCurrentVolumeSignal,
-    updateCurrentVolumeSignal,
-    resetTokenCallScreenSignal,
-  } = useSocketUtils();
+    processingSettingsStore,
+    updateDefaultVolume,
+    getFullSettings,
+    updateCurrentVolume,
+  } = useSettingsStore();
+
+  const { requireCurrentVolumeSignal, resetTokenCallScreenSignal } =
+    useSocketUtils();
 
   const [screenData, setScreenData] = useState([]);
   const [defaultVolume, setDefaultVolume] = useState(0);
@@ -48,15 +49,16 @@ const TokenCallSettings = () => {
 
   const handleUpdateDefaultVolume = async () => {
     await updateDefaultVolume(defaultVolume);
-    updateCurrentVolume();
+    handleUpdateCurrentVolume();
   };
 
-  const updateCurrentVolume = () => {
+  const handleUpdateCurrentVolume = () => {
     const data = {
       id: targetId,
       currentVolume: currentVolume,
     };
-    updateCurrentVolumeSignal(data);
+
+    updateCurrentVolume(data);
   };
 
   const handleResetScreen = () => {

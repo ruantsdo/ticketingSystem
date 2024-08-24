@@ -68,7 +68,6 @@ function TokenCallDefault() {
 
   const maxListLength = Math.ceil(window.innerHeight / 180); //Define how many rows the tables have based on screen resolution
   const delayBeforeSpeech = 5000; //Delay before start speak
-  const initialVideoVolume = 0;
 
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -147,7 +146,7 @@ function TokenCallDefault() {
       utterance.addEventListener("end", () => {
         setIsSpeaking(false);
         if (videoRef.current) {
-          videoRef.current.volume = initialVideoVolume;
+          videoRef.current.volume = currentVolume;
         }
       });
 
@@ -237,14 +236,14 @@ function TokenCallDefault() {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.addEventListener("ended", handleVideosList);
-      videoRef.current.volume = currentVolume || initialVideoVolume;
+      videoRef.current.volume = currentVolume || defaultVolume;
     }
 
     return () => {
       if (videoRef.current) {
         videoRef.current.removeEventListener("ended", handleVideosList);
         // eslint-disable-next-line
-        videoRef.current.volume = currentVolume || initialVideoVolume;
+        videoRef.current.volume = currentVolume || defaultVolume;
       }
     };
     // eslint-disable-next-line
