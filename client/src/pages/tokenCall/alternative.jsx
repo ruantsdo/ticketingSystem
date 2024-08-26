@@ -130,7 +130,7 @@ function TokenCallAlternative() {
   };
 
   const speakText = useCallback(
-    async (text) => {
+    async (text, currentVolume) => {
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
@@ -198,7 +198,7 @@ function TokenCallAlternative() {
       return updatedTokens;
     });
 
-    await speakText(textToSpeak);
+    await speakText(textToSpeak, currentVolume);
 
     const updatedQueue = callQueue;
     updatedQueue.shift();

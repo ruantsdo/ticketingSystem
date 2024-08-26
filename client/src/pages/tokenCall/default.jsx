@@ -107,6 +107,7 @@ function TokenCallDefault() {
   const handleSettings = async () => {
     const response = await getFullSettings();
     if (!response) return;
+
     setDefaultVolume(response.defaultVolume);
     setCurrentVolume(response.defaultVolume);
   };
@@ -130,7 +131,7 @@ function TokenCallDefault() {
   };
 
   const speakText = useCallback(
-    async (text) => {
+    async (text, currentVolume) => {
       const voices = window.speechSynthesis.getVoices();
       const ptBrVoice = voices.find((voice) => voice.lang === "pt-BR");
       const utterance = new SpeechSynthesisUtterance(text);
@@ -198,7 +199,7 @@ function TokenCallDefault() {
       return updatedTokens;
     });
 
-    await speakText(textToSpeak);
+    await speakText(textToSpeak, currentVolume);
 
     const updatedQueue = callQueue;
     updatedQueue.shift();
