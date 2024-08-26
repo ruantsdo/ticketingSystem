@@ -266,7 +266,7 @@ const useSettingsStore = () => {
 
       try {
         await updateCurrentVolumeSignal(data);
-        toast.success("volume ajustado!");
+        toast.success(`Volume de "${data.name}" ajustado!`);
       } catch (error) {
         toast.error("Falha ao ajustar volume.");
         console.error(error);
