@@ -75,6 +75,9 @@ const TokenCallSettings = () => {
   useEffect(() => {
     socket.on("sendCurrentVolume", (data) => {
       if (data.id) {
+        const equalData = screenData.find((item) => item.id === data.id);
+        if (equalData) return;
+
         setScreenData([...screenData, data]);
       }
     });
