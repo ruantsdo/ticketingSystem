@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
@@ -22,6 +21,7 @@ import {
   Spinner,
   Select,
   SelectItem,
+  Switch,
 } from "@nextui-org/react";
 
 //Icons
@@ -29,27 +29,50 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import SearchIcon from "@mui/icons-material/Search";
+import CachedIcon from "@mui/icons-material/Cached";
 
 //Contexts
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
 
-//Services
-import api from "../../services/api";
-
 //Toast
 import { toast } from "react-toastify";
 
-//Hooks
-import useGetUserInfo from "../../Hooks/getUserInfos";
+//Stores
+import useUsersStore from "../../stores/usersStore/store";
+import useServicesStore from "../../stores/servicesStore/store";
+
+//Utils
+import useUsersUtils from "../../stores/usersStore/utils";
+import useGetDataUtils from "../../utils/getDataUtils";
 
 function UserManagement() {
   const { socket } = useWebSocket();
-  const { getUserServices } = useGetUserInfo();
+  const {
+    getUsersList,
+    createNewUser,
+    updateUser,
+    deleteUser,
+    getUserServices,
+    processingUserStore,
+  } = useUsersStore();
+  const { filterPermissionLevels } = useUsersUtils();
+  const { getAllServices } = useServicesStore();
+  const { getPermissionLevels, removeAccents } = useGetDataUtils();
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const searchOptions = [
+    { key: "name", label: "NOME" },
+    { key: "email", label: "EMAIL" },
+    { key: "cpf", label: "CPF" },
+    { key: "permission_level", label: "CARGO" },
+    { key: "status", label: "STATUS" },
+  ];
+
   const [addUserIsOpen, setAddUserIsOpen] = useState(false);
-  const { currentUser } = useContext(AuthContext);
+  const [editUserIsOpen, setEditUserIsOpen] = useState(false);
+  const { currentUser, isAdmin } = useContext(AuthContext);
+  const [disconnectMessage, setDisconnectMessage] = useState("");
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetEmail, setCurrentTargetEmail] = useState("");
@@ -59,15 +82,22 @@ function UserManagement() {
   const [currentTargetNewPassword, setCurrentTargetNewPassword] = useState("");
   const [currentTargetNewPasswordConfirm, setCurrentTargetNewPasswordConfirm] =
     useState("");
+  const [currentTargetStatus, setCurrentTargetStatus] = useState(false);
+  const [currentUserStatus, setCurrentUserStatus] = useState(false);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [services, setServices] = useState([]);
+  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [permissions, setPermissions] = useState([]);
 
-  const [services, setServices] = useState();
-  const [filteredPermissionLevels, setFilteredPermissionLevels] = useState();
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedPermission, setSelectedPermission] = useState();
 
-  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [usersStatusCount, setUsersStatusCount] = useState();
+
   const [page, setPage] = useState(1);
   const [itemKey, setItemKey] = useState();
 
@@ -79,14 +109,13 @@ function UserManagement() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return users.slice(start, end);
-  }, [page, users]);
+    return filteredUsers.slice(start, end);
+  }, [page, filteredUsers]);
 
-  const findIndexById = (key) => {
+  const findIndexById = async (key) => {
     for (let i = 0; i < users.length; i++) {
       // eslint-disable-next-line
       if (users[i].id == key) {
-        filterUserServices(users[i].id);
         setItemKey(i);
         updateStates(i);
         return;
@@ -94,255 +123,159 @@ function UserManagement() {
     }
   };
 
-  const checkLevel = () => {
-    if (currentUser.permission_level > 2) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  };
-
-  const handleServices = async () => {
-    try {
-      const response = await api.get("/services/query");
-      setServices(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handlePermissionsLevels = async () => {
-    try {
-      const response = await api.get("/permissionsLevels");
-      defineFilteredPermissionLevels(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const defineFilteredPermissionLevels = (data) => {
-    let filteredPermissionLevels = [];
-
-    if (currentUser.permission_level === 3) {
-      filteredPermissionLevels.push({ id: data[1].id, name: data[1].name });
-    } else if (currentUser.permission_level === 4) {
-      filteredPermissionLevels = [
-        { id: data[1].id, name: data[1].name },
-        { id: data[2].id, name: data[2].name },
-      ];
-    } else if (currentUser.permission_level === 5) {
-      filteredPermissionLevels = data;
-    }
-
-    setFilteredPermissionLevels(filteredPermissionLevels);
-  };
-
   const handleCreateNewUser = async () => {
-    if (
-      !currentTargetCPF ||
-      !currentTargetName ||
-      !currentTargetNewPassword ||
-      !selectedPermission ||
-      !selectedServices
-    ) {
-      toast.info(`Campos com * são obrigatórios!`);
+    const data = {
+      name: currentTargetName,
+      email: currentTargetEmail,
+      cpf: currentTargetCPF,
+      permission: selectedPermission,
+      updated_by: currentUser.name,
+      password: currentTargetNewPassword,
+      services: selectedServices,
+    };
+
+    if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
+      await createNewUser(data);
+      setAddUserIsOpen(false);
     } else {
-      if (currentTargetEmail) {
-        const duplicateUsers = users.filter(
-          (user) => user.email === currentTargetEmail
-        );
-
-        if (duplicateUsers.length) {
-          toast.info("Já existe um usuário com esse Email!");
-          return;
-        }
-      }
-
-      if (currentTargetNewPasswordConfirm === currentTargetNewPassword) {
-        try {
-          await api
-            .post("/user/registration", {
-              name: currentTargetName,
-              email: currentTargetEmail,
-              cpf: currentTargetCPF,
-              services: selectedServices,
-              permissionLevel: selectedPermission,
-              password: currentTargetNewPassword,
-              created_by: currentUser.name,
-            })
-            .then((response) => {
-              if (response.data === "New user created") {
-                emitSignal();
-                clearStates();
-                toast.success("Novo usuário cadastrado!");
-                setAddUserIsOpen(false);
-              } else if (response.data === "User already exists") {
-                toast.info("Já existe um cadastrado usuário com esse CPF!");
-              } else {
-                toast.error(
-                  "Houve um problema ao cadastrar o novo usuário! Tente novamente em alguns instantes!"
-                );
-                clearStates();
-                setAddUserIsOpen(false);
-              }
-            });
-        } catch (err) {
-          console.log(err);
-        }
-      } else {
-        toast.info("As senhas devem ser iguais!");
-      }
+      toast.info("As senhas devem ser iguais!");
     }
   };
 
-  const handleUsersServices = async () => {
-    try {
-      const response = await api.get("/user_services/query/full");
-      return response.data;
-    } catch (error) {
-      console.log(error);
-    }
+  const handleDeleteUser = async (id, level) => {
+    const data = {
+      id: id,
+      currentLevel: level,
+    };
+
+    await deleteUser(data);
+    setEditUserIsOpen(false);
   };
 
-  const handleUsersList = async () => {
-    try {
-      const response = await api.get("/users/query/full");
-      filterUsers(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const filterUsers = async (usersList) => {
-    if (currentUser.permission_level > 3) {
-      setUsers(usersList);
-    } else {
-      const currentTargetServices = await getUserServices(currentUser.id);
-      const userServices = await handleUsersServices();
-      try {
-        const filteredUsers = userServices.filter((user) => {
-          return currentTargetServices.some((service) => {
-            return user.service_id === service.service_id;
-          });
-        });
-
-        const uniqueUserIds = [
-          ...new Set(filteredUsers.map((user) => user.user_id)),
-        ];
-
-        const filteredUsersList = usersList.filter((user) => {
-          return uniqueUserIds.some((uniqueUser) => {
-            return user.id === uniqueUser;
-          });
-        });
-
-        setUsers(filteredUsersList);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
-  const checkUserCpf = async (id) => {
-    const duplicateUsers = users.filter(
-      (user) => user.cpf === currentTargetCPF
-    );
-
-    if (duplicateUsers.length > 0) {
-      const checkId = duplicateUsers.some((user) => user.id !== id);
-      if (checkId) {
-        toast.info("Já existe um usuário com esse CPF!");
-      } else {
-        await checkUserEmail(id);
-      }
-    } else {
-      await checkUserEmail(id);
-    }
-  };
-
-  const checkUserEmail = async (id) => {
-    const duplicateUsers = users.filter(
-      (user) => user.email === currentTargetEmail
-    );
-
-    if (duplicateUsers.length > 0) {
-      const checkId = duplicateUsers.some((user) => user.id !== id);
-      if (checkId) {
-        toast.info("Já existe um usuário com esse Email!");
-      } else {
-        await updateUser(id);
-      }
-    } else {
-      await updateUser(id);
-    }
-  };
-
-  const removeUser = async (id) => {
-    if (id === 1) {
-      toast.warn("Esse usuário não pode ser removido!");
-      return;
-    }
-
-    try {
-      await api
-        .post("/users/remove", {
-          id: id,
-        })
-        .then((response) => {
-          if (response.data === "success") {
-            emitSignal();
-            toast.success("O usuário foi removido!");
-          } else if (response.data === "failed") {
-            toast.error("Falha ao remover usuário!");
-          }
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const updateUser = async (id) => {
+  const handleUpdateUser = async (id) => {
     let passwordChanged = false;
 
     if (currentTargetNewPassword) {
       passwordChanged = true;
     }
 
-    try {
-      await api
-        .post("/users/update", {
-          id: id,
-          name: currentTargetName,
-          email: currentTargetEmail,
-          cpf: currentTargetCPF,
-          level: currentTargetLevel,
-          updated_by: currentUser.name,
-          password: currentTargetNewPassword
-            ? currentTargetNewPassword
-            : currentTargetPassword,
-          passwordChanged: passwordChanged,
-          services: selectedServices,
-        })
-        .then(async (response) => {
-          if (response.data === "success") {
-            emitSignal();
-            toast.success("Usuário atualizado!");
-            clearStates();
-          } else if (response.data === "failed") {
-            toast.error("Falha ao atualizar usuário!");
-          }
-        });
-    } catch (error) {
-      console.error(error);
+    const data = {
+      id: id,
+      name: currentTargetName,
+      email: currentTargetEmail,
+      cpf: currentTargetCPF,
+      permission: selectedPermission,
+      updated_by: currentUser.name,
+      password: currentTargetNewPassword
+        ? currentTargetNewPassword
+        : currentTargetPassword,
+      passwordChanged: passwordChanged,
+      services: selectedServices,
+      status: currentTargetStatus,
+      currentLevel: currentTargetLevel,
+      currentStatus: currentUserStatus,
+    };
+
+    await updateUser(data);
+    setEditUserIsOpen(false);
+    clearStates();
+  };
+
+  const handleStatusChange = (user) => {
+    if (currentTargetStatus === false && user.status === true) {
+      setDisconnectMessage("Isso irá desconectar o usuário");
+    } else {
+      setDisconnectMessage("");
+    }
+    setCurrentTargetStatus(!currentTargetStatus);
+  };
+
+  const handleSearch = () => {
+    const finalSearchValue = removeAccents(searchValue);
+    if (!selectedFilter) {
+      toast.info("O filtro deve ser selecionado antes da pesquisa");
+      return;
+    }
+    if (selectedFilter === "permission_level") {
+      const level = permissions.filter((item) => {
+        return removeAccents(item.name) === finalSearchValue;
+      });
+
+      const filtered = filteredUsers.filter((item) => {
+        return item[selectedFilter] === level.id;
+      });
+      setFilteredUsers(filtered);
+    } else if (selectedFilter === "status") {
+      const value = finalSearchValue === "ATIVO" ? 1 : 0;
+      const filtered = filteredUsers.filter((item) => {
+        return item.status === value;
+      });
+      setFilteredUsers(filtered);
+    } else {
+      const cleanSearchValue = finalSearchValue;
+      const trueSearchValue =
+        cleanSearchValue === "NAO INFORMADO" ? "" : cleanSearchValue;
+      const filtered = filteredUsers.filter((item) => {
+        const lowerItemValue = removeAccents(item[selectedFilter]);
+        return lowerItemValue.includes(trueSearchValue);
+      });
+      setFilteredUsers(filtered);
     }
   };
 
-  const updateStates = (id) => {
+  const countUsersData = () => {
+    const data = { active: 0, unproved: 0, inactive: 0 };
+
+    filteredUsers.map((item) => {
+      if (item.status) {
+        return data.active++;
+      } else if (!item.status && !item.updated_by) {
+        return data.unproved++;
+      } else {
+        return data.inactive++;
+      }
+    });
+
+    setUsersStatusCount(data);
+  };
+
+  const getInitialData = async () => {
+    try {
+      const [
+        servicesData,
+        filteredPermissionLevelsData,
+        permissions,
+        usersData,
+      ] = await Promise.all([
+        getAllServices(),
+        filterPermissionLevels(),
+        getPermissionLevels(),
+        getUsersList(),
+      ]);
+      setServices(servicesData);
+      setFilteredPermissionLevels(filteredPermissionLevelsData);
+      setPermissions(permissions);
+      setUsers(usersData);
+      setFilteredUsers(usersData);
+    } catch (error) {
+      console.error("Erro ao obter dados iniciais:", error);
+      throw error;
+    }
+  };
+
+  const updateStates = async (id) => {
+    const userServices = await getUserServices(users[id].id);
+    const values = userServices.map((user) => String(Object.values(user)));
+    setSelectedServices(values);
+
     setCurrentTargetName(users[id].name);
     setCurrentTargetEmail(users[id].email);
     setCurrentTargetCPF(users[id].cpf);
+    setSelectedPermission(users[id].permission_level);
     setCurrentTargetLevel(users[id].permission_level);
     setCurrentTargetPassword(users[id].password);
+    setCurrentTargetStatus(users[id].status);
+    setCurrentUserStatus(users[id].status);
   };
 
   const clearStates = () => {
@@ -355,41 +288,20 @@ function UserManagement() {
     setCurrentTargetNewPasswordConfirm(null);
     setSelectedServices([]);
     setSelectedPermission(null);
+    setDisconnectMessage("");
   };
 
-  const filterUserServices = async (id) => {
-    try {
-      const response = await getUserServices(id);
+  useEffect(() => {
+    countUsersData();
 
-      const filtered = response.map((resp) => {
-        const foundService = services.find(
-          (service) => service.id === resp.service_id
-        );
-        return foundService ? String(foundService.id) : null;
-      });
-
-      setSelectedServices(filtered);
-    } catch (error) {
-      console.error("Erro ao obter serviços do usuário:", error);
-    }
-  };
-
-  const getInitialData = async () => {
-    await handleServices();
-    await handlePermissionsLevels();
-    await handleUsersList();
-    await checkLevel();
-  };
-
-  const emitSignal = () => {
-    socket.emit("users_updated");
-  };
+    // eslint-disable-next-line
+  }, [filteredUsers]);
 
   useEffect(() => {
     getInitialData();
 
     socket.on("users_updated", async () => {
-      await handleUsersList();
+      await getInitialData(setServices, setFilteredPermissionLevels, setUsers);
     });
 
     return () => {
@@ -402,25 +314,77 @@ function UserManagement() {
   return (
     <FullContainer>
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Button
-            mode="success"
-            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
-            startContent={<AddIcon />}
-            onPress={() => setAddUserIsOpen(true)}
-          >
-            Novo usuário
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
+          <div className="flex w-[80%] items-center">
+            <Input
+              variant="bordered"
+              size="sm"
+              className="w-5/12"
+              label="BUSCAR POR"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Select
+              variant="bordered"
+              size="sm"
+              label="FILTRAR POR"
+              className="w-2/12 ml-2"
+              onSelectionChange={(key) => setSelectedFilter(key.currentKey)}
+            >
+              {searchOptions.map((item) => (
+                <SelectItem key={item.key}>{item.label}</SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="buscar"
+              className="w-[30px] ml-5"
+              onClick={() => handleSearch()}
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="restaurar"
+              className="w-[30px] ml-3"
+              onClick={() => setFilteredUsers(users)}
+            >
+              <CachedIcon />
+            </Button>
+          </div>
+          <div className="flex w-[20%] justify-end">
+            <Button
+              mode="success"
+              className="sm:max-w-xs border-none shadow-none w-fit"
+              startContent={<AddIcon />}
+              onPress={() => setAddUserIsOpen(true)}
+              isDisabled={processingUserStore || !isAdmin}
+            >
+              Novo usuário
+            </Button>
+          </div>
         </div>
+
         <Table
           aria-label="Lista de usuários"
-          onRowAction={(key) => {
-            findIndexById(key);
-            onOpen();
+          onRowAction={async (key) => {
+            if (isAdmin) {
+              await findIndexById(key);
+              setEditUserIsOpen(true);
+            }
           }}
           isStriped
           bottomContent={
-            <div className="flex w-full justify-center">
+            <div className="flex flex-row w-full items-center justify-center">
+              <div className="flex flex-row w-[42%] left-0 ml-3 absolute gap-5">
+                <p>Ativos: {usersStatusCount?.active}</p>
+                <p>Inativos: {usersStatusCount?.inactive}</p>
+              </div>
               <Pagination
                 loop
                 isCompact
@@ -433,6 +397,13 @@ function UserManagement() {
                 total={pages}
                 onChange={(page) => setPage(page)}
               />
+              <div className="flex flex-row right-2 absolute w-[42%] mr-3 justify-end">
+                <p>
+                  {usersStatusCount?.unproved > 0
+                    ? `${usersStatusCount?.unproved} usuários precisam de aprovação`
+                    : "Nenhum usuário precisa de aprovação"}
+                </p>
+              </div>
             </div>
           }
           classNames={{
@@ -441,23 +412,28 @@ function UserManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn className="w-1/12">ID</TableColumn>
-            <TableColumn>USUÁRIO</TableColumn>
+            <TableColumn>NOME</TableColumn>
+            <TableColumn>EMAIL</TableColumn>
+            <TableColumn>CPF</TableColumn>
+            <TableColumn>CARGO</TableColumn>
+            <TableColumn>STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
           </TableHeader>
           <TableBody
             items={items}
             emptyContent={
-              users.length > 0 ? (
+              filteredUsers.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há usuários disponíveis..."
+                    label="Não há usuários disponíveis..."
                   />
-                  Atualize a página para buscar por atualizações...
+                  {searchValue || selectedFilter
+                    ? "A busca não gerou resultados..."
+                    : "Novos usuários serão mostrados assim que estiverem disponíveis"}
                 </div>
               )
             }
@@ -467,18 +443,29 @@ function UserManagement() {
                 key={`${item.id}`}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
-                <TableCell>{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell>
+                  {item.email ? item.email : "NÃO INFORMADO"}
+                </TableCell>
+                <TableCell>{item.cpf}</TableCell>
+                <TableCell>
+                  {permissions[item.permission_level - 1].name}
+                </TableCell>
+                <TableCell className="w-1/12">
+                  {item.status ? "Ativo" : "Desativado"}
+                </TableCell>
                 <TableCell className="w-1/12">
                   {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
                       <Button
                         isIconOnly
+                        isDisabled={processingUserStore || !isAdmin}
+                        isLoading={processingUserStore}
                         mode="success"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
                           findIndexById(item.id);
-                          onOpen();
+                          setEditUserIsOpen(true);
                         }}
                       >
                         <EditIcon fontSize="small" />
@@ -487,9 +474,14 @@ function UserManagement() {
                         isIconOnly
                         mode="failed"
                         className="w-5 rounded-full scale-80"
-                        onPress={() => {
-                          removeUser(item.id);
+                        onPress={async () => {
+                          await handleDeleteUser(
+                            item.id,
+                            item.permission_level
+                          );
                         }}
+                        isDisabled={processingUserStore || !isAdmin}
+                        isLoading={processingUserStore}
                       >
                         <DeleteForeverIcon fontSize="small" />
                       </Button>
@@ -503,9 +495,10 @@ function UserManagement() {
       </div>
 
       <Modal
-        isOpen={isOpen}
+        isOpen={editUserIsOpen}
+        size="lg"
         onOpenChange={() => {
-          onOpenChange();
+          setEditUserIsOpen(!editUserIsOpen);
         }}
         onClose={() =>
           setTimeout(() => {
@@ -532,6 +525,18 @@ function UserManagement() {
                   ) : (
                     <h6>Este usuário ainda não foi atualizado</h6>
                   )}
+                  <Switch
+                    isSelected={currentTargetStatus}
+                    color="success"
+                    onValueChange={() => {
+                      if (users[itemKey].id !== 1) {
+                        handleStatusChange(users[itemKey]);
+                      }
+                    }}
+                  >
+                    {currentTargetStatus ? "Ativo" : "Desativado"}
+                  </Switch>
+                  <h6>{disconnectMessage}</h6>
                 </section>
               </ModalHeader>
               <Divider />
@@ -578,8 +583,8 @@ function UserManagement() {
 
                 <Select
                   isRequired
-                  isDisabled={users[itemKey].id === 1}
                   isReadOnly={!isAdmin}
+                  isDisabled={users[itemKey].id === 1}
                   variant="underlined"
                   size="sm"
                   className="border-none"
@@ -588,9 +593,9 @@ function UserManagement() {
                   label="Nível de permissão"
                   placeholder="Nível de permissão desta pessoa"
                   name="permissionLevel"
-                  selectedKeys={String(currentTargetLevel)}
+                  selectedKeys={String(selectedPermission)}
                   onSelectionChange={(values) => {
-                    setCurrentTargetLevel(values.currentKey);
+                    setSelectedPermission(values.currentKey);
                   }}
                 >
                   {(filteredPermissionLevels) => (
@@ -602,8 +607,8 @@ function UserManagement() {
                     </SelectItem>
                   )}
                 </Select>
-
                 <Select
+                  isRequired
                   isReadOnly={!isAdmin}
                   isDisabled={users[itemKey].id === 1}
                   variant="underlined"
@@ -615,6 +620,7 @@ function UserManagement() {
                   onSelectionChange={(values) => {
                     setSelectedServices(Array.from(values));
                   }}
+                  isLoading={processingUserStore}
                 >
                   {services.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
@@ -623,16 +629,19 @@ function UserManagement() {
                   ))}
                 </Select>
               </ModalBody>
-
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button
                   className="bg-transparent text-failed w-15"
                   onPress={async () => {
-                    await removeUser(users[itemKey].id);
-                    onClose();
+                    await handleDeleteUser(
+                      users[itemKey].id,
+                      users[itemKey].permission_level
+                    ).then(() => setEditUserIsOpen(false));
                   }}
                   startContent={<DeleteForeverIcon />}
+                  isDisabled={processingUserStore}
+                  isLoading={processingUserStore}
                 >
                   DELETAR
                 </Button>
@@ -650,9 +659,12 @@ function UserManagement() {
                     mode="success"
                     className="w-10"
                     onPress={async () => {
-                      await checkUserCpf(users[itemKey].id);
-                      onClose();
+                      await handleUpdateUser(users[itemKey].id).then(() => {
+                        onClose();
+                      });
                     }}
+                    isDisabled={processingUserStore}
+                    isLoading={processingUserStore}
                   >
                     Salvar
                   </Button>
@@ -794,6 +806,8 @@ function UserManagement() {
                   onPress={() => {
                     handleCreateNewUser();
                   }}
+                  isDisabled={processingUserStore}
+                  isLoading={processingUserStore}
                 >
                   Cadastrar
                 </Button>

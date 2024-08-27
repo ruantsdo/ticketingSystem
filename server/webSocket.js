@@ -206,9 +206,57 @@ io.on("connection", (socket) => {
     }, SOCKET_TIMEOUT);
   });
 
+  socket.on("video_update", () => {
+    setTimeout(() => {
+      io.emit("video_update");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("settings_update", () => {
+    setTimeout(() => {
+      io.emit("settings_update");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("requireCurrentVolume", () => {
+    setTimeout(() => {
+      io.emit("requireCurrentVolume");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("sendCurrentVolume", (data) => {
+    setTimeout(() => {
+      io.emit("sendCurrentVolume", data);
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("adjustCurrentVolume", (data) => {
+    setTimeout(() => {
+      io.emit("adjustCurrentVolume", data);
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("resetTokenCallScreen", () => {
+    setTimeout(() => {
+      io.emit("resetTokenCallScreen");
+    }, SOCKET_TIMEOUT);
+  });
+
   socket.on("midNight", () => {
     setTimeout(() => {
       io.emit("midNight");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("disconnectAllUsers", () => {
+    setTimeout(() => {
+      io.emit("disconnectAllUsers");
+    }, SOCKET_TIMEOUT);
+  });
+
+  socket.on("disconnectUser", (id) => {
+    setTimeout(() => {
+      io.emit("disconnectUser", id);
     }, SOCKET_TIMEOUT);
   });
 

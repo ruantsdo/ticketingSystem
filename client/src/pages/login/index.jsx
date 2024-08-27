@@ -1,131 +1,88 @@
 //React
-import { useContext, useState } from "react";
-
-import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
 //Components
-import {
-  ThemeSwitcher,
-  Container,
-  Button,
-  Card,
-  Divider,
-  Input,
-} from "../../components";
-
-//Validation
-import { Formik, Form, useFormik } from "formik";
-
-//Icons
-import LoginIcon from "@mui/icons-material/Login";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
-//Services
-import api from "../../services/api";
-
+import { ThemeSwitcher, Container } from "../../components";
+import LoginForm from "./components/loginForm";
+import RegisterForm from "./components/registerForm";
+//Stores & Utils
+import useServicesStore from "../../stores/servicesStore/store";
+import useUsersUtils from "../../stores/usersStore/utils";
+import useSettingsStore from "../../stores/settingsStore/store";
 //Contexts
-import AuthContext from "../../contexts/auth";
-
-//Toast
-import { toast } from "react-toastify";
+import { useWebSocket } from "../../contexts/webSocket";
 
 function LoginPage() {
-  const { setCurrentUser } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { getActiveServices } = useServicesStore();
+  const { filterPermissionLevels } = useUsersUtils();
+  const { getFullSettings } = useSettingsStore();
 
-  const [isVisible, setIsVisible] = useState(false);
+  const { socket } = useWebSocket();
 
-  const toggleVisibility = () => setIsVisible(!isVisible);
+  const [services, setServices] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [settings, setSettings] = useState([]);
 
-  const formik = useFormik({
-    initialValues: {
-      cpf: "",
-      password: "",
-    },
-    onSubmit: async (values) => {
-      try {
-        await api
-          .post("/login", {
-            cpf: values.cpf,
-            password: values.password,
-          })
-          .then((response) => {
-            if (response.data.length > 0) {
-              const currentUser = response.data[0];
+  const [registerMode, setRegisterMode] = useState(false);
 
-              const startDate = new Date();
-              localStorage.setItem("lastDay", JSON.stringify(startDate));
+  const changeMode = async () => {
+    setRegisterMode(!registerMode);
+  };
 
-              localStorage.setItem("currentUser", JSON.stringify(currentUser));
+  const getInitialData = async () => {
+    const [services, permissions, settings] = await Promise.all([
+      getActiveServices(),
+      filterPermissionLevels(),
+      getFullSettings(),
+    ]);
 
-              setCurrentUser(response.data[0]);
+    setServices(services);
+    setPermissions(permissions);
+    setSettings(settings);
+  };
 
-              if (currentUser.permission_level === 1) {
-                navigate("/tokenCall/default");
-              } else {
-                navigate("/home");
-              }
-            } else {
-              toast.warn("Verifique suas crendenciais e tente novamente!");
-            }
-            return;
-          });
-      } catch (err) {
-        console.log(err);
-        toast.error("Um erro aconteceu! Tente novamente mais tarde!");
-      }
-    },
+  const handleGetSettings = async () => {
+    const response = await getFullSettings();
+    setSettings(response);
+  };
+
+  useEffect(() => {
+    getInitialData();
+    //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    socket.on("services_updated", () => {
+      getInitialData();
+    });
+
+    socket.on("settings_update", () => {
+      handleGetSettings();
+    });
+
+    return () => {
+      socket.off("services_updated");
+      socket.off("settings_update");
+    };
   });
 
   return (
-    <Container className="h-screen">
-      <ThemeSwitcher className="absolute top-5 right-3" />
-      <Card>
-        <p className="text-3xl">Login</p>
-        <Divider />
-        <Formik initialValues={formik.initialValues}>
-          <Form
-            onSubmit={formik.handleSubmit}
-            className="flex flex-col gap-3 justify-center items-center w-full"
-          >
-            <Input
-              isRequired
-              type="text"
-              label="CPF"
-              maxLength={11}
-              name="cpf"
-              onChange={formik.handleChange}
-              value={formik.values.cpf}
-            />
-            <Input
-              isRequired
-              type={isVisible ? "text" : "password"}
-              label="Senha"
-              name="password"
-              onChange={formik.handleChange}
-              value={formik.values.password}
-              endContent={
-                <button
-                  className="focus:outline-none self-center"
-                  type="button"
-                  onClick={toggleVisibility}
-                >
-                  {isVisible ? (
-                    <VisibilityIcon className="text-2xl text-default-400 pointer-events-none" />
-                  ) : (
-                    <VisibilityOffIcon className="text-2xl text-default-400 pointer-events-none" />
-                  )}
-                </button>
-              }
-            />
-            <Divider />
-            <Button endContent={<LoginIcon />} type="submit" mode="success">
-              Entrar
-            </Button>
-          </Form>
-        </Formik>
-      </Card>
+    <Container className="h-screen bg-login-background bg-cover">
+      <ThemeSwitcher className="absolute top-5 right-3 z-50" />
+      {registerMode ? (
+        <RegisterForm
+          services={services}
+          permissions={permissions}
+          changeMode={changeMode}
+          registerForm={settings.registerForm}
+          autoAprove={settings.autoAprove}
+        />
+      ) : (
+        <LoginForm
+          changeMode={changeMode}
+          registerForm={settings.registerForm}
+          canLogin={settings.canLogin}
+        />
+      )}
     </Container>
   );
 }

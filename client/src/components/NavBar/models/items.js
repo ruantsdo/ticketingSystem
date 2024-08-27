@@ -3,7 +3,7 @@ const menuItems = [
     name: "Gerenciar usuários",
     color: "foreground",
     address: "/user/management",
-    level: 3,
+    level: 4,
   },
   {
     name: "Gerenciar serviços",
@@ -45,6 +45,12 @@ const menuItems = [
     name: "Tela de chamada (Alternativo)",
     color: "foreground",
     address: "/tokenCall/alternative",
+    level: 5,
+  },
+  {
+    name: "Configurações",
+    color: "foreground",
+    address: "/settings",
     level: 5,
   },
 ];

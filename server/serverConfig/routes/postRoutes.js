@@ -1,8 +1,38 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../dbConnection");
+const { getPoolReference } = require("../dbConnection");
+const { exec } = require("child_process");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const { cleanName, generateThumbnail } = require("../../utils/videos");
+const { ensureDirectoryExistence } = require("../../utils/videos");
+const {
+  DATABASE_USER,
+  DATABASE_PASSWORD,
+  DATABASE_NAME,
+} = require("../variables");
+
+let db = getPoolReference();
+const videosFolder = "./videos";
+const thumbsFolder = "./videoThumbs";
+const tempFolder = "./temp";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, videosFolder);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Buffer.from(file.originalname, "latin1").toString("utf8"));
+  },
+});
+
+const upload = multer({ storage });
+const tempUpload = multer({ dest: tempFolder });
 
 router.post("/login", (req, res) => {
   db.query(
@@ -19,10 +49,20 @@ router.post("/login", (req, res) => {
           response[0].password,
           (error, result) => {
             if (result) {
+              if (response[0].status === 0 && !response[0].updated_at) {
+                res.send({ msg: "Esse usuário ainda não foi validado!" });
+                return;
+              }
+              if (response[0].status === 0 && response[0].updated_at !== "") {
+                res.send({ msg: "Esse usuário está desativado!" });
+                return;
+              }
               res.send(response);
               return;
             }
-            res.send({ msg: "Senha incorreta!" });
+            res.send({
+              msg: "Verifique suas credenciais e tente novamente!",
+            });
           }
         );
       } else {
@@ -64,7 +104,7 @@ router.post("/user/registration", async (req, res) => {
     [req.body.cpf],
     async (err, result) => {
       if (err) {
-        return res.send("Falied to check users");
+        return res.send("Failed to check users");
       }
 
       if (result.length > 0) {
@@ -76,7 +116,7 @@ router.post("/user/registration", async (req, res) => {
 
         try {
           await db.query(
-            "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (name, password, cpf, email, permission_level, created_at, created_by, status) VALUES (?,?,?,?,?,?,?,?)",
             [
               req.body.name,
               hash,
@@ -85,6 +125,7 @@ router.post("/user/registration", async (req, res) => {
               req.body.permissionLevel,
               getTime(),
               req.body.created_by,
+              req.body.status,
             ]
           );
         } catch (error) {
@@ -133,6 +174,7 @@ router.post("/users/update", async (req, res) => {
     password,
     passwordChanged,
     services,
+    status,
   } = req.body;
 
   let hash;
@@ -145,23 +187,42 @@ router.post("/users/update", async (req, res) => {
 
   try {
     await db.query(
-      "UPDATE users SET name = ?, email = ?, cpf = ?, permission_level = ?, password = ?, updated_at = ?, updated_by = ? WHERE id = ?",
-      [name, email, cpf, level, hash, getTime(), updated_by, id]
+      "SELECT cpf FROM users WHERE cpf = ? AND id != ?",
+      [cpf, id],
+      async (err, result) => {
+        if (err) {
+          return res.send("Failed to check users");
+        }
+
+        if (result.length > 0) {
+          return res.send("User already exists");
+        } else {
+          await db.query(
+            "UPDATE users SET name = ?, email = ?, status = ?, cpf = ?, permission_level = ?, updated_by = ?, updated_at = ?, password = ? WHERE id = ?",
+            [name, email, status, cpf, level, updated_by, getTime(), hash, id]
+          );
+
+          const response = await UpdateSelectedServices(id, services);
+
+          if (response) {
+            res.send("success");
+          } else {
+            res.send("failed");
+          }
+        }
+      }
     );
-
-    const response = await UpdateSelectedServices(id, services);
-
-    if (response) {
-      res.send("success");
-    } else {
-      res.send("failed");
-    }
   } catch (err) {
     res.send("failed");
   }
 });
 
 router.post("/users/remove", async (req, res) => {
+  if (req.body.id === 1) {
+    res.send("failed");
+    return;
+  }
+
   try {
     await db.query("DELETE FROM user_services WHERE user_id = ?", [
       req.body.id,
@@ -175,7 +236,7 @@ router.post("/users/remove", async (req, res) => {
 
 router.post("/token/registration", async (req, res) => {
   try {
-    const service = req.body.services;
+    const service = req.body.service;
     const priority = req.body.priority;
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;
@@ -337,13 +398,14 @@ router.post("/location/remove", async (req, res) => {
 router.post("/location/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+      "UPDATE locations SET name = ?, description = ?, tables = ?, updated_by = ?, updated_at = ?, status = ?  WHERE id = ?",
       [
         req.body.name,
         req.body.description,
         req.body.tables,
         req.body.updated_by,
         getTime(),
+        req.body.status,
         req.body.id,
       ]
     );
@@ -393,11 +455,12 @@ router.post("/service/remove", async (req, res) => {
 router.post("/service/update", async (req, res) => {
   try {
     await db.query(
-      "UPDATE services SET name = ?, description = ?, `limit` = ?, updated_by = ?, updated_at = ? WHERE id = ?",
+      "UPDATE services SET name = ?, description = ?, `limit` = ?, status = ?, updated_by = ?, updated_at = ? WHERE id = ?",
       [
         req.body.name,
         req.body.desc,
         req.body.limit,
+        req.body.status,
         req.body.updated_by,
         getTime(),
         req.body.id,
@@ -407,6 +470,137 @@ router.post("/service/update", async (req, res) => {
   } catch (err) {
     res.send("failed");
   }
+});
+
+router.post("/uploadVideo", upload.single("video"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  ensureDirectoryExistence(videosFolder);
+
+  const fileName = req.body.fileName;
+  await generateThumbnail(fileName);
+
+  res.status(200).json({ message: "Upload bem-sucedido", file: req.file });
+});
+
+router.delete("/deleteVideo/:videoName", (req, res) => {
+  const videoName = req.params.videoName;
+  const videoPath = path.join(videosFolder, videoName);
+  const cleanVideoName = cleanName(videoName);
+  const thumbnailPath = path.join(thumbsFolder, `${cleanVideoName}-Thumb.png`);
+
+  fs.access(videoPath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ error: "Arquivo de vídeo não encontrado" });
+    }
+
+    fs.unlink(videoPath, (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "Erro ao apagar o arquivo de vídeo" });
+      }
+
+      fs.access(thumbnailPath, fs.constants.F_OK, (err) => {
+        if (!err) {
+          fs.unlink(thumbnailPath, (err) => {
+            if (err) {
+              console.error("Erro ao apagar a thumbnail:", err);
+            }
+          });
+        }
+      });
+
+      res.status(200).json({ message: "Arquivo de vídeo apagado com sucesso" });
+    });
+  });
+});
+
+router.post("/settings/update", async (req, res) => {
+  const { autoAprove, forceDailyLogin, registerForm, canLogin, userId } =
+    req.body;
+
+  try {
+    const isAdmin = await db.query(
+      "SELECT permission_level from users WHERE id = ?",
+      [userId]
+    );
+
+    if (isAdmin < 4) {
+      return res.status(403).send("Ação não autorizada!");
+    }
+
+    await db.query(
+      "UPDATE settings SET autoAprove = ?, forceDailyLogin = ?, registerForm = ?, canLogin = ? WHERE id = 1",
+      [autoAprove, forceDailyLogin, registerForm, canLogin]
+    );
+    res.send("Configurações atualizadas");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao atualizar configurações");
+  }
+});
+
+router.post("/settings/update/defaultVolume", async (req, res) => {
+  const { defaultVolume, userId } = req.body;
+
+  try {
+    const isAdmin = await db.query(
+      "SELECT permission_level from users WHERE id = ?",
+      [userId]
+    );
+
+    if (isAdmin < 4) {
+      return res.status(403).send("Ação não autorizada!");
+    }
+
+    await db.query("UPDATE settings SET defaultVolume = ? WHERE id = 1", [
+      defaultVolume,
+    ]);
+    res.send("Configurações atualizadas");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao atualizar configurações");
+  }
+});
+
+router.post("/restoreBackup", tempUpload.single("backup"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+
+  ensureDirectoryExistence(tempFolder);
+
+  const backupFile = req.file.path;
+
+  const restoreCommand = `mysql -u ${DATABASE_USER} -p${DATABASE_PASSWORD} ${DATABASE_NAME} < ${backupFile}`;
+
+  exec(restoreCommand, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Erro ao restaurar backup: ${error.message}`);
+      return res.status(500).json({ error: "Erro ao restaurar backup" });
+    }
+
+    if (
+      stderr &&
+      !stderr.includes(
+        "Using a password on the command line interface can be insecure."
+      )
+    ) {
+      console.error(`Erro: ${stderr}`);
+      return res.status(500).json({ error: stderr });
+    }
+
+    res.status(200).json({ message: "Restaurado com sucesso" });
+
+    fs.unlink(backupFile, (err) => {
+      if (err) {
+        console.error("Erro ao apagar o arquivo de backup:", err);
+      }
+    });
+  });
 });
 
 module.exports = router;

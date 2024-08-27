@@ -1,5 +1,11 @@
 //React
-import React, { useState, useEffect, useContext } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useContext,
+  forwardRef,
+} from "react";
 
 //Components
 import {
@@ -31,18 +37,26 @@ import { useWebSocket } from "../../contexts/webSocket";
 //Toast
 import { toast } from "react-toastify";
 
+//Store
+import { useServicesStore, useTokensStore } from "../../stores";
+import useSocketUtils from "../../utils/socketUtils";
+
 import { useReactToPrint } from "react-to-print";
 
 function QueueRegistration() {
+  const receiptRef = useRef();
+  const { newTokenSignal } = useSocketUtils();
   const { socket } = useWebSocket();
-  const { currentUser } = useContext(AuthContext);
+  const { getActiveServices, getServiceById } = useServicesStore();
+  const { getTokensByServiceId } = useTokensStore();
+  const { currentUser, isAdmin } = useContext(AuthContext);
 
   const [services, setServices] = useState([]);
 
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
 
-  const [availability, setAvailability] = useState(true);
+  const [availability, setAvailability] = useState(false);
   const [remaining, setRemaining] = useState("");
 
   const [tokenData, setTokenData] = useState([]);
@@ -74,12 +88,12 @@ function QueueRegistration() {
     },
     onSubmit: async (values) => {
       const availability = await checkAvailability(selectedService);
-      if (availability || currentUser.permission_level > 2) {
+      if (availability || isAdmin) {
         try {
           await api
             .post("/token/registration", {
               priority: priority,
-              services: selectedService,
+              service: selectedService,
               created: currentUser.name,
               requested_by: values.requested_by,
             })
@@ -108,7 +122,7 @@ function QueueRegistration() {
   const notify = (response) => {
     if (response === "success") {
       toast.success("Ficha registrada!");
-      emitNewTokenSignal();
+      newTokenSignal();
       formik.resetForm();
     } else if (response === "failed") {
       toast.warn(
@@ -119,8 +133,8 @@ function QueueRegistration() {
 
   const checkAvailability = async (serviceId) => {
     try {
-      const service = await api.get(`/services/query/${serviceId}`);
-      const token = await api.get(`/token/query/${serviceId}`);
+      const service = await getServiceById(serviceId);
+      const token = await getTokensByServiceId(serviceId);
 
       if (service.data[0].limit === 0) {
         setAvailability(true);
@@ -129,12 +143,12 @@ function QueueRegistration() {
         return true;
       }
 
-      if (service.data[0].limit > token.data.length && token.data.length >= 0) {
-        setAvailability(false);
+      if (service.data[0].limit >= token.data.length) {
+        setAvailability(true);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return true;
       } else {
-        setAvailability(true);
+        setAvailability(false);
         setRemaining(`${token.data.length}/${service.data[0].limit}`);
         return false;
       }
@@ -145,15 +159,11 @@ function QueueRegistration() {
 
   const handleServices = async () => {
     try {
-      const response = await api.get("/services/query");
-      setServices(response.data);
+      const response = await getActiveServices();
+      setServices(response);
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const emitNewTokenSignal = () => {
-    socket.emit("new_token");
   };
 
   const splitStringIntoLines = (str, maxCharsPerLine) => {
@@ -161,17 +171,15 @@ function QueueRegistration() {
     return str.match(regex).join("\n");
   };
 
-  const receiptRef = React.useRef();
-
   const handlePrint = useReactToPrint({
     content: () => receiptRef.current,
   });
 
-  const ReceiptComponent = React.forwardRef(({ data }, ref) => {
+  const ReceiptComponent = forwardRef(({ data }, ref) => {
     return (
       <div ref={ref} className="text-center text-darkBackground">
         <h1 className="underline">{process.env.REACT_APP_COMPANY_NAME}</h1>
-        <h1 className="text-5xl mt-2 mb-1">
+        <h1 className="text-5xl mt-2">
           {tokenData.service &&
             splitStringIntoLines(
               services.find((service) => service.id === tokenData.service)
@@ -179,9 +187,12 @@ function QueueRegistration() {
               10
             )}
         </h1>
-        <h1 className="text-5xl mb-2"> [ {tokenData?.position} ] </h1>
+        <h1 className="text-5xl mt-2 mb-2"> [ {tokenData?.position} ] </h1>
+
+        <h1 className="mt-1 mb-1">{tokenData.requested_by}</h1>
+
         {tokenData?.priority === 1 ? (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-evenly">
             <h6 className="text-start">PRIORIDADE</h6>
             <h5 className="text-end">{tokenData?.created_at}</h5>
           </div>

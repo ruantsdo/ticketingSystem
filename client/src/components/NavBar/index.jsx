@@ -1,6 +1,5 @@
 // React
-import { useState, useContext } from "react";
-
+import { useState, useContext, useEffect } from "react";
 //NextUi
 import {
   Navbar,
@@ -14,30 +13,25 @@ import {
   Button,
   Tooltip,
 } from "@nextui-org/react";
-
 //Components
 import { ThemeSwitcher } from "../";
 import AdmShortcuts from "./components/admShortcuts";
 import UserShortcuts from "./components/userShortcuts";
-
 //Models
 import menuItems from "./models/items";
-
 //Contexts
 import AuthContext from "../../contexts/auth";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Icons
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-
-//Router Dom
-import { redirect } from "react-router-dom";
+//Contexts
+import { useWebSocket } from "../../contexts/webSocket";
 
 export default function NavBar() {
-  const { setCurrentUser, currentUser } = useContext(AuthContext);
+  const { socket } = useWebSocket();
+  const { wipeUserData, disconnectUser, currentUser } = useContext(AuthContext);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -46,7 +40,7 @@ export default function NavBar() {
 
     if (fullName.length === 1) return fullName[0];
 
-    if (fullName.length >= 1) {
+    if (fullName.length > 1) {
       const primeiroNome = fullName[0];
       const ultimoNome = fullName[fullName.length - 1];
 
@@ -54,7 +48,7 @@ export default function NavBar() {
 
       return visibleName;
     } else {
-      return null;
+      return "Usuário";
     }
   }
 
@@ -68,15 +62,25 @@ export default function NavBar() {
 
   const logout = () => {
     toast.warn("Você escolheu sair!");
-
-    setCurrentUser(null);
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("lastDay");
-    localStorage.removeItem("currentSession");
-
-    redirect("/login");
-    window.location.reload(true);
+    wipeUserData();
   };
+
+  useEffect(() => {
+    socket.on("disconnectUser", (id) => {
+      disconnectUser(id);
+    });
+
+    socket.on("disconnectAllUsers", () => {
+      toast.warn("Você foi desconectado pelo administrador...");
+      wipeUserData();
+    });
+
+    return () => {
+      socket.off("disconnectUser");
+      socket.off("disconnectAllUsers");
+    };
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <Navbar

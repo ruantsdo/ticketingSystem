@@ -74,7 +74,7 @@ async function createAndInsertHistoricTable() {
           id INT NOT NULL AUTO_INCREMENT,
           daily_id INT NOT NULL,
           position INT NOT NULL,
-          service INT NOT NULL,
+          service VARCHAR(150) NOT NULL,
           priority BOOLEAN NOT NULL,
           requested_by VARCHAR(150) NULL,
           created_by VARCHAR(150) NOT NULL,
@@ -102,8 +102,13 @@ async function createAndInsertHistoricTable() {
     try {
       await connection.execute(
         `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
-        SELECT id AS daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description
-        FROM tokens`
+        SELECT tokens.id AS daily_id, tokens.position, services.name AS service, tokens.priority, tokens.requested_by, tokens.created_by, tokens.created_at,
+               COALESCE(tokens.solved_by, 'ENCERRADO PELO SISTEMA') AS solved_by,
+               tokens.solved_at, tokens.delayed_by, tokens.delayed_at,
+               CASE WHEN tokens.solved_by IS NULL THEN 'ENCERRADO PELO SISTEMA' ELSE tokens.status END AS status,
+               tokens.description
+        FROM tokens
+        INNER JOIN services ON tokens.service = services.id`
       );
 
       console.log(
@@ -146,7 +151,7 @@ async function getTables() {
 
 async function createBackup() {
   console.log("===================================");
-  console.log("Iniciando rotina de backup diário!");
+  console.log("Iniciando rotina de backup das fichas!");
   console.log("===================================");
 
   const success = await createAndInsertHistoricTable();
@@ -160,7 +165,7 @@ async function createBackup() {
   }
 
   console.log("===================================");
-  console.log("Rotina de backup diário encerrada!");
+  console.log("Rotina de backup encerrada!");
   console.log("===================================");
 
   console.log("===================================");
@@ -178,7 +183,7 @@ async function createBackup() {
   }
 
   console.log("===================================");
-  console.log("As rotinas diárias foram concluídas!");
+  console.log("As rotina foi concluída!");
   console.log("===================================");
 }
 

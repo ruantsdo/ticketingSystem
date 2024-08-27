@@ -9,22 +9,32 @@ const {
 
 const mysql = require("mysql");
 
-const pool = mysql.createPool({
-  connectionLimit: MAX_CONNECTIONS,
-  host: DATABASE_HOST,
-  port: DATABASE_PORT,
-  database: DATABASE_NAME,
-  user: DATABASE_USER,
-  password: DATABASE_PASSWORD,
-});
+let pool;
 
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log("Conexão com o banco de dados foi estabelecida com sucesso...");
-    connection.release();
-  }
-});
+function createPool() {
+  pool = mysql.createPool({
+    connectionLimit: MAX_CONNECTIONS,
+    host: DATABASE_HOST,
+    port: DATABASE_PORT,
+    database: DATABASE_NAME,
+    user: DATABASE_USER,
+    password: DATABASE_PASSWORD,
+  });
 
-module.exports = pool;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log("A conexão com o banco de dados foi estabelecida...");
+      connection.release();
+    }
+  });
+}
+
+const getPoolReference = () => {
+  return pool;
+};
+
+createPool();
+
+module.exports = { getPoolReference };

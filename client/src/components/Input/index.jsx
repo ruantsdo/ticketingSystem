@@ -3,7 +3,7 @@ import { Input as NextInput } from "@nextui-org/react";
 function Input({ children, ...props }) {
   const { className, ...restProps } = props;
 
-  const baseClasses = `w-full border-2 rounded-2xl dark:border-darkNavBarBackground shadow`;
+  const baseClasses = `w-full rounded-2xl dark:border-darkNavBarBackground shadow`;
   const combinedClassName = className
     ? `${baseClasses} ${className}`
     : baseClasses;

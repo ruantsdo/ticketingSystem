@@ -6,15 +6,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 //Pages
 import { LoginPage } from "./routes";
+import { WebSocketProvider } from "../contexts/webSocket";
 
 const AuthRoutes = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" index element={<LoginPage />} />
+      <WebSocketProvider>
+        <Routes>
+          <Route index path="/login" element={<LoginPage />} />
 
-        <Route path="*" element={<LoginPage />} />
-      </Routes>
+          <Route path="*" element={<LoginPage />} />
+        </Routes>
+      </WebSocketProvider>
     </BrowserRouter>
   );
 };

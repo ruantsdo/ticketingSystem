@@ -1,6 +1,5 @@
 //Components
 import { RedirectButton } from "../../";
-
 //Icons
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import AddHomeWorkIcon from "@mui/icons-material/AddHomeWork";
@@ -8,6 +7,7 @@ import AddLocationIcon from "@mui/icons-material/AddLocation";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 function AdmShortcuts() {
   return (
@@ -53,6 +53,13 @@ function AdmShortcuts() {
         label="Ir a página de relatórios"
       >
         <AssessmentIcon fontSize="large" />
+      </RedirectButton>
+      <RedirectButton
+        isIconOnly={true}
+        address="/settings"
+        label="Ir a página de configurações"
+      >
+        <SettingsIcon fontSize="large" />
       </RedirectButton>
     </div>
   );

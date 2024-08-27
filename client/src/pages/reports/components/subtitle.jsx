@@ -9,13 +9,12 @@ import {
 } from "@nextui-org/react";
 
 //Icons
-import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
-import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatReclineNormal";
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 const Subtitle = () => {
   return (
@@ -51,21 +50,11 @@ const Subtitle = () => {
           <Chip
             size="sm"
             radius="sm"
-            className="bg-info"
-            startContent={<HourglassBottomIcon size={18} />}
+            startContent={<SettingsIcon size={18} />}
+            className="bg-darkFailed"
           >
-            EM ESPERA
+            ENCERRADO PELO SISTEMA
           </Chip>
-
-          <Chip
-            size="sm"
-            radius="sm"
-            className="bg-infoSecondary"
-            startContent={<AirlineSeatReclineNormalIcon size={18} />}
-          >
-            EM ATENDIMENTO
-          </Chip>
-          <Divider />
           <Chip
             size="sm"
             radius="sm"

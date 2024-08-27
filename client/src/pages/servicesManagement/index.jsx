@@ -2,13 +2,7 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 
 //Components
-import {
-  Divider,
-  FullContainer,
-  Button,
-  Notification,
-  Input,
-} from "../../components";
+import { Divider, FullContainer, Button, Input } from "../../components";
 
 //NextUI
 import {
@@ -19,13 +13,15 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  useDisclosure,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Spinner,
+  Select,
+  SelectItem,
+  Switch,
 } from "@nextui-org/react";
 
 //Icons
@@ -33,28 +29,51 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import AddTaskIcon from "@mui/icons-material/AddTask";
-
-//Contexts
-import AuthContext from "../../contexts/auth";
-import { useWebSocket } from "../../contexts/webSocket";
-
-//Services
-import api from "../../services/api";
+import SearchIcon from "@mui/icons-material/Search";
+import CachedIcon from "@mui/icons-material/Cached";
 
 //Toast
 import { toast } from "react-toastify";
 
+//Stores
+import useServicesStore from "../../stores/servicesStore/store";
+import useGetDataUtils from "../../utils/getDataUtils";
+
+//Socket
+import { useWebSocket } from "../../contexts/webSocket";
+
+//Contexts
+import AuthContext from "../../contexts/auth";
+
 function ServicesManagement() {
+  const { isAdmin } = useContext(AuthContext);
   const { socket } = useWebSocket();
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { currentUser } = useContext(AuthContext);
+
+  const searchOptions = [
+    { key: "name", label: "NOME" },
+    { key: "status", label: "STATUS" },
+  ];
+
+  const {
+    getAllServices,
+    createNewService,
+    updateService,
+    deleteService,
+    processingServicesStore,
+  } = useServicesStore();
+  const { findIndexById, removeAccents } = useGetDataUtils();
   const [addServiceIsOpen, setAddServiceIsOpen] = useState(false);
+  const [updateServiceIsOpen, setUpdateServiceIsOpen] = useState(false);
 
   const [currentTargetName, setCurrentTargetName] = useState("");
   const [currentTargetDesc, setCurrentTargetDesc] = useState("");
   const [currentTargetLimit, setCurrentTargetLimit] = useState("");
+  const [currentTargetStatus, setCurrentStatus] = useState(0);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [disconnectMessage, setDisconnectMessage] = useState("");
 
   const [services, setServices] = useState([]);
   const [page, setPage] = useState(1);
@@ -68,114 +87,34 @@ function ServicesManagement() {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return services.slice(start, end);
-  }, [page, services]);
-
-  const findIndexById = (key) => {
-    for (let i = 0; i < services.length; i++) {
-      // eslint-disable-next-line
-      if (services[i].id == key) {
-        setItemKey(i);
-        updateStates(i);
-        return;
-      }
-    }
-  };
-
-  const checkLevel = () => {
-    if (currentUser.permission_level > 3) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
-  };
-
-  const checkServiceName = async (id) => {
-    const duplicateServices = services.filter(
-      (service) => service.name === currentTargetName
-    );
-
-    if (duplicateServices.length > 1) {
-      const checkId = services.some((service) => service.id !== id);
-      if (checkId) {
-        toast.info("Já existe um serviço com esse nome!");
-      } else {
-        await updateService(id);
-      }
-    } else {
-      await updateService(id);
-    }
-  };
-
-  const handleServices = async () => {
-    try {
-      const response = await api.get("/services/query");
-      setServices(response.data);
-    } catch (error) {
-      toast.error(error);
-    }
-  };
+    return filteredServices.slice(start, end);
+  }, [page, filteredServices]);
 
   const handleDeleteService = async (id) => {
-    try {
-      const response = await api.get(`/token/query/${id}`);
-      const data = response.data;
+    await deleteService(id);
 
-      if (data.length > 0) {
-        toast.warn(
-          "Existem senhas vinculadas a esse serviço! Remova as senhas para o serviço e tente novamente!"
-        );
-      } else {
-        await removeService(id);
-        emitServiceUpdateSignal();
-      }
-    } catch (error) {
-      console.log("Delete service error: " + error);
-    }
+    clearStates();
+    setUpdateServiceIsOpen(false);
   };
 
-  const removeService = async (id) => {
-    try {
-      await api
-        .post("/service/remove", {
-          id: id,
-        })
-        .then((response) => {
-          if (response.data === "success") {
-            toast.success("O serviço foi removido!");
-            handleServices();
-          } else if (response.data === "failed") {
-            toast.error("Falha ao remover serviço!");
-          }
-        });
-    } catch (error) {
-      console.error(error);
+  const handleUpdateService = async (id) => {
+    if (!currentTargetName) {
+      toast.info("O nome é obrigatório!");
+      return;
     }
-  };
 
-  const updateService = async (id) => {
-    try {
-      await api
-        .post("/service/update", {
-          id: id,
-          name: currentTargetName,
-          desc: currentTargetDesc,
-          limit: currentTargetLimit,
-          updated_by: currentUser.name,
-        })
-        .then((response) => {
-          if (response.data === "success") {
-            toast.success("Serviço atualizado!");
-            emitServiceUpdateSignal();
-          } else if (response.data === "failed") {
-            toast.error("Falha ao atualizar o serviço!");
-          }
+    const data = {
+      id: id,
+      name: currentTargetName,
+      desc: currentTargetDesc,
+      limit: currentTargetLimit,
+      status: currentTargetStatus,
+    };
 
-          handleServices();
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    await updateService(data);
+
+    clearStates();
+    setUpdateServiceIsOpen(false);
   };
 
   const handleCreateNewService = async () => {
@@ -184,75 +123,153 @@ function ServicesManagement() {
       return;
     }
 
-    await api
-      .post("/service/registration", {
-        name: currentTargetName,
-        description: currentTargetDesc,
-        limit: currentTargetLimit ? currentTargetLimit : 0,
-        created_by: currentUser.name,
-      })
-      .then((response) => {
-        const resp = response.data;
-        if (resp === "success") {
-          toast.success("Serviço cadastrado!");
-          handleServices();
-          setAddServiceIsOpen(false);
-          emitServiceUpdateSignal();
-        } else if (resp === "failed") {
-          toast.warn(
-            "Falha ao cadastrar o serviço. Tente novamente em alguns instantes!"
-          );
-          setAddServiceIsOpen(false);
-        } else if (resp === "already exists") {
-          toast.info("Já existe um serviço com esse nome!");
-        } else {
-          toast.error("Erro interno no servidor!");
-          setAddServiceIsOpen(false);
-        }
-      });
+    const data = {
+      name: currentTargetName,
+      description: currentTargetDesc,
+      limit: currentTargetLimit ? currentTargetLimit : 0,
+    };
+
+    await createNewService(data);
+    setAddServiceIsOpen(false);
+    clearStates();
   };
 
-  const updateStates = (id) => {
-    setCurrentTargetName(services[id].name);
-    setCurrentTargetDesc(services[id].description);
-    setCurrentTargetLimit(services[id].limit);
+  const handleGetItemKey = async (id) => {
+    const key = await findIndexById(services, id);
+    if (!String(key)) return;
+    updateStates(key);
+    setItemKey(key);
+    setUpdateServiceIsOpen(true);
+  };
+
+  const handleSearch = () => {
+    const finalSearchValue = removeAccents(searchValue);
+    if (!selectedFilter) {
+      toast.info("O filtro deve ser selecionado antes da pesquisa");
+      return;
+    }
+    if (selectedFilter === "status") {
+      const value = finalSearchValue === "ATIVO" ? 1 : 0;
+      const filtered = filteredServices.filter((item) => {
+        return item.status === value;
+      });
+      setFilteredServices(filtered);
+    } else {
+      const filtered = filteredServices.filter((item) => {
+        const lowerItemValue = removeAccents(item[selectedFilter]);
+        return lowerItemValue.includes(finalSearchValue);
+      });
+      setFilteredServices(filtered);
+    }
+  };
+
+  const handleStatusChange = (service) => {
+    if (currentTargetStatus === false && service.status === true) {
+      setDisconnectMessage(
+        "Isso fará com que não seja mais possível criar novos tickets com esse serviço. Tickets já criados permanecerão ativos"
+      );
+    } else {
+      setDisconnectMessage("");
+    }
+    setCurrentStatus(!currentTargetStatus);
+  };
+
+  const updateStates = (index) => {
+    setCurrentTargetName(filteredServices[index].name);
+    setCurrentTargetDesc(filteredServices[index].description);
+    setCurrentTargetLimit(filteredServices[index].limit);
+    setCurrentStatus(filteredServices[index].status);
   };
 
   const clearStates = () => {
     setCurrentTargetName("");
     setCurrentTargetDesc("");
     setCurrentTargetLimit("");
+    setCurrentStatus(0);
   };
 
-  const emitServiceUpdateSignal = () => {
-    socket.emit("services_updated");
+  const getInitialData = async () => {
+    const services = await getAllServices();
+    setFilteredServices(services);
+    setServices(services);
   };
 
   useEffect(() => {
-    handleServices();
-    checkLevel();
+    getInitialData();
+
+    socket.on("services_updated", async () => {
+      await getInitialData();
+    });
+
+    return () => {
+      socket.off("services_updated");
+    };
     // eslint-disable-next-line
   }, []);
 
   return (
     <FullContainer>
-      <Notification />
       <div className="flex flex-col w-full sm:w-[95%]">
-        <div className="flex flex-col gap-2 justify-end sm:flex-row">
-          <Button
-            mode="success"
-            className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
-            startContent={<AddIcon />}
-            onPress={() => setAddServiceIsOpen(true)}
-          >
-            Novo serviço
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center mb-1 w-full justify-around">
+          <div className="flex w-[80%] items-center">
+            <Input
+              variant="bordered"
+              size="sm"
+              className="w-5/12"
+              label="BUSCAR POR"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <Select
+              variant="bordered"
+              size="sm"
+              label="FILTRAR POR"
+              className="w-2/12 ml-2"
+              onSelectionChange={(key) => setSelectedFilter(key.currentKey)}
+            >
+              {searchOptions.map((item) => (
+                <SelectItem key={item.key}>{item.label}</SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="buscar"
+              className="w-[30px] ml-5"
+              onClick={() => handleSearch()}
+            >
+              <SearchIcon />
+            </Button>
+            <Button
+              isIconOnly
+              color="default"
+              variant="faded"
+              aria-label="restaurar"
+              className="w-[30px] ml-3"
+              onClick={() => setFilteredServices(services)}
+            >
+              <CachedIcon />
+            </Button>
+          </div>
+          <div className="flex w-[20%] justify-end">
+            <Button
+              isLoading={processingServicesStore}
+              isDisabled={processingServicesStore}
+              mode="success"
+              className="mb-1 sm:max-w-xs border-none shadow-none p-5 w-fit"
+              startContent={<AddIcon />}
+              onPress={() => setAddServiceIsOpen(true)}
+            >
+              Novo serviço
+            </Button>
+          </div>
         </div>
         <Table
           aria-label="Lista de serviços"
           onRowAction={(key) => {
-            findIndexById(key);
-            onOpen();
+            if (isAdmin) handleGetItemKey(key);
           }}
           isStriped
           bottomContent={
@@ -277,23 +294,31 @@ function ServicesManagement() {
           className="w-full"
         >
           <TableHeader>
-            <TableColumn className="w-1/12">ID</TableColumn>
-            <TableColumn>SERVIÇO</TableColumn>
+            <TableColumn>NOME</TableColumn>
+            <TableColumn>DESCRIÇÃO</TableColumn>
+            <TableColumn>LIMITE</TableColumn>
+            <TableColumn>STATUS</TableColumn>
             <TableColumn>AÇÕES</TableColumn>
           </TableHeader>
           <TableBody
             items={items}
             emptyContent={
-              services.length > 0 ? (
+              filteredServices.length > 0 ? (
                 <Spinner size="lg" label="Carregando..." color="primary" />
               ) : (
                 <div className="flex flex-col text-sm">
                   <Spinner
                     size="sm"
                     color="success"
-                    label="Ainda não há serviços cadastrados..."
+                    label={
+                      selectedFilter
+                        ? "A pesquisa não gerou resultados"
+                        : "Ainda não há serviços cadastrados..."
+                    }
                   />
-                  Atualize a página para buscar por atualizações
+                  {selectedFilter
+                    ? ""
+                    : "Atualize a página para buscar por atualizações"}
                 </div>
               )
             }
@@ -303,24 +328,35 @@ function ServicesManagement() {
                 key={item.id}
                 className="hover:cursor-pointer hover:opacity-90 hover:ring-2 rounded-lg hover:shadow-md hover:scale-[101%] transition-all"
               >
-                <TableCell>{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
+                <TableCell>
+                  {item.description ? item.description : "SEM DESCRIÇÃO"}
+                </TableCell>
+                <TableCell className="w-1/12">
+                  {!item.limit ? "ILIMITADO" : item.limit}
+                </TableCell>
+                <TableCell className="w-1/12">
+                  {item.status ? "Ativo" : "Desativado"}
+                </TableCell>
                 <TableCell className="w-1/12">
                   {
                     <div className="flex flex-row w-full h-7 items-center justify-around">
                       <Button
                         isIconOnly
+                        isLoading={processingServicesStore}
+                        isDisabled={processingServicesStore || !isAdmin}
                         mode="success"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
-                          findIndexById(item.id);
-                          onOpen();
+                          handleGetItemKey(item.id);
                         }}
                       >
                         <EditIcon fontSize="small" />
                       </Button>
                       <Button
                         isIconOnly
+                        isLoading={processingServicesStore}
+                        isDisabled={processingServicesStore || !isAdmin}
                         mode="failed"
                         className="w-5 rounded-full scale-80"
                         onPress={() => {
@@ -339,8 +375,9 @@ function ServicesManagement() {
       </div>
 
       <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
+        isOpen={updateServiceIsOpen}
+        size="lg"
+        onOpenChange={() => setUpdateServiceIsOpen(!updateServiceIsOpen)}
         onClose={() => clearStates()}
         backdrop="opaque"
       >
@@ -359,6 +396,16 @@ function ServicesManagement() {
                     <h6>Este serviço ainda não foi atualizado</h6>
                   )}
                 </section>
+                <Switch
+                  isSelected={currentTargetStatus}
+                  color="success"
+                  onValueChange={() => {
+                    handleStatusChange(filteredServices[itemKey]);
+                  }}
+                >
+                  {currentTargetStatus ? "Ativo" : "Desativado"}
+                </Switch>
+                <h6>{disconnectMessage}</h6>
               </ModalHeader>
               <Divider />
               <ModalBody>
@@ -369,6 +416,7 @@ function ServicesManagement() {
                   className="border-none"
                   label="NOME"
                   defaultValue={services[itemKey].name}
+                  value={currentTargetName}
                   onChange={(e) => setCurrentTargetName(e.target.value)}
                 />
                 <Input
@@ -377,6 +425,7 @@ function ServicesManagement() {
                   size="sm"
                   className="border-none"
                   label="DESCRIÇÃO"
+                  value={currentTargetDesc}
                   defaultValue={services[itemKey].description}
                   onChange={(e) => setCurrentTargetDesc(e.target.value)}
                 />
@@ -387,6 +436,7 @@ function ServicesManagement() {
                   className="border-none"
                   type="number"
                   label="LIMITE DIÁRIO (0 = Infinito)"
+                  value={currentTargetLimit}
                   defaultValue={services[itemKey].limit}
                   onChange={(e) => setCurrentTargetLimit(e.target.value)}
                 />
@@ -394,6 +444,8 @@ function ServicesManagement() {
               <Divider />
               <ModalFooter className="flex justify-between align-middle">
                 <Button
+                  isLoading={processingServicesStore}
+                  isDisabled={processingServicesStore}
                   className="bg-transparent text-failed w-15"
                   onPress={() => {
                     onClose();
@@ -405,6 +457,7 @@ function ServicesManagement() {
                 </Button>
                 <div className="flex flex-row items-center justify-end w-full gap-3">
                   <Button
+                    isDisabled={processingServicesStore}
                     mode="failed"
                     className="w-10"
                     onPress={() => {
@@ -414,10 +467,12 @@ function ServicesManagement() {
                     Fechar
                   </Button>
                   <Button
+                    isLoading={processingServicesStore}
+                    isDisabled={processingServicesStore}
                     mode="success"
                     className="w-10"
                     onPress={() => {
-                      checkServiceName(services[itemKey].id).then(onClose());
+                      handleUpdateService(services[itemKey].id);
                     }}
                   >
                     Salvar
@@ -431,10 +486,8 @@ function ServicesManagement() {
 
       <Modal
         isOpen={addServiceIsOpen}
-        onOpenChange={() => {
-          setAddServiceIsOpen(!addServiceIsOpen);
-          clearStates();
-        }}
+        onOpenChange={() => setAddServiceIsOpen(!addServiceIsOpen)}
+        onClose={() => clearStates()}
       >
         <ModalContent>
           {(onClose) => (
@@ -467,7 +520,7 @@ function ServicesManagement() {
                   className="border-none"
                   size="sm"
                   label="LIMITE DIÁRIO"
-                  placeholder="Deixe em branco para infitino"
+                  placeholder="Deixe em branco para infinito"
                   type="number"
                   value={currentTargetLimit}
                   onChange={(e) => setCurrentTargetLimit(e.target.value)}
@@ -476,6 +529,7 @@ function ServicesManagement() {
               <Divider />
               <ModalFooter>
                 <Button
+                  isDisabled={processingServicesStore}
                   mode="failed"
                   variant="light"
                   onPress={() => {
@@ -486,6 +540,8 @@ function ServicesManagement() {
                   Cancelar
                 </Button>
                 <Button
+                  isLoading={processingServicesStore}
+                  isDisabled={processingServicesStore}
                   mode="success"
                   type="submit"
                   endContent={<AddTaskIcon />}
