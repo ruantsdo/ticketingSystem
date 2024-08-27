@@ -240,17 +240,30 @@ router.post("/token/registration", async (req, res) => {
     const priority = req.body.priority;
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;
+    const description = req.body.description;
+    const deficiencies = req.body.deficiencies;
+
+    console.log(req.body);
 
     const insertQuery = `
-      INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at)
-      SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?
+      INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at, description, deficiencies)
+      SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?, ?, ?
       FROM tokens
       WHERE service = ?
     `;
 
     await db.query(
       insertQuery,
-      [service, priority, created_by, requested_by, getTime(), service],
+      [
+        service,
+        priority,
+        created_by,
+        requested_by,
+        getTime(),
+        description,
+        deficiencies,
+        service,
+      ],
       async (err, result) => {
         if (result) {
           const insertedId = result.insertId;

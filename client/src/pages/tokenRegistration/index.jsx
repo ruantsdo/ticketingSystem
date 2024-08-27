@@ -6,7 +6,6 @@ import React, {
   useContext,
   forwardRef,
 } from "react";
-
 //Components
 import {
   Input,
@@ -16,32 +15,27 @@ import {
   Button,
   Select,
 } from "../../components";
-
 //NextUI
 import { SelectItem } from "@nextui-org/react";
-
 //Validation
 import { Formik, Form, useFormik } from "formik";
-
 //Icons
 import AddTaskIcon from "@mui/icons-material/AddTask";
 import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
-
 //Services
 import api from "../../services/api";
-
 //Contexts
 import AuthContext from "../../contexts/auth";
 import { useWebSocket } from "../../contexts/webSocket";
-
 //Toast
 import { toast } from "react-toastify";
-
 //Store
 import { useServicesStore, useTokensStore } from "../../stores";
 import useSocketUtils from "../../utils/socketUtils";
-
+//React To Print
 import { useReactToPrint } from "react-to-print";
+//Data
+import deficienciesList from "./deficienciesList";
 
 function QueueRegistration() {
   const receiptRef = useRef();
@@ -55,6 +49,7 @@ function QueueRegistration() {
 
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
+  const [selectedDeficiencies, setSelectedDeficiencies] = useState([]);
 
   const [availability, setAvailability] = useState(false);
   const [remaining, setRemaining] = useState("");
@@ -85,6 +80,7 @@ function QueueRegistration() {
   const formik = useFormik({
     initialValues: {
       requested_by: "",
+      description: "",
     },
     onSubmit: async (values) => {
       const availability = await checkAvailability(selectedService);
@@ -96,11 +92,14 @@ function QueueRegistration() {
               service: selectedService,
               created: currentUser.name,
               requested_by: values.requested_by,
+              description: values.description,
+              deficiencies: String(selectedDeficiencies),
             })
             .then((response) => {
               const data = response.data;
               setTokenData(data.tokenData);
               notify(data.message);
+              setSelectedDeficiencies([]);
               checkAvailability(selectedService);
 
               setTimeout(() => {
@@ -267,6 +266,31 @@ function QueueRegistration() {
               name="requested_by"
               onChange={formik.handleChange}
               value={formik.values.requested_by}
+            />
+            <Select
+              variant="flat"
+              selectionMode="multiple"
+              items={deficienciesList}
+              label="Portador de deficiência?"
+              placeholder="Indique quais deficiências o solicitante possui"
+              name="deficiencies"
+              selectedKeys={selectedDeficiencies}
+              onSelectionChange={(values) =>
+                setSelectedDeficiencies(Array.from(values))
+              }
+            >
+              {(deficiency) => (
+                <SelectItem key={deficiency.value}>
+                  {deficiency.label}
+                </SelectItem>
+              )}
+            </Select>
+            <Input
+              type="text"
+              label="Alguma observação?"
+              name="description"
+              onChange={formik.handleChange}
+              value={formik.values.description}
             />
             <Divider />
             <Button
