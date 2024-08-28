@@ -16,7 +16,7 @@ const SuggestionCard = ({ ...props }) => {
     return (
       <Card
         isPressable
-        className="flex flex-col w-4/12 h-44 hover:cursor-pointer
+        className="flex flex-col w-4/12 h-56 hover:cursor-pointer
                  hover:opacity-90 hover:ring-2 rounded-lg
                  hover:shadow-md hover:scale-[101%] transition-all"
         onPress={handleOpenModal}
