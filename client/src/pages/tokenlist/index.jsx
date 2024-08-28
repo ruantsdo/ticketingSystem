@@ -80,6 +80,10 @@ function TokensList() {
   const [currentTable, setCurrentTable] = useState("");
   const [userServices, setUserServices] = useState([]);
 
+  const minimumDelayTime = 60; //In seconds
+  const [isPostPoneEnable, setIsPostPoneEnable] = useState(false);
+  const [isPostPoneCountDown, setIsPostPoneCountDown] = useState(0);
+
   const [services, setServices] = useState([]);
 
   const rowsPerPage = 6;
@@ -101,6 +105,29 @@ function TokensList() {
         return;
       }
     }
+  };
+
+  const countdownPostponeTimer = (token) => {
+    const deficiency = token.deficiencies ? 60 : 0;
+
+    setIsPostPoneCountDown(minimumDelayTime + deficiency);
+    setIsPostPoneEnable(false);
+
+    const intervalId = setInterval(() => {
+      setIsPostPoneCountDown((prevCountDown) => {
+        if (prevCountDown > 1) {
+          return prevCountDown - 1;
+        } else {
+          clearInterval(intervalId);
+          setIsPostPoneEnable(true);
+          return 0;
+        }
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   };
 
   const handleOpenModal = (tokenId) => {
@@ -779,6 +806,7 @@ function TokensList() {
                   <>
                     <Button
                       mode="failed"
+                      isDisabled={!isPostPoneEnable}
                       onPress={() => {
                         setTimeout(async () => {
                           removeFromQueue(tokens[itemKey]).then((response) => {
@@ -792,14 +820,18 @@ function TokensList() {
                               toast.info("A ficha foi adiada!");
                               setInService(false);
                               onClose();
+                              setIsPostPoneEnable(false); // Desabilita o botão após adiamento
                             }
                           });
                         }, 500);
                       }}
                     >
-                      Adiar
+                      {isPostPoneEnable
+                        ? "Adiar"
+                        : `Adiar (${isPostPoneCountDown})`}
                     </Button>
                     <Button
+                      isDisabled={!isPostPoneEnable}
                       onPress={() => {
                         setTimeout(async () => {
                           closeToken(tokens[itemKey].id);
@@ -811,7 +843,9 @@ function TokensList() {
                       }}
                       mode="success"
                     >
-                      Concluir
+                      {isPostPoneEnable
+                        ? "Concluir"
+                        : `Concluir (${isPostPoneCountDown})`}
                     </Button>
                   </>
                 ) : (
@@ -857,6 +891,7 @@ function TokensList() {
                               tokens[itemKey]
                             );
                             updateCalledToken(tokens[itemKey].id);
+                            countdownPostponeTimer(tokens[itemKey]);
                             toast.success(
                               "A ficha foi adicionada a fila de chamada..."
                             );
