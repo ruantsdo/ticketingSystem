@@ -21,16 +21,21 @@ const SelectItems = [
   },
   {
     id: 5,
+    placeholder: "Chamada por ...",
+    value: "called_by",
+  },
+  {
+    id: 6,
     placeholder: "Adiada por ...",
     value: "delayed_by",
   },
   {
-    id: 6,
+    id: 7,
     placeholder: "Prioridade",
     value: "priority",
   },
   {
-    id: 7,
+    id: 8,
     placeholder: "Status",
     value: "status",
   },

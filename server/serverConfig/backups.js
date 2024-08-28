@@ -79,12 +79,15 @@ async function createAndInsertHistoricTable() {
           requested_by VARCHAR(150) NULL,
           created_by VARCHAR(150) NOT NULL,
           created_at VARCHAR(100) NOT NULL,
+          called_by VARCHAR(150) NULL,
+          called_at VARCHAR(100) NULL,
           solved_by VARCHAR(150) NULL,
           solved_at VARCHAR(100) NULL,
           delayed_by VARCHAR(150) NULL,
           delayed_at VARCHAR(100) NULL,
           status VARCHAR(50) NULL,
           description VARCHAR(1000) NULL,
+          deficiencies VARCHAR(255) NULL,
           PRIMARY KEY (id)
         )
       `);
@@ -101,12 +104,12 @@ async function createAndInsertHistoricTable() {
 
     try {
       await connection.execute(
-        `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description)
+        `INSERT INTO ${tableName} (daily_id, position, service, priority, requested_by, created_by, created_at, solved_by, solved_at, delayed_by, delayed_at, status, description, called_by, called_at, deficiencies)
         SELECT tokens.id AS daily_id, tokens.position, services.name AS service, tokens.priority, tokens.requested_by, tokens.created_by, tokens.created_at,
                COALESCE(tokens.solved_by, 'ENCERRADO PELO SISTEMA') AS solved_by,
                tokens.solved_at, tokens.delayed_by, tokens.delayed_at,
                CASE WHEN tokens.solved_by IS NULL THEN 'ENCERRADO PELO SISTEMA' ELSE tokens.status END AS status,
-               tokens.description
+               tokens.description, tokens.called_by, tokens.called_at, tokens.deficiencies
         FROM tokens
         INNER JOIN services ON tokens.service = services.id`
       );

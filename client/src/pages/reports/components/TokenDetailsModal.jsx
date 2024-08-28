@@ -76,32 +76,31 @@ function TokensDetails({ ...props }) {
                   >
                     CONCLUÍDO
                   </Chip>
-                ) : token.status === "ADIADO" ? (
-                  <Chip
-                    size="sm"
-                    radius="sm"
-                    className="bg-failed"
-                    startContent={<ReportIcon size={18} />}
-                  >
-                    ADIADO
-                  </Chip>
-                ) : null}
+                ) : (
+                  token.status === "ADIADO" && (
+                    <Chip
+                      size="sm"
+                      radius="sm"
+                      className="bg-failed"
+                      startContent={<ReportIcon size={18} />}
+                    >
+                      ADIADO
+                    </Chip>
+                  )
+                )}
               </section>
+              {token.deficiencies && (
+                <h6 className="text-md">
+                  Pessoa com deficiência: {token.deficiencies}
+                </h6>
+              )}
             </ModalHeader>
             <Divider />
             <ModalBody>
               <div>
-                <h5 className="font-bold">Número da ficha: </h5>
-                <h6 className="indent-2">{token.position}</h6>
-              </div>
-              <div>
-                <h5 className="font-bold">Serviço desejado: </h5>
-                <h6 className="indent-2">{token.service}</h6>
-              </div>
-              <div>
-                <h5 className="font-bold">Criada por: </h5>
+                <h5 className="font-bold">Ficha</h5>
                 <h6 className="indent-2">
-                  {token.created_by} em {token.created_at}
+                  {token.service} [ {token.position} ]
                 </h6>
               </div>
               {token.requested_by !== "" ? (
@@ -112,22 +111,42 @@ function TokensDetails({ ...props }) {
               ) : (
                 <p>Solicitada por: NÃO FOI ESPECIFICADO</p>
               )}
-              {token.delayed_at !== null ? (
+              <div>
+                <h5 className="font-bold">Ficha criada por: </h5>
+                <h6 className="indent-2">
+                  {token.created_by} em {token.created_at}
+                </h6>
+              </div>
+              {token.called_by && (
+                <div>
+                  <h5 className="font-bold">Chamada por: </h5>
+                  <h6 className="indent-2">
+                    {token.called_by} em {token.called_at}
+                  </h6>
+                </div>
+              )}
+              {token.delayed_at && (
                 <div>
                   <h5 className="font-bold">Adiada por: </h5>
                   <h6 className="indent-2">
                     {token.delayed_by} em {token.delayed_at}
                   </h6>
                 </div>
-              ) : null}
-              {token.solved_at !== null ? (
+              )}
+              {token.solved_at && (
                 <div>
                   <h5 className="font-bold">Atendida por: </h5>
                   <h6 className="indent-2">
                     {token.solved_by} em {token.solved_at}
                   </h6>
                 </div>
-              ) : null}
+              )}
+              {token.description && (
+                <div>
+                  <h5 className="font-bold">OBSERVAÇÕES: </h5>
+                  <h6 className="indent-2">{token.description}</h6>
+                </div>
+              )}
             </ModalBody>
             <Divider />
             <ModalFooter className="flex justify-center align-middle">

@@ -182,6 +182,10 @@ function Reports() {
             upperCaseSearchValue === "ADIADOS"
           ) {
             return token.delayed_at !== null;
+          } else if (searchFilter === "called_by") {
+            return removeAccents(filterValue.toUpperCase()).includes(
+              upperCaseSearchValue
+            );
           } else {
             return (
               typeof filterValue === "string" &&
@@ -215,6 +219,7 @@ function Reports() {
     const filterNames = {
       service: `por serviço (${searchValue})`,
       created_by: `de senhas criadas por (${searchValue})`,
+      called_by: `de senhas chamadas por (${searchValue})`,
       requested_by: `de senhas solicitadas por (${searchValue})`,
       solved_by: `de senhas concluídas por (${searchValue})`,
       delayed_by: `de senhas adiadas por (${searchValue})`,
@@ -242,10 +247,13 @@ function Reports() {
           "SOLICITADO POR": item.requested_by,
           "CRIADO POR": item.created_by,
           "CRIADO EM": item.created_at,
+          "CHAMADO POR": item.called_by,
+          "CHAMADO EM": item.called_at,
           "RESOLVIDO POR": item.solved_by,
           "RESOLVIDO EM": item.solved_at,
           "ATRASADO POR": item.delayed_by,
           "ATRASADO EM": item.delayed_at,
+          DEFICIÊNCIAS: item.deficiencies,
           STATUS: item.status,
           DESCRIÇÃO: item.description,
         };
