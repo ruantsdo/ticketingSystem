@@ -164,9 +164,21 @@ function TokensList() {
     }
   };
 
-  const updateToken = async (newStatus, id) => {
+  const updateCalledToken = async (tokenId) => {
     try {
-      await api.post("/token/update", {
+      await api.post("/token/update/", {
+        id: tokenId,
+        called_by: currentUser.name,
+      });
+      tokenUpdateSignal();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateTokenStatus = async (newStatus, id) => {
+    try {
+      await api.post("/token/update/status", {
         status: newStatus,
         id: id,
         delayed_by: currentUser.name,
@@ -677,44 +689,42 @@ function TokensList() {
                     >
                       CONCLUÍDO
                     </Chip>
-                  ) : tokens[itemKey].status === "ADIADO" ? (
-                    <div className="flex gap-3">
-                      <Chip
-                        size="sm"
-                        radius="sm"
-                        className="bg-info"
-                        startContent={<HourglassBottomIcon size={18} />}
-                      >
-                        EM ESPERA
-                      </Chip>
-                      <Chip
-                        size="sm"
-                        radius="sm"
-                        className="bg-failed"
-                        startContent={<ReportIcon size={18} />}
-                      >
-                        ADIADO
-                      </Chip>
-                    </div>
-                  ) : null}
+                  ) : (
+                    tokens[itemKey].status === "ADIADO" && (
+                      <div className="flex gap-3">
+                        <Chip
+                          size="sm"
+                          radius="sm"
+                          className="bg-info"
+                          startContent={<HourglassBottomIcon size={18} />}
+                        >
+                          EM ESPERA
+                        </Chip>
+                        <Chip
+                          size="sm"
+                          radius="sm"
+                          className="bg-failed"
+                          startContent={<ReportIcon size={18} />}
+                        >
+                          ADIADO
+                        </Chip>
+                      </div>
+                    )
+                  )}
                 </section>
+                {tokens[itemKey].deficiencies && (
+                  <h6 className="text-md">
+                    Pessoa com deficiência: {tokens[itemKey].deficiencies}
+                  </h6>
+                )}
               </ModalHeader>
               <Divider />
               <ModalBody>
                 <div>
-                  <h5 className="font-bold">Número da ficha: </h5>
-                  <h6 className="indent-2">{tokens[itemKey].position}</h6>
-                </div>
-                <div>
-                  <h5 className="font-bold">Serviço desejado: </h5>
+                  <h5 className="font-bold">Ficha</h5>
                   <h6 className="indent-2">
-                    {getCurrentServiceName(tokens[itemKey].service)}
-                  </h6>
-                </div>
-                <div>
-                  <h5 className="font-bold">Criada por: </h5>
-                  <h6 className="indent-2">
-                    {tokens[itemKey].created_by} em {tokens[itemKey].created_at}
+                    {getCurrentServiceName(tokens[itemKey].service)} [{" "}
+                    {tokens[itemKey].position} ]
                   </h6>
                 </div>
                 {tokens[itemKey].requested_by !== "" ? (
@@ -725,7 +735,21 @@ function TokensList() {
                 ) : (
                   <p>Solicitada por: NÃO FOI ESPECIFICADO</p>
                 )}
-                {tokens[itemKey].delayed_at !== null ? (
+                <div>
+                  <h5 className="font-bold">Ficha criada por: </h5>
+                  <h6 className="indent-2">
+                    {tokens[itemKey].created_by} em {tokens[itemKey].created_at}
+                  </h6>
+                </div>
+                {tokens[itemKey].called_by && (
+                  <div>
+                    <h5 className="font-bold">Chamada por: </h5>
+                    <h6 className="indent-2">
+                      {tokens[itemKey].called_by} em {tokens[itemKey].called_at}
+                    </h6>
+                  </div>
+                )}
+                {tokens[itemKey].delayed_at && (
                   <div>
                     <h5 className="font-bold">Adiada por: </h5>
                     <h6 className="indent-2">
@@ -733,15 +757,21 @@ function TokensList() {
                       {tokens[itemKey].delayed_at}
                     </h6>
                   </div>
-                ) : null}
-                {tokens[itemKey].solved_at !== null ? (
+                )}
+                {tokens[itemKey].solved_at && (
                   <div>
                     <h5 className="font-bold">Atendida por: </h5>
                     <h6 className="indent-2">
                       {tokens[itemKey].solved_by} em {tokens[itemKey].solved_at}
                     </h6>
                   </div>
-                ) : null}
+                )}
+                {tokens[itemKey].description && (
+                  <div>
+                    <h5 className="font-bold">OBSERVAÇÕES: </h5>
+                    <h6 className="indent-2">{tokens[itemKey].description}</h6>
+                  </div>
+                )}
               </ModalBody>
               <Divider />
               <ModalFooter className="flex justify-center align-middle">
@@ -757,7 +787,7 @@ function TokensList() {
                                 "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
                               );
                             } else {
-                              updateToken("ADIADO", tokens[itemKey].id);
+                              updateTokenStatus("ADIADO", tokens[itemKey].id);
                               localStorage.removeItem("currentSession");
                               toast.info("A ficha foi adiada!");
                               setInService(false);
@@ -814,7 +844,10 @@ function TokensList() {
                       onPress={() => {
                         if (currentLocation) {
                           setTimeout(() => {
-                            updateToken("EM ATENDIMENTO", tokens[itemKey].id);
+                            updateTokenStatus(
+                              "EM ATENDIMENTO",
+                              tokens[itemKey].id
+                            );
                             insertOnQueue(tokens[itemKey]);
                             emitSignalQueueUpdate(tokens[itemKey]);
                             setInService(true);
@@ -823,6 +856,7 @@ function TokensList() {
                               true,
                               tokens[itemKey]
                             );
+                            updateCalledToken(tokens[itemKey].id);
                             toast.success(
                               "A ficha foi adicionada a fila de chamada..."
                             );

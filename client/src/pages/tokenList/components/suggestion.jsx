@@ -26,6 +26,12 @@ const SuggestionCard = ({ ...props }) => {
           <p>{target.requested_by}</p>
           <p className="text-xl">Serviço solicitado:</p>
           <p>{service}</p>
+          {target.deficiencies && (
+            <>
+              <p className="text-xl">Portador de deficiência</p>
+              <p>{target.deficiencies}</p>
+            </>
+          )}
           <p className="text-xl">Status</p>
         </div>
         <div className="flex flex-row ml-2">

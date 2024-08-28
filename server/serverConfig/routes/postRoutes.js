@@ -243,8 +243,6 @@ router.post("/token/registration", async (req, res) => {
     const description = req.body.description;
     const deficiencies = req.body.deficiencies;
 
-    console.log(req.body);
-
     const insertQuery = `
       INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at, description, deficiencies)
       SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?, ?, ?
@@ -299,7 +297,21 @@ router.post("/token/registration", async (req, res) => {
   }
 });
 
-router.post("/token/update", async (req, res) => {
+router.post("/token/update/", async (req, res) => {
+  const { called_by, id } = req.body;
+  try {
+    await db.query(
+      "UPDATE tokens SET called_by = ?, called_at = ? WHERE id = ?",
+      [called_by, getTime(), id]
+    );
+
+    res.send({ status: 200 });
+  } catch (err) {
+    res.send({ msg: "Falha ao atualizar ficha!" });
+  }
+});
+
+router.post("/token/update/status", async (req, res) => {
   try {
     if (req.body.status === "ADIADO") {
       await db.query(
