@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 //NextUi
 import { SelectItem, Slider } from "@nextui-org/react";
 //Components
-import { Button, Select } from "../../../../components";
+import { Button, Input, Select } from "../../../../components";
 //Icons
 import SaveIcon from "@mui/icons-material/Save";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
@@ -24,6 +24,7 @@ const TokenCallSettings = () => {
     updateDefaultVolume,
     getFullSettings,
     updateCurrentVolume,
+    updateTokensDelay,
   } = useSettingsStore();
 
   const { requireCurrentVolumeSignal, resetTokenCallScreenSignal } =
@@ -32,6 +33,8 @@ const TokenCallSettings = () => {
   const [screensData, setScreensData] = useState([]);
   const [defaultVolume, setDefaultVolume] = useState(0);
   const [currentVolume, setCurrentVolume] = useState(0);
+  const [minimumDelay, setMinimumDelay] = useState(0);
+  const [deficiencyDelay, setDeficiencyDelay] = useState(0);
 
   const [targetName, setTargetName] = useState(null);
   const [targetId, setTargetId] = useState(null);
@@ -49,6 +52,8 @@ const TokenCallSettings = () => {
   const handleGetSettings = async () => {
     const response = await getFullSettings();
     setDefaultVolume(response.defaultVolume);
+    setMinimumDelay(response.minimum_delay);
+    setDeficiencyDelay(response.deficiency_delay);
   };
 
   const handleUpdateDefaultVolume = async () => {
@@ -63,6 +68,15 @@ const TokenCallSettings = () => {
     };
 
     await updateCurrentVolume(data);
+  };
+
+  const handleUpdateDelays = async () => {
+    const data = {
+      minimumDelay: minimumDelay,
+      deficiencyDelay: deficiencyDelay,
+    };
+
+    await updateTokensDelay(data);
   };
 
   const handleResetScreen = () => {
@@ -179,6 +193,52 @@ const TokenCallSettings = () => {
             onClick={() => handleUpdateDefaultVolume()}
           >
             <SaveIcon /> Salvar
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-col w-[60%] gap-2 border-1 p-5 rounded-lg border-darkBackground dark:border-background">
+        <p className="text-lg font-medium">
+          Atraso na conclusão e adiamento de fichas
+        </p>
+        <p>
+          Controla quando tempo o usuário deverá esperar antes de concluir ou
+          adiar a ficha atual.
+        </p>
+        <p>
+          O valor do atraso é somatório, ou seja, caso a pessoa possua
+          deficiência, o valor do atraso será do valor mínimo mais o valor
+          adicional.
+        </p>
+        <p>Ajuste para "0" (ZERO) caso não queira atrasos.</p>
+        <div className="flex flex-row w-full justify-between">
+          <div className="flex flex-col w-1/2 gap-5">
+            <Input
+              label="Atraso mínimo (TODAS as fichas)"
+              variant="bordered"
+              type="number"
+              className="max-w-xs"
+              onValueChange={setMinimumDelay}
+              initialValue={minimumDelay}
+              value={minimumDelay}
+            />
+            <Input
+              label="Atraso adicional (apenas com deficiência)"
+              variant="bordered"
+              type="number"
+              className="max-w-xs"
+              onValueChange={setDeficiencyDelay}
+              defaultValue={deficiencyDelay}
+              value={deficiencyDelay}
+            />
+          </div>
+          <Button
+            mode="success"
+            className="w-40 h-12 rounded-lg self-end"
+            isDisabled={processingSettingsStore}
+            isLoading={processingSettingsStore}
+            onClick={() => handleUpdateDelays()}
+          >
+            {!processingSettingsStore && <SaveIcon />} Salvar
           </Button>
         </div>
       </div>
