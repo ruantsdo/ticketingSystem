@@ -45,6 +45,7 @@ import useLocationsStore from "../../stores/locationsStore/store";
 import useSocketUtils from "../../utils/socketUtils";
 import useServicesStore from "../../stores/servicesStore/store";
 import useUsersStore from "../../stores/usersStore/store";
+import useSettingsStore from "../../stores/settingsStore/store";
 
 function TokensList() {
   const { socket } = useWebSocket();
@@ -56,8 +57,11 @@ function TokensList() {
   const { getAllServices } = useServicesStore();
   const { getUserServices } = useUsersStore();
   const { queueUpdateSignal, tokenUpdateSignal } = useSocketUtils();
+  const { getFullSettings } = useSettingsStore();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  const [settings, setSettings] = useState(null);
 
   const [inService, setInService] = useState(false);
   const [isLocationOpen, setLocationIsOpen] = useState(false);
@@ -80,7 +84,6 @@ function TokensList() {
   const [currentTable, setCurrentTable] = useState("");
   const [userServices, setUserServices] = useState([]);
 
-  const minimumDelayTime = 60; //In seconds
   const [isPostPoneEnable, setIsPostPoneEnable] = useState(false);
   const [isPostPoneCountDown, setIsPostPoneCountDown] = useState(0);
 
@@ -108,9 +111,9 @@ function TokensList() {
   };
 
   const countdownPostponeTimer = (token) => {
-    const deficiency = token.deficiencies ? 60 : 0;
+    const deficiency = token.deficiencies ? settings.deficiency_delay : 0;
 
-    setIsPostPoneCountDown(minimumDelayTime + deficiency);
+    setIsPostPoneCountDown(settings.minimum_delay + deficiency);
     setIsPostPoneEnable(false);
 
     const intervalId = setInterval(() => {
@@ -313,19 +316,27 @@ function TokensList() {
     return currentService.name;
   };
 
+  const getSettings = async () => {
+    const newSettings = await getFullSettings();
+
+    setSettings(newSettings);
+  };
+
   const getInitialData = async () => {
     try {
-      const [services, locations, userServices, activeLocations] =
+      const [services, locations, userServices, activeLocations, settings] =
         await Promise.all([
           getAllServices(),
           getLocationsList(),
           getUserServices(currentUser.id),
           getActivesLocations(),
+          getFullSettings(),
         ]);
       setServices(services);
       setLocations(locations);
       setUserServices(userServices);
       setActiveLocations(activeLocations);
+      setSettings(settings);
     } catch (error) {
       console.log("Falha ao obter dados iniciais");
       console.error(error);
@@ -454,6 +465,10 @@ function TokensList() {
   useEffect(() => {
     socket.on("new_token", () => {
       getFilteredTokens();
+    });
+
+    socket.on("settings_update", () => {
+      getSettings();
     });
 
     socket.on("midNight", () => {
@@ -820,7 +835,7 @@ function TokensList() {
                               toast.info("A ficha foi adiada!");
                               setInService(false);
                               onClose();
-                              setIsPostPoneEnable(false); // Desabilita o botão após adiamento
+                              setIsPostPoneEnable(false);
                             }
                           });
                         }, 500);
