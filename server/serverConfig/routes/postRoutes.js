@@ -568,6 +568,21 @@ router.post("/settings/update", async (req, res) => {
   }
 });
 
+router.post("/settings/update/delay", async (req, res) => {
+  const { minimumDelay, deficiencyDelay } = req.body;
+
+  try {
+    await db.query(
+      "UPDATE settings SET minimum_delay = ?, deficiency_delay = ? WHERE id = 1",
+      [minimumDelay, deficiencyDelay]
+    );
+    res.send("Configurações atualizadas");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao atualizar configurações");
+  }
+});
+
 router.post("/settings/update/defaultVolume", async (req, res) => {
   const { defaultVolume, userId } = req.body;
 

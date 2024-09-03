@@ -380,7 +380,7 @@ router.get("/thumbnail/:videoName", (req, res) => {
 
 router.get("/verifySettings", (req, res) => {
   db.query(
-    "SELECT autoAprove, forceDailyLogin, registerForm, canLogin, defaultVolume from settings WHERE id = 1",
+    "SELECT autoAprove, forceDailyLogin, registerForm, canLogin, defaultVolume, minimum_delay, deficiency_delay from settings WHERE id = 1",
     (err, result) => {
       if (err) {
         res.status(500).send("Falha ao obter configurações atuais!");
