@@ -276,6 +276,39 @@ const useSettingsStore = () => {
     });
   };
 
+  const updateTokensDelay = async (data) => {
+    if (!isAdmin) {
+      toast.info("Você não tem privilégios para realizar essa ação!");
+      return;
+    }
+
+    requestAuth(async (userLevel) => {
+      if (userLevel < 4) {
+        toast.warn("Esse usuário não tem as permissões necessárias");
+        return;
+      }
+
+      setProcessingSettingsStore(true);
+
+      try {
+        await api
+          .post("/settings/update/delay", {
+            minimumDelay: data.minimumDelay,
+            deficiencyDelay: data.deficiencyDelay,
+          })
+          .then((response) => {
+            settingsUpdateSignal();
+            toast.info(response.data);
+          });
+      } catch (error) {
+        console.error("Falha ao atualizar configurações!");
+        console.error(error);
+      } finally {
+        setProcessingSettingsStore(false);
+      }
+    });
+  };
+
   return {
     processingSettingsStore,
     getFullSettings,
@@ -288,6 +321,7 @@ const useSettingsStore = () => {
     restoreDatabase,
     disconnectAllUsers,
     updateCurrentVolume,
+    updateTokensDelay,
   };
 };
 
