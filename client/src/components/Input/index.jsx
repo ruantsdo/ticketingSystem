@@ -9,7 +9,7 @@ function Input({ children, ...props }) {
     : baseClasses;
 
   return (
-    <NextInput className={combinedClassName} {...restProps}>
+    <NextInput className={combinedClassName} variant="bordered" {...restProps}>
       {children}
     </NextInput>
   );
