@@ -1,6 +1,5 @@
 //NextUI
 import { Card, Chip } from "@nextui-org/react";
-
 //Icons
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -8,6 +7,10 @@ import AirlineSeatReclineNormalIcon from "@mui/icons-material/AirlineSeatRecline
 import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
+import AccessibleIcon from "@mui/icons-material/Accessible";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 const SuggestionCard = ({ ...props }) => {
   const { target, service, handleOpenModal } = props;
@@ -16,7 +19,7 @@ const SuggestionCard = ({ ...props }) => {
     return (
       <Card
         isPressable
-        className="flex flex-col w-4/12 h-56 hover:cursor-pointer
+        className="flex flex-col w-5/12 h-56 hover:cursor-pointer
                  hover:opacity-90 hover:ring-2 rounded-lg
                  hover:shadow-md hover:scale-[101%] transition-all"
         onPress={handleOpenModal}
@@ -26,12 +29,6 @@ const SuggestionCard = ({ ...props }) => {
           <p>{target.requested_by}</p>
           <p className="text-xl">Serviço solicitado:</p>
           <p>{service}</p>
-          {target.deficiencies && (
-            <>
-              <p className="text-xl">Portador de deficiência</p>
-              <p>{target.deficiencies}</p>
-            </>
-          )}
           <p className="text-xl">Status</p>
         </div>
         <div className="flex flex-row ml-2">
@@ -80,6 +77,38 @@ const SuggestionCard = ({ ...props }) => {
               startContent={<EmojiEmotionsIcon />}
               className="bg-success w-8 self-center mr-1.5"
             />
+          ) : null}
+        </div>
+        {target.visual_impairment ||
+        target.motor_disability ||
+        target.hearing_impairment ||
+        target.cognitive_impairment ? (
+          <p className="text-xl indent-2">Portador de deficiência:</p>
+        ) : null}
+        <div className="flex gap-3 w-full ml-2">
+          {target.visual_impairment ? (
+            <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+              <VisibilityOffIcon fontSize="medium" />
+              <p>Visual</p>
+            </div>
+          ) : null}
+          {target.motor_disability ? (
+            <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+              <AccessibleIcon fontSize="medium" />
+              <p>Motora</p>
+            </div>
+          ) : null}
+          {target.hearing_impairment ? (
+            <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+              <HearingDisabledIcon fontSize="medium" />
+              <p>Auditiva</p>
+            </div>
+          ) : null}
+          {target.cognitive_impairment ? (
+            <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+              <PsychologyIcon fontSize="medium" />
+              <p>Cognitiva</p>
+            </div>
           ) : null}
         </div>
       </Card>

@@ -1,6 +1,5 @@
 //Components
 import { Divider, Button } from "../../../components";
-
 //NextUI
 import {
   Chip,
@@ -10,7 +9,6 @@ import {
   ModalBody,
   ModalFooter,
 } from "@nextui-org/react";
-
 //Icons
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -18,12 +16,21 @@ import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 import SettingsIcon from "@mui/icons-material/Settings";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
+import AccessibleIcon from "@mui/icons-material/Accessible";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 function TokensDetails({ ...props }) {
   const { tokenDetailIsOpen, setTokenDetailIsOpen, token } = props;
 
   return (
-    <Modal isOpen={tokenDetailIsOpen} hideCloseButton={true} backdrop="opaque">
+    <Modal
+      isOpen={tokenDetailIsOpen}
+      hideCloseButton={true}
+      backdrop="opaque"
+      size="lg"
+    >
       <ModalContent>
         {(onClose) => (
           <>
@@ -89,11 +96,38 @@ function TokensDetails({ ...props }) {
                   )
                 )}
               </section>
-              {token.deficiencies && (
-                <h6 className="text-md">
-                  Pessoa com deficiência: {token.deficiencies}
-                </h6>
-              )}
+              {token.visual_impairment ||
+              token.motor_disability ||
+              token.hearing_impairment ||
+              token.cognitive_impairment ? (
+                <p className="text-xl indent-2">Portador de deficiência:</p>
+              ) : null}
+              <div className="flex justify-center gap-3 w-full">
+                {token.visual_impairment ? (
+                  <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                    <VisibilityOffIcon fontSize="medium" />
+                    <p>Visual</p>
+                  </div>
+                ) : null}
+                {token.motor_disability ? (
+                  <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                    <AccessibleIcon fontSize="medium" />
+                    <p>Motora</p>
+                  </div>
+                ) : null}
+                {token.hearing_impairment ? (
+                  <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                    <HearingDisabledIcon fontSize="medium" />
+                    <p>Auditiva</p>
+                  </div>
+                ) : null}
+                {token.cognitive_impairment ? (
+                  <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                    <PsychologyIcon fontSize="medium" />
+                    <p>Cognitiva</p>
+                  </div>
+                ) : null}
+              </div>
             </ModalHeader>
             <Divider />
             <ModalBody>
@@ -142,9 +176,11 @@ function TokensDetails({ ...props }) {
                 </div>
               )}
               {token.description && (
-                <div>
-                  <h5 className="font-bold">OBSERVAÇÕES: </h5>
-                  <h6 className="indent-2">{token.description}</h6>
+                <div className="flex flex-col">
+                  <h5 className="font-bold">OBSERVAÇÕES:</h5>
+                  <h6 className="max-w-full indent-2 break-words">
+                    {token.description}
+                  </h6>
                 </div>
               )}
             </ModalBody>

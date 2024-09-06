@@ -32,6 +32,10 @@ import AssistWalkerIcon from "@mui/icons-material/AssistWalker";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ReportIcon from "@mui/icons-material/Report";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HearingDisabledIcon from "@mui/icons-material/HearingDisabled";
+import AccessibleIcon from "@mui/icons-material/Accessible";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 //Services
 import api from "../../services/api";
 //Contexts - Providers
@@ -89,7 +93,7 @@ function TokensList() {
 
   const [services, setServices] = useState([]);
 
-  const rowsPerPage = 6;
+  const rowsPerPage = 5;
 
   const pages = Math.ceil(tokens.length / rowsPerPage);
 
@@ -111,7 +115,13 @@ function TokensList() {
   };
 
   const countdownPostponeTimer = (token) => {
-    const deficiency = token.deficiencies ? settings.deficiency_delay : 0;
+    const deficiency =
+      token.visual_impairment ||
+      token.motor_disability ||
+      token.hearing_impairment ||
+      token.cognitive_impairment
+        ? settings.deficiency_delay
+        : 0;
 
     setIsPostPoneCountDown(settings.minimum_delay + deficiency);
     setIsPostPoneEnable(false);
@@ -487,7 +497,7 @@ function TokensList() {
 
   return (
     <FullContainer>
-      <div className="flex flex-col w-full sm:w-[95%]">
+      <div className="flex flex-col w-full sm:w-[95%] pt-3 pb-3">
         <div className="flex flex-row w-full items-center">
           <div className="flex flex-col w-full gap-2 justify-end sm:flex-row">
             <Select
@@ -576,6 +586,7 @@ function TokensList() {
             <TableColumn className="hidden sm:flex sm:items-center h-11">
               SOLICITADO POR
             </TableColumn>
+            <TableColumn className="W-2/12">DEFICIÊNCIAS</TableColumn>
             <TableColumn className="w-2/12">
               <Subtitle />
             </TableColumn>
@@ -609,6 +620,20 @@ function TokensList() {
                   {item.requested_by !== ""
                     ? item.requested_by
                     : "Nome não fornecido"}
+                </TableCell>
+                <TableCell>
+                  {item.visual_impairment ? (
+                    <VisibilityOffIcon fontSize="medium" />
+                  ) : null}
+                  {item.motor_disability ? (
+                    <AccessibleIcon fontSize="medium" />
+                  ) : null}
+                  {item.hearing_impairment ? (
+                    <HearingDisabledIcon fontSize="medium" />
+                  ) : null}
+                  {item.cognitive_impairment ? (
+                    <PsychologyIcon fontSize="medium" />
+                  ) : null}
                 </TableCell>
                 <TableCell className="flex">
                   {item.priority === 1 ? (
@@ -678,6 +703,7 @@ function TokensList() {
         backdrop={inService ? "blur" : "opaque"}
         isDismissable={inService ? false : true}
         hideCloseButton={inService ? true : false}
+        size="lg"
       >
         <ModalContent>
           {(onClose) => (
@@ -754,11 +780,38 @@ function TokensList() {
                     )
                   )}
                 </section>
-                {tokens[itemKey].deficiencies && (
-                  <h6 className="text-md">
-                    Pessoa com deficiência: {tokens[itemKey].deficiencies}
-                  </h6>
-                )}
+                {tokens[itemKey].visual_impairment ||
+                tokens[itemKey].motor_disability ||
+                tokens[itemKey].hearing_impairment ||
+                tokens[itemKey].cognitive_impairment ? (
+                  <p className="text-xl indent-2">Portador de deficiência:</p>
+                ) : null}
+                <div className="flex justify-center gap-3 w-full">
+                  {tokens[itemKey].visual_impairment ? (
+                    <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                      <VisibilityOffIcon fontSize="medium" />
+                      <p>Visual</p>
+                    </div>
+                  ) : null}
+                  {tokens[itemKey].motor_disability ? (
+                    <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                      <AccessibleIcon fontSize="medium" />
+                      <p>Motora</p>
+                    </div>
+                  ) : null}
+                  {tokens[itemKey].hearing_impairment ? (
+                    <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                      <HearingDisabledIcon fontSize="medium" />
+                      <p>Auditiva</p>
+                    </div>
+                  ) : null}
+                  {tokens[itemKey].cognitive_impairment ? (
+                    <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
+                      <PsychologyIcon fontSize="medium" />
+                      <p>Cognitiva</p>
+                    </div>
+                  ) : null}
+                </div>
               </ModalHeader>
               <Divider />
               <ModalBody>
@@ -809,9 +862,11 @@ function TokensList() {
                   </div>
                 )}
                 {tokens[itemKey].description && (
-                  <div>
-                    <h5 className="font-bold">OBSERVAÇÕES: </h5>
-                    <h6 className="indent-2">{tokens[itemKey].description}</h6>
+                  <div className="flex flex-col">
+                    <h5 className="font-bold">OBSERVAÇÕES:</h5>
+                    <h6 className="max-w-full indent-2 break-words">
+                      {tokens[itemKey].description}
+                    </h6>
                   </div>
                 )}
               </ModalBody>
