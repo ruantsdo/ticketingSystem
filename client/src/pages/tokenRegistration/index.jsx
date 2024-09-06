@@ -16,7 +16,7 @@ import {
   Select,
 } from "../../components";
 //NextUI
-import { SelectItem } from "@nextui-org/react";
+import { Checkbox, SelectItem } from "@nextui-org/react";
 //Validation
 import { Formik, Form, useFormik } from "formik";
 //Icons
@@ -34,8 +34,6 @@ import { useServicesStore, useTokensStore } from "../../stores";
 import useSocketUtils from "../../utils/socketUtils";
 //React To Print
 import { useReactToPrint } from "react-to-print";
-//Data
-import deficienciesList from "./deficienciesList";
 
 function QueueRegistration() {
   const receiptRef = useRef();
@@ -49,7 +47,11 @@ function QueueRegistration() {
 
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
-  const [selectedDeficiencies, setSelectedDeficiencies] = useState([]);
+
+  const [visualImpairment, setVisualImpairment] = useState(false);
+  const [motorDisability, setMotorDisability] = useState(false);
+  const [hearingImpairment, setHearingImpairment] = useState(false);
+  const [cognitiveImpairment, setCognitiveImpairment] = useState(false);
 
   const [availability, setAvailability] = useState(false);
   const [remaining, setRemaining] = useState("");
@@ -93,13 +95,16 @@ function QueueRegistration() {
               created: currentUser.name,
               requested_by: values.requested_by,
               description: values.description,
-              deficiencies: String(selectedDeficiencies),
+              visual_impairment: visualImpairment,
+              motor_disability: motorDisability,
+              hearing_impairment: hearingImpairment,
+              cognitive_impairment: cognitiveImpairment,
             })
             .then((response) => {
               const data = response.data;
               setTokenData(data.tokenData);
               notify(data.message);
-              setSelectedDeficiencies([]);
+              clearDeficiencyChecks();
               checkAvailability(selectedService);
 
               setTimeout(() => {
@@ -173,6 +178,13 @@ function QueueRegistration() {
   const handlePrint = useReactToPrint({
     content: () => receiptRef.current,
   });
+
+  const clearDeficiencyChecks = () => {
+    setVisualImpairment(false);
+    setMotorDisability(false);
+    setHearingImpairment(false);
+    setCognitiveImpairment(false);
+  };
 
   const ReceiptComponent = forwardRef(({ data }, ref) => {
     return (
@@ -267,24 +279,33 @@ function QueueRegistration() {
               onChange={formik.handleChange}
               value={formik.values.requested_by}
             />
-            <Select
-              variant="flat"
-              selectionMode="multiple"
-              items={deficienciesList}
-              label="Portador de deficiência?"
-              placeholder="Indique quais deficiências o solicitante possui"
-              name="deficiencies"
-              selectedKeys={selectedDeficiencies}
-              onSelectionChange={(values) =>
-                setSelectedDeficiencies(Array.from(values))
-              }
-            >
-              {(deficiency) => (
-                <SelectItem key={deficiency.value}>
-                  {deficiency.label}
-                </SelectItem>
-              )}
-            </Select>
+            <p>INFORME SE O SOLICITANTE POSSUI ALGUMA DEFICIÊNCIA</p>
+            <div className="flex w-full h-fit justify-between">
+              <Checkbox
+                isSelected={visualImpairment}
+                onValueChange={setVisualImpairment}
+              >
+                Visual
+              </Checkbox>
+              <Checkbox
+                isSelected={hearingImpairment}
+                onValueChange={setHearingImpairment}
+              >
+                Auditiva
+              </Checkbox>
+              <Checkbox
+                isSelected={motorDisability}
+                onValueChange={setMotorDisability}
+              >
+                Motora
+              </Checkbox>
+              <Checkbox
+                isSelected={cognitiveImpairment}
+                onValueChange={setCognitiveImpairment}
+              >
+                Cognitiva
+              </Checkbox>
+            </div>
             <Input
               type="text"
               label="Alguma observação?"
