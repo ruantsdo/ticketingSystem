@@ -241,11 +241,14 @@ router.post("/token/registration", async (req, res) => {
     const created_by = req.body.created;
     const requested_by = req.body.requested_by;
     const description = req.body.description;
-    const deficiencies = req.body.deficiencies;
+    const visual_impairment = req.body.visual_impairment;
+    const motor_disability = req.body.motor_disability;
+    const hearing_impairment = req.body.hearing_impairment;
+    const cognitive_impairment = req.body.cognitive_impairment;
 
     const insertQuery = `
-      INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at, description, deficiencies)
-      SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?, ?, ?
+      INSERT INTO tokens (position, service, priority, created_by, requested_by, created_at, description, visual_impairment, motor_disability, hearing_impairment, cognitive_impairment)
+      SELECT COALESCE(MAX(position) + 1, 1), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
       FROM tokens
       WHERE service = ?
     `;
@@ -259,7 +262,10 @@ router.post("/token/registration", async (req, res) => {
         requested_by,
         getTime(),
         description,
-        deficiencies,
+        visual_impairment,
+        motor_disability,
+        hearing_impairment,
+        cognitive_impairment,
         service,
       ],
       async (err, result) => {
