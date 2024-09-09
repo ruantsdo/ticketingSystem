@@ -91,6 +91,9 @@ function TokensList() {
   const [isPostPoneEnable, setIsPostPoneEnable] = useState(false);
   const [isPostPoneCountDown, setIsPostPoneCountDown] = useState(0);
 
+  const [isCounting, setIsCounting] = useState(false);
+  const [countingFinished, setCountingFinished] = useState(false);
+
   const [services, setServices] = useState([]);
 
   const rowsPerPage = 5;
@@ -105,9 +108,9 @@ function TokensList() {
   }, [page, tokens]);
 
   const findIndexById = (key) => {
-    for (let i = 0; i <= tokens.length; i++) {
+    for (let i = 0; i <= originalTokens.length; i++) {
       // eslint-disable-next-line
-      if (tokens[i].id == key) {
+      if (originalTokens[i].id == key) {
         setItemKey(i);
         return;
       }
@@ -115,6 +118,13 @@ function TokensList() {
   };
 
   const countdownPostponeTimer = (token) => {
+    if (isCounting || countingFinished) {
+      if (countingFinished) {
+        setIsPostPoneEnable(true);
+      }
+      return;
+    }
+
     const deficiency =
       token.visual_impairment ||
       token.motor_disability ||
@@ -125,6 +135,8 @@ function TokensList() {
 
     setIsPostPoneCountDown(settings.minimum_delay + deficiency);
     setIsPostPoneEnable(false);
+    setIsCounting(true);
+    setCountingFinished(false);
 
     const intervalId = setInterval(() => {
       setIsPostPoneCountDown((prevCountDown) => {
@@ -132,6 +144,8 @@ function TokensList() {
           return prevCountDown - 1;
         } else {
           clearInterval(intervalId);
+          setIsCounting(false);
+          setCountingFinished(true);
           setIsPostPoneEnable(true);
           return 0;
         }
@@ -236,7 +250,17 @@ function TokensList() {
         id: id,
         solved_by: currentUser.name,
       });
+
+      localStorage.removeItem("currentSession");
+
+      setIsPostPoneEnable(false);
+      setIsCounting(false);
+      setCountingFinished(false);
+      setInService(false);
+
       tokenUpdateSignal();
+
+      toast.success("O chamado foi concluído");
     } catch (error) {
       console.error(error);
     }
@@ -277,6 +301,18 @@ function TokensList() {
     });
   };
 
+  const handlePostPone = () => {
+    updateTokenStatus("ADIADO", originalTokens[itemKey].id);
+    localStorage.removeItem("currentSession");
+
+    setIsPostPoneEnable(false);
+    setIsCounting(false);
+    setCountingFinished(false);
+    setInService(false);
+
+    toast.info("A ficha foi adiada!");
+  };
+
   const countTables = (definedLocation) => {
     const location = activeLocations.find(
       (location) => location.id === definedLocation
@@ -292,9 +328,9 @@ function TokensList() {
     setLocationTable(numbers);
   };
 
-  const updateSessionContext = async (tokenKey, inService, token) => {
+  const updateSessionContext = async (tokenKey, token) => {
     const session = {
-      inService: inService,
+      inService: true,
       token_position: tokenKey,
       token: token,
     };
@@ -311,12 +347,30 @@ function TokensList() {
       const currentToken = currentSession.token;
       if (currentToken.id === tokens[currentSession.token_position].id) {
         setItemKey(currentSession.token_position);
-        setInService(currentSession.inService);
+        setInService(true);
+        countdownPostponeTimer(currentToken);
+
         onOpen();
       } else {
-        localStorage.removeItem("currentSession");
+        const currentIndex = tokens.findIndex((t) => t.id === currentToken.id);
+        setItemKey(currentIndex);
+        setInService(true);
+        countdownPostponeTimer(currentToken);
+
+        const session = {
+          inService: true,
+          token_position: currentIndex,
+          token: currentSession.token,
+        };
+        localStorage.setItem("currentSession", JSON.stringify(session));
+
         toast.info("Parece que seu atendimento anterior foi removido ...");
+        onOpen();
       }
+    } else {
+      localStorage.removeItem("currentSession");
+      setItemKey(null);
+      setInService(false);
     }
   };
 
@@ -364,10 +418,10 @@ function TokensList() {
 
       setOriginalTokens(fullTokens);
 
-      getTokenSuggestion(activeTokens);
       setActiveTokens(activeTokens);
       setTokens(activeTokens);
 
+      getTokenSuggestion(fullTokens);
       getSessionContext(fullTokens);
 
       return;
@@ -387,14 +441,13 @@ function TokensList() {
       return token.status.toUpperCase() !== "CONCLUIDO";
     });
 
-    getTokenSuggestion(activeTokens);
-
     setActiveTokens(activeTokens);
 
     setTokens(activeTokens);
 
     setOriginalTokens(filteredTokens);
 
+    getTokenSuggestion(filteredTokens);
     getSessionContext(filteredTokens);
   };
 
@@ -468,6 +521,7 @@ function TokensList() {
   }, []);
 
   useEffect(() => {
+    if (!settings) return;
     getFilteredTokens();
     // eslint-disable-next-line
   }, [userServices]);
@@ -711,7 +765,7 @@ function TokensList() {
               <ModalHeader className="flex flex-col gap-1 justify-center items-center font-semibold">
                 Dados da Ficha
                 <section className="flex gap-3 justify-center items-center">
-                  {tokens[itemKey].priority === 1 ? (
+                  {originalTokens[itemKey].priority === 1 ? (
                     <Chip
                       size="sm"
                       radius="sm"
@@ -730,7 +784,7 @@ function TokensList() {
                       NORMAL
                     </Chip>
                   )}
-                  {tokens[itemKey].status === "EM ESPERA" ? (
+                  {originalTokens[itemKey].status === "EM ESPERA" ? (
                     <Chip
                       size="sm"
                       radius="sm"
@@ -739,7 +793,7 @@ function TokensList() {
                     >
                       EM ESPERA
                     </Chip>
-                  ) : tokens[itemKey].status === "EM ATENDIMENTO" ? (
+                  ) : originalTokens[itemKey].status === "EM ATENDIMENTO" ? (
                     <Chip
                       size="sm"
                       radius="sm"
@@ -748,7 +802,7 @@ function TokensList() {
                     >
                       EM ATENDIMENTO
                     </Chip>
-                  ) : tokens[itemKey].status === "CONCLUIDO" ? (
+                  ) : originalTokens[itemKey].status === "CONCLUIDO" ? (
                     <Chip
                       size="sm"
                       radius="sm"
@@ -758,7 +812,7 @@ function TokensList() {
                       CONCLUÍDO
                     </Chip>
                   ) : (
-                    tokens[itemKey].status === "ADIADO" && (
+                    originalTokens[itemKey].status === "ADIADO" && (
                       <div className="flex gap-3">
                         <Chip
                           size="sm"
@@ -780,32 +834,32 @@ function TokensList() {
                     )
                   )}
                 </section>
-                {tokens[itemKey].visual_impairment ||
-                tokens[itemKey].motor_disability ||
-                tokens[itemKey].hearing_impairment ||
-                tokens[itemKey].cognitive_impairment ? (
+                {originalTokens[itemKey].visual_impairment ||
+                originalTokens[itemKey].motor_disability ||
+                originalTokens[itemKey].hearing_impairment ||
+                originalTokens[itemKey].cognitive_impairment ? (
                   <p className="text-xl indent-2">Portador de deficiência:</p>
                 ) : null}
                 <div className="flex justify-center gap-3 w-full">
-                  {tokens[itemKey].visual_impairment ? (
+                  {originalTokens[itemKey].visual_impairment ? (
                     <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
                       <VisibilityOffIcon fontSize="medium" />
                       <p>Visual</p>
                     </div>
                   ) : null}
-                  {tokens[itemKey].motor_disability ? (
+                  {originalTokens[itemKey].motor_disability ? (
                     <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
                       <AccessibleIcon fontSize="medium" />
                       <p>Motora</p>
                     </div>
                   ) : null}
-                  {tokens[itemKey].hearing_impairment ? (
+                  {originalTokens[itemKey].hearing_impairment ? (
                     <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
                       <HearingDisabledIcon fontSize="medium" />
                       <p>Auditiva</p>
                     </div>
                   ) : null}
-                  {tokens[itemKey].cognitive_impairment ? (
+                  {originalTokens[itemKey].cognitive_impairment ? (
                     <div className="flex gap-1 border-1 rounded pr-2 pl-2 items-center">
                       <PsychologyIcon fontSize="medium" />
                       <p>Cognitiva</p>
@@ -818,14 +872,16 @@ function TokensList() {
                 <div>
                   <h5 className="font-bold">Ficha</h5>
                   <h6 className="indent-2">
-                    {getCurrentServiceName(tokens[itemKey].service)} [{" "}
-                    {tokens[itemKey].position} ]
+                    {getCurrentServiceName(originalTokens[itemKey].service)} [{" "}
+                    {originalTokens[itemKey].position} ]
                   </h6>
                 </div>
-                {tokens[itemKey].requested_by !== "" ? (
+                {originalTokens[itemKey].requested_by !== "" ? (
                   <div>
                     <h5 className="font-bold">Solicitada por: </h5>
-                    <h6 className="indent-2">{tokens[itemKey].requested_by}</h6>
+                    <h6 className="indent-2">
+                      {originalTokens[itemKey].requested_by}
+                    </h6>
                   </div>
                 ) : (
                   <p>Solicitada por: NÃO FOI ESPECIFICADO</p>
@@ -833,39 +889,42 @@ function TokensList() {
                 <div>
                   <h5 className="font-bold">Ficha criada por: </h5>
                   <h6 className="indent-2">
-                    {tokens[itemKey].created_by} em {tokens[itemKey].created_at}
+                    {originalTokens[itemKey].created_by} em{" "}
+                    {originalTokens[itemKey].created_at}
                   </h6>
                 </div>
-                {tokens[itemKey].called_by && (
+                {originalTokens[itemKey].called_by && (
                   <div>
                     <h5 className="font-bold">Chamada por: </h5>
                     <h6 className="indent-2">
-                      {tokens[itemKey].called_by} em {tokens[itemKey].called_at}
+                      {originalTokens[itemKey].called_by} em{" "}
+                      {originalTokens[itemKey].called_at}
                     </h6>
                   </div>
                 )}
-                {tokens[itemKey].delayed_at && (
+                {originalTokens[itemKey].delayed_at && (
                   <div>
                     <h5 className="font-bold">Adiada por: </h5>
                     <h6 className="indent-2">
-                      {tokens[itemKey].delayed_by} em{" "}
-                      {tokens[itemKey].delayed_at}
+                      {originalTokens[itemKey].delayed_by} em{" "}
+                      {originalTokens[itemKey].delayed_at}
                     </h6>
                   </div>
                 )}
-                {tokens[itemKey].solved_at && (
+                {originalTokens[itemKey].solved_at && (
                   <div>
                     <h5 className="font-bold">Atendida por: </h5>
                     <h6 className="indent-2">
-                      {tokens[itemKey].solved_by} em {tokens[itemKey].solved_at}
+                      {originalTokens[itemKey].solved_by} em{" "}
+                      {originalTokens[itemKey].solved_at}
                     </h6>
                   </div>
                 )}
-                {tokens[itemKey].description && (
+                {originalTokens[itemKey].description && (
                   <div className="flex flex-col">
                     <h5 className="font-bold">OBSERVAÇÕES:</h5>
                     <h6 className="max-w-full indent-2 break-words">
-                      {tokens[itemKey].description}
+                      {originalTokens[itemKey].description}
                     </h6>
                   </div>
                 )}
@@ -879,20 +938,18 @@ function TokensList() {
                       isDisabled={!isPostPoneEnable}
                       onPress={() => {
                         setTimeout(async () => {
-                          removeFromQueue(tokens[itemKey]).then((response) => {
-                            if (response === "failed") {
-                              toast.error(
-                                "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
-                              );
-                            } else {
-                              updateTokenStatus("ADIADO", tokens[itemKey].id);
-                              localStorage.removeItem("currentSession");
-                              toast.info("A ficha foi adiada!");
-                              setInService(false);
-                              onClose();
-                              setIsPostPoneEnable(false);
+                          removeFromQueue(originalTokens[itemKey]).then(
+                            (response) => {
+                              if (response === "failed") {
+                                toast.error(
+                                  "Houve um problema ao adiar essa ficha... Tente novamente em instantes..."
+                                );
+                              } else {
+                                handlePostPone();
+                                onClose();
+                              }
                             }
-                          });
+                          );
                         }, 500);
                       }}
                     >
@@ -904,11 +961,8 @@ function TokensList() {
                       isDisabled={!isPostPoneEnable}
                       onPress={() => {
                         setTimeout(async () => {
-                          closeToken(tokens[itemKey].id);
-                          setInService(false);
-                          localStorage.removeItem("currentSession");
+                          closeToken(originalTokens[itemKey].id);
                           onClose();
-                          toast.success("O chamado foi concluído");
                         }, 500);
                       }}
                       mode="success"
@@ -923,7 +977,7 @@ function TokensList() {
                     <Button
                       className="bg-transparent text-failed w-15"
                       onPress={() => {
-                        handleDeleteToken(tokens[itemKey].id);
+                        handleDeleteToken(originalTokens[itemKey].id);
                         onClose();
                       }}
                       startContent={<DeleteForeverIcon />}
@@ -940,8 +994,8 @@ function TokensList() {
                     </Button>
                     <Button
                       isDisabled={
-                        tokens[itemKey].status === "CONCLUIDO" ||
-                        tokens[itemKey].status === "EM ATENDIMENTO"
+                        originalTokens[itemKey].status === "CONCLUIDO" ||
+                        originalTokens[itemKey].status === "EM ATENDIMENTO"
                           ? true
                           : false
                       }
@@ -950,18 +1004,17 @@ function TokensList() {
                           setTimeout(() => {
                             updateTokenStatus(
                               "EM ATENDIMENTO",
-                              tokens[itemKey].id
+                              originalTokens[itemKey].id
                             );
-                            insertOnQueue(tokens[itemKey]);
-                            emitSignalQueueUpdate(tokens[itemKey]);
+                            insertOnQueue(originalTokens[itemKey]);
+                            emitSignalQueueUpdate(originalTokens[itemKey]);
                             setInService(true);
                             updateSessionContext(
                               itemKey,
-                              true,
-                              tokens[itemKey]
+                              originalTokens[itemKey]
                             );
-                            updateCalledToken(tokens[itemKey].id);
-                            countdownPostponeTimer(tokens[itemKey]);
+                            updateCalledToken(originalTokens[itemKey].id);
+                            countdownPostponeTimer(originalTokens[itemKey]);
                             toast.success(
                               "A ficha foi adicionada a fila de chamada..."
                             );
