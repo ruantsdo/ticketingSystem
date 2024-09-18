@@ -47,6 +47,7 @@ function QueueRegistration() {
 
   const [priority, setPriority] = useState(0);
   const [selectedService, setSelectedService] = useState("");
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
 
   const [visualImpairment, setVisualImpairment] = useState(false);
   const [motorDisability, setMotorDisability] = useState(false);
@@ -91,7 +92,7 @@ function QueueRegistration() {
           await api
             .post("/token/registration", {
               priority: priority,
-              service: selectedService,
+              service: selectedServiceId,
               created: currentUser.name,
               requested_by: values.requested_by,
               description: values.description,
@@ -105,6 +106,7 @@ function QueueRegistration() {
               setTokenData(data.tokenData);
               notify(data.message);
               clearDeficiencyChecks();
+
               checkAvailability(selectedService);
 
               setTimeout(() => {
@@ -137,8 +139,8 @@ function QueueRegistration() {
 
   const checkAvailability = async (serviceId) => {
     try {
-      const service = await getServiceById(serviceId);
-      const token = await getTokensByServiceId(serviceId);
+      const service = await getServiceById(serviceId.currentKey);
+      const token = await getTokensByServiceId(serviceId.currentKey);
 
       if (service.data[0].limit === 0) {
         setAvailability(true);
@@ -173,6 +175,12 @@ function QueueRegistration() {
   const splitStringIntoLines = (str, maxCharsPerLine) => {
     const regex = new RegExp(`.{1,${maxCharsPerLine}}`, "g");
     return str.match(regex).join("\n");
+  };
+
+  const handleSelectServiceChanges = (key) => {
+    setSelectedServiceId(key.currentKey);
+    setSelectedService(key);
+    checkAvailability(key);
   };
 
   const handlePrint = useReactToPrint({
@@ -245,7 +253,7 @@ function QueueRegistration() {
             </Select>
             <Select
               isRequired
-              variant={availability ? "flat" : "bordered"}
+              selectionMode="single"
               items={services}
               label="Indique o serviço desejado"
               placeholder={
@@ -259,8 +267,7 @@ function QueueRegistration() {
               name="service"
               selectedKeys={selectedService}
               onSelectionChange={(values) => {
-                setSelectedService(values.currentKey);
-                checkAvailability(values.currentKey);
+                handleSelectServiceChanges(values);
               }}
               endContent={<span className="text-sm">{remaining}</span>}
             >
